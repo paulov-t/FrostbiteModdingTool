@@ -4,6 +4,7 @@ using FrostbiteSdk;
 using FrostbiteSdk.FrostbiteSdk.Managers;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.ModsAndProjects.Projects;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -383,7 +384,7 @@ namespace FrostySdk
             overrideSettings = inOverrideSettings;
         }
 
-        public virtual void WriteProject(FrostbiteProject project)
+        public virtual void WriteProject(IProject project)
         {
             Write(FrostbiteMod.Magic2);
             Write(FrostbiteMod.CurrentVersion);

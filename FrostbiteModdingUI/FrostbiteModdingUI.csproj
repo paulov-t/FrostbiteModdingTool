@@ -234,7 +234,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="NewFolder\" />
     <Folder Include="Pages\Common\Property\" />
     <Folder Include="Pages\Gameplay\" />
     <Folder Include="Properties\DataSources\" />

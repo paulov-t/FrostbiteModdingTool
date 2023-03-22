@@ -1,5 +1,6 @@
 ﻿using FMT.FileTools;
 using FrostySdk.Managers;
+using FrostySdk.ModsAndProjects.Projects;
 using Standart.Hash.xxHash;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ namespace FrostySdk.Frosty.FET
             overrideSettings = inOverrideSettings;
         }
 
-        public override void WriteProject(FrostbiteProject project)
+        public override void WriteProject(IProject project)
         {
             if (project == null)
             {

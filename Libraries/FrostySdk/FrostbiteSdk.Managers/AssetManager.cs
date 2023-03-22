@@ -132,6 +132,8 @@ namespace FrostySdk.Managers
             // Managed Resources
             if (disposing)
             {
+                FileSystem.Instance = null;
+
                 PluginsInitialised = false;
                 PluginAssemblies.Clear();
 
@@ -149,6 +151,10 @@ namespace FrostySdk.Managers
                 }
                 Bundles.Clear();
                 Bundles = null;
+                foreach (var c in EBX)
+                {
+                    EBX[c.Key] = null;
+                }
                 EBX.Clear();
                 EBX = null;
                 RES.Clear();
@@ -157,7 +163,6 @@ namespace FrostySdk.Managers
                 resRidList = null;
                 foreach (var c in Chunks)
                 {
-                    //Chunks[c.Key].Dispose();
                     Chunks[c.Key] = null;
                 }
                 Chunks.Clear();
@@ -166,15 +171,8 @@ namespace FrostySdk.Managers
                 SuperBundleChunks = null;
                 LocaleINIMod = null;
                 TypeLibrary.ExistingAssembly = null;
-                //Instance = null;
 
-                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                //var totalMemoryAfterCollect = GC.GetTotalMemory(true);
-                //var status = GC.WaitForFullGCApproach(-1);
-                //Debug.WriteLine(status);
-                //Debug.WriteLine(totalMemoryAfterCollect);
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true, true);
             }
         }
 

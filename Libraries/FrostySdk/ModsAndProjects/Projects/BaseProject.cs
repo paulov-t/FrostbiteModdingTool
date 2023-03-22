@@ -206,7 +206,38 @@ namespace FrostySdk.ModsAndProjects.Projects
             throw new NotImplementedException();
         }
 
-        public virtual void WriteToMod(string filename, ModSettings overrideSettings)
+        //public virtual void WriteToMod(string filename, ModSettings overrideSettings = null)
+        //{
+        //    byte[] projectbytes;
+
+        //    if (File.Exists(filename))
+        //        File.Delete(filename);
+
+        //    var memoryStream = new MemoryStream();
+        //    FrostbiteModWriter frostyModWriter = new FrostbiteModWriter(memoryStream, overrideSettings);
+        //    frostyModWriter.WriteProject();
+
+        //    memoryStream.Position = 0;
+        //    projectbytes = new NativeReader(memoryStream).ReadToEnd();
+        //    using NativeWriter nwFinal = new NativeWriter(new FileStream(filename, FileMode.CreateNew));
+        //    nwFinal.Write(projectbytes);
+
+        //}
+
+        //public virtual void WriteToFIFAMod(string filename, ModSettings overrideSettings = null)
+        //{
+        //    if (File.Exists(filename))
+        //        File.Delete(filename);
+        //    using (var fs = new FileStream(filename, FileMode.Create))
+        //    {
+        //        FIFAModWriter frostyModWriter = new FIFAModWriter(ProfileManager.LoadedProfile.Name, AssetManager, FileSystem.Instance
+        //            , fs
+        //            , overrideSettings);
+        //        frostyModWriter.WriteProject();
+        //    }
+        //}
+
+        public virtual void WriteToMod(string filename, ModSettings overrideSettings = null)
         {
             byte[] projectbytes;
 
@@ -224,16 +255,18 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         }
 
-        public virtual void WriteToFIFAMod(string filename, ModSettings overrideSettings)
+        public virtual void WriteToFIFAMod(string filename, ModSettings overrideSettings = null)
         {
+            if (overrideSettings == null)
+                overrideSettings = ModSettings;
+
             if (File.Exists(filename))
                 File.Delete(filename);
+
             using (var fs = new FileStream(filename, FileMode.Create))
             {
-                FIFAModWriter frostyModWriter = new FIFAModWriter(ProfileManager.LoadedProfile.Name, AssetManager, FileSystem.Instance
-                    , fs
-                    , overrideSettings);
-                frostyModWriter.WriteProject();
+                FIFAModWriter frostyModWriter = new FIFAModWriter(ProfileManager.LoadedProfile.Name, AssetManager, FileSystem.Instance, fs, overrideSettings);
+                frostyModWriter.WriteProject(this);
             }
         }
     }

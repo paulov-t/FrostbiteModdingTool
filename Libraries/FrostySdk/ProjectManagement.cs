@@ -43,23 +43,24 @@ namespace v2k4FIFAModding.Frosty
         //    }
         //}
 
-        public ProjectManagement(string gamePath)
-        {
-            if (AssetManager.Instance == null)
-                throw new NullReferenceException("AssetManager Instance must be instantiated before ProjectManagement can be used!");
+        //public ProjectManagement(string gamePath)
+        //{
+        //    if (AssetManager.Instance == null)
+        //        throw new NullReferenceException("AssetManager Instance must be instantiated before ProjectManagement can be used!");
 
-            if (Instance == null)
-            {
-                Instance = this;
-                Project = new FrostbiteProject();
-            }
-            else
-            {
-                throw new OverflowException("Cannot create 2 instances of ProjectManagement");
-            }
-        }
+        //    if (Instance == null)
+        //    {
+        //        Instance = this;
+        //        Project = new FrostbiteProject();
+        //        Project.ModSettings.Title = "FMT Editor Project";
+        //    }
+        //    else
+        //    {
+        //        throw new OverflowException("Cannot create 2 instances of ProjectManagement");
+        //    }
+        //}
 
-        public ProjectManagement(string gamePath, ILogger logger)
+        public ProjectManagement(in string gamePath, in ILogger logger = null)
         //: this(gamePath)
         {
             if (AssetManager.Instance == null)
@@ -67,22 +68,17 @@ namespace v2k4FIFAModding.Frosty
 
             if (Instance == null)
             {
-                Logger = logger;
+                if(logger != null)
+                    Logger = logger;
+
                 Instance = this;
                 Project = new FrostbiteProject();
+                Project.ModSettings.Title = "FMT Editor Project";
             }
             else
             {
                 throw new OverflowException("Cannot create 2 instances of ProjectManagement");
             }
-        }
-
-        public static void ClearCurrentConsoleLine()
-        {
-            //int currentLineCursor = Console.CursorTop;
-            //Console.SetCursorPosition(0, Console.CursorTop);
-            //Console.Write(new string(' ', Console.WindowWidth));
-            //Console.SetCursorPosition(0, currentLineCursor);
         }
 
         public void Log(string text, params object[] vars)
@@ -91,7 +87,6 @@ namespace v2k4FIFAModding.Frosty
             {
                 Debug.WriteLine(text);
 
-                ClearCurrentConsoleLine();
                 Console.WriteLine(text);
                 lastMessage = text;
 
@@ -109,7 +104,6 @@ namespace v2k4FIFAModding.Frosty
             {
                 Debug.WriteLine(text);
 
-                ClearCurrentConsoleLine();
                 Console.WriteLine(text);
                 lastMessage = text;
 
@@ -126,7 +120,6 @@ namespace v2k4FIFAModding.Frosty
             {
                 Debug.WriteLine(text);
 
-                ClearCurrentConsoleLine();
                 Console.WriteLine(text);
                 lastMessage = text;
 

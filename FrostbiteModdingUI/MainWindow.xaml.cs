@@ -60,6 +60,16 @@ namespace FMT
                 AssetManager.Instance = null;
             }
             DataContext = this;
+
+            IsVisibleChanged += MainWindow_IsVisibleChanged;
+        }
+
+        private void MainWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if(Visibility == Visibility.Visible)
+            {
+                GCHelpers.ClearGarbage(true);
+            }
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)
@@ -93,6 +103,7 @@ namespace FMT
 
             Application.Current.Shutdown();
         }
+
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -151,6 +162,8 @@ namespace FMT
                 }
             }
         }
+
+
 
         private void Tile_Click(object sender, RoutedEventArgs e)
         {

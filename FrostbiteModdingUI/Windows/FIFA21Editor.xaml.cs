@@ -109,16 +109,14 @@ namespace FIFAModdingUI.Windows
         protected override void OnClosed(EventArgs e)
         {
             GameInstanceSingleton.Instance = null;
-            ProjectManagement = null;
             ProjectManagement.Instance = null;
             if (AssetManager.Instance != null)
             {
                 AssetManager.Instance.Dispose();
                 AssetManager.Instance = null;
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
             }
 
+            GCHelpers.ClearGarbage(true);
             Owner.Visibility = Visibility.Visible;
 
             base.OnClosed(e);
@@ -150,7 +148,7 @@ namespace FIFAModdingUI.Windows
             this.UpdateLayout();
         }
 
-        public static ProjectManagement ProjectManagement { get; set; }
+        public static ProjectManagement ProjectManagement => ProjectManagement.Instance;
 
         public async Task InitialiseOfSelectedGame(string filePath)
         {
@@ -175,10 +173,8 @@ namespace FIFAModdingUI.Windows
             //    () =>
             //{
 
-
-                ProjectManagement = new ProjectManagement(filePath, loadingDialog);
-                ProjectManagement.Logger = this;
-                await ProjectManagement.StartNewProjectAsync();
+            new ProjectManagement(filePath, this);
+            //await ProjectManagement.StartNewProjectAsync();
             //InitialiseBrowsers();
             await UpdateAllBrowsersFull();
 
@@ -324,6 +320,8 @@ namespace FIFAModdingUI.Windows
             if (DoNotLog)
                 return;
 
+            txtLog.ScrollToEnd();
+
             var stringBuilder = new StringBuilder();
 
             var txt = string.Empty;
@@ -399,6 +397,7 @@ namespace FIFAModdingUI.Windows
             if (DoNotLog)
                 return;
 
+            FileLogger.WriteLine("[ERROR] " + text);
             Debug.WriteLine("[ERROR] " + text);
             LogSync("[ERROR] " + text);
         }
@@ -569,7 +568,7 @@ namespace FIFAModdingUI.Windows
 
 
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "Project files|*.fbproject;*.fmtproj";
+            saveFileDialog.Filter = "Project files|*.fbproject";
             var result = saveFileDialog.ShowDialog();
             if (result.HasValue && result.Value)
             {
@@ -767,6 +766,11 @@ namespace FIFAModdingUI.Windows
         private async void btnLaunchFIFAInEditor_Click(object sender, RoutedEventArgs e)
         {
             //LegacyFileManager_FMTV2.CleanUpChunks();
+            if(string.IsNullOrEmpty(ProjectManagement.Project.ModSettings.Title))
+            {
+                LogError("Unable to launch. Please provide a Title in the Mod Details screen.");
+                return;
+            }
 
             loadingDialog.Update("Launching game", "-", 0);
             await Dispatcher.InvokeAsync(() => { btnLaunchFIFAInEditor.IsEnabled = false; });
@@ -775,7 +779,7 @@ namespace FIFAModdingUI.Windows
             {
                 loadingDialog.Update("Launching game", "Autosaving project", 25);
                 Log("Autosaving Project");
-                bool saved = await Task.Run(() =>
+                bool saved = await Task.Run(async() =>
                 {
                     // Delete old Autosaves
                     foreach (var tFile in Directory.GetFiles(App.ApplicationDirectory, "*.fbproject"))
@@ -784,24 +788,22 @@ namespace FIFAModdingUI.Windows
                             File.Delete(tFile);
                     };
                     var fnBeforeAutoSave = ProjectManagement.Project.Filename;
-                    var result = ProjectManagement.Project.SaveAsync("Autosave-" + RandomSaver.Next().ToString() + ".fbproject", true).Result;
+                    var result = await ProjectManagement.Project.SaveAsync("Autosave-" + RandomSaver.Next().ToString() + ".fbproject", true);
                     //return ProjectManagement.Project.Save(fnBeforeAutoSave);
                     ProjectManagement.Project.Filename = fnBeforeAutoSave;
                     return result;
                 });
             }
 
-
-            //Log("Deleting old test mods");
             foreach (var tFile in Directory.GetFiles(App.ApplicationDirectory, "*.fbmod")) { File.Delete(tFile); };
 
             var testmodname = "EditorProject.fbmod";
 
             var author = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Author : string.Empty;
-            var category = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Author : string.Empty;
-            var desc = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Author : string.Empty;
-            var title = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Author : string.Empty;
-            var version = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Author : string.Empty;
+            var category = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Category : string.Empty;
+            var desc = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Description : string.Empty;
+            var title = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Title : string.Empty;
+            var version = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Version : string.Empty;
 
             loadingDialog.Update("Launching game", "Creating Mod", 50);
             await Task.Run(() =>

@@ -525,37 +525,44 @@ namespace FrostySdk
             return modSettings;
         }
 
-        public override void WriteToMod(string filename, ModSettings overrideSettings)
-        {
-            byte[] projectbytes;
+        //public override void WriteToMod(string filename, ModSettings overrideSettings = null)
+        //{
+        //    if (overrideSettings == null)
+        //        overrideSettings = ModSettings;
 
-            if (File.Exists(filename))
-                File.Delete(filename);
+        //    byte[] projectbytes;
 
-            using var memoryStream = new MemoryStream();
-            FrostbiteModWriter frostyModWriter = new FrostbiteModWriter(memoryStream, overrideSettings);
-            frostyModWriter.WriteProject(this);
+        //    if (File.Exists(filename))
+        //        File.Delete(filename);
 
-            memoryStream.Position = 0;
-            using (var nr = new NativeReader(memoryStream))
-            projectbytes = nr.ReadToEnd();
-            using NativeWriter nwFinal = new NativeWriter(new FileStream(filename, FileMode.CreateNew));
-            nwFinal.Write(projectbytes);
+        //    using var memoryStream = new MemoryStream();
 
-        }
+        //    FrostbiteModWriter frostyModWriter = new FrostbiteModWriter(memoryStream, overrideSettings);
+        //    frostyModWriter.WriteProject(this);
 
-        public override void WriteToFIFAMod(string filename, ModSettings overrideSettings)
-        {
-            if (File.Exists(filename))
-                File.Delete(filename);
-            using (var fs = new FileStream(filename, FileMode.Create))
-            {
-                FIFAModWriter frostyModWriter = new FIFAModWriter(ProfileManager.LoadedProfile.Name, AssetManager, FileSystem
-                    , fs
-                    , overrideSettings);
-                frostyModWriter.WriteProject(this);
-            }
-        }
+        //    memoryStream.Position = 0;
+        //    using (var nr = new NativeReader(memoryStream))
+        //    projectbytes = nr.ReadToEnd();
+        //    using NativeWriter nwFinal = new NativeWriter(new FileStream(filename, FileMode.CreateNew));
+        //    nwFinal.Write(projectbytes);
+
+        //}
+
+        //public override void WriteToFIFAMod(string filename, ModSettings overrideSettings = null)
+        //{
+        //    if (overrideSettings == null)
+        //        overrideSettings = ModSettings;
+
+        //    if (File.Exists(filename))
+        //        File.Delete(filename);
+        //    using (var fs = new FileStream(filename, FileMode.Create))
+        //    {
+        //        FIFAModWriter frostyModWriter = new FIFAModWriter(ProfileManager.LoadedProfile.Name, AssetManager, FileSystem
+        //            , fs
+        //            , overrideSettings);
+        //        frostyModWriter.WriteProject(this);
+        //    }
+        //}
 
         public static void SaveLinkedAssets(AssetEntry entry, NativeWriter writer)
         {
