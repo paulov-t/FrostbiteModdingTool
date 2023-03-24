@@ -3,6 +3,7 @@ using FIFAModdingUI.Pages.Common;
 using FMT;
 using FMT.Controls.Pages;
 using FMT.FileTools;
+using FMT.FileTools.Modding;
 using FMT.Windows;
 using FolderBrowserEx;
 using Frostbite.FileManagers;
@@ -146,6 +147,7 @@ namespace FIFAModdingUI.Windows
             this.DataContext = null;
             this.DataContext = this;
             this.UpdateLayout();
+            DiscordInterop.DiscordRpcClient.UpdateDetails($"In Editor [{ProfileManager.Game}] {AdditionalTitle}");
         }
 
         public static ProjectManagement ProjectManagement => ProjectManagement.Instance;
@@ -225,6 +227,14 @@ namespace FIFAModdingUI.Windows
 
             });
 
+            if(ProfileManager.IsLoaded(EGame.FIFA20, EGame.FIFA21))
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    btnCompileLegacyModFromFolder.Visibility = Visibility.Visible;
+                    btnCleanUpLegacyFiles.Visibility = Visibility.Visible;
+                });
+            }
 
             EnableEditor();
 
@@ -555,48 +565,72 @@ namespace FIFAModdingUI.Windows
 
         private async Task<bool> SaveProjectWithDialog()
         {
-            loadingDialog.Update("Saving Project", "Sweeping up debris", 0);
+            loadingDialog.UpdateAsync("Saving Project", "Sweeping up debris", 0);
             //borderLoading.Visibility = Visibility.Visible;
             //loadingDialog.Show();
             await Task.Delay(100);
             // ---------------------------------------------------------
             // Remove chunks and actual unmodified files before writing
-            ChunkFileManager2022.CleanUpChunks();
+            //ChunkFileManager2022.CleanUpChunks();
 
-            loadingDialog.Update("", "");
-
-
+            await loadingDialog.UpdateAsync("", "");
 
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "Project files|*.fbproject";
+            saveFileDialog.Filter = "FMTProject files|*.fmtproj|FBProject files|*.fbproject|All Files (*.*)|*.*";
             var result = saveFileDialog.ShowDialog();
-            if (result.HasValue && result.Value)
+            if (!result.HasValue || !result.Value)
+                return false;
+
+            if (string.IsNullOrEmpty(saveFileDialog.FileName))
+                return false;
+
+            await loadingDialog.UpdateAsync("Saving Project", "Saving project to file");
+
+            // FMT Project file type
+            if (saveFileDialog.FileName.EndsWith(".fmtproj", StringComparison.OrdinalIgnoreCase))
             {
-                if (!string.IsNullOrEmpty(saveFileDialog.FileName))
+                // Same file -- Simple Update
+                if (ProjectManagement.Project is FMTProject fmtProj && fmtProj.Filename.Equals(saveFileDialog.FileName, StringComparison.OrdinalIgnoreCase))
+                    fmtProj.Update();
+                // Different file -- Create new file and Update
+                else
+                    ProjectManagement.Project = new FMTProject(saveFileDialog.FileName).Update();
+            }
+            // Legacy fbproject file type
+            else if (saveFileDialog.FileName.EndsWith(".fbproject", StringComparison.OrdinalIgnoreCase))
+            {
+                // Same file -- Simple Update
+                if (ProjectManagement.Project is FrostbiteProject fbProj)
+                    await fbProj.SaveAsync(saveFileDialog.FileName, true);
+                // Different file -- Create new file and Update
+                else
                 {
-                    loadingDialog.Update("Saving Project", "Saving project to file", 0);
-
-                    if (saveFileDialog.FileName.EndsWith(".fmtproj", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ProjectManagement.Project = new FMTProject(saveFileDialog.FileName).Update();
-                    }
-                    else
-                    {
-                        await ProjectManagement.Project.SaveAsync(saveFileDialog.FileName, true);
-
-                        lstProjectFiles.ItemsSource = null;
-                        lstProjectFiles.ItemsSource = ProjectManagement.Project.ModifiedAssetEntries;
-                        
-                        DiscordInterop.DiscordRpcClient.UpdateDetails("In Editor [" + GameInstanceSingleton.Instance.GAMEVERSION + "] - " + ProjectManagement.Project.DisplayName);
-                    }
-
-                    Log("Saved project successfully to " + saveFileDialog.FileName);
-                    UpdateWindowTitle(saveFileDialog.FileName);
-
+                    ModSettings modSettings = ProjectManagement.Project.ModSettings.CloneJson();
+                    ProjectManagement.Project = new FrostbiteProject();
+                    ProjectManagement.Project.ModSettings.Author = modSettings.Author;
+                    ProjectManagement.Project.ModSettings.Description = modSettings.Description;
+                    ProjectManagement.Project.ModSettings.Title = modSettings.Title;
+                    ProjectManagement.Project.ModSettings.Version = modSettings.Version;
+                    await ProjectManagement.Project.SaveAsync(saveFileDialog.FileName, true);
                 }
             }
+            // Unknown File
+            else
+            {
+                Log("Unknown file type detected. Project failed to save to " + saveFileDialog.FileName);
+                return false;
+            }
 
-            loadingDialog.Update("", "");
+
+            lstProjectFiles.ItemsSource = null;
+            lstProjectFiles.ItemsSource = ProjectManagement.Project.ModifiedAssetEntries;
+
+
+            Log("Saved project successfully to " + saveFileDialog.FileName);
+            UpdateWindowTitle(saveFileDialog.FileName);
+
+
+            await loadingDialog.UpdateAsync("", "");
 
             return true;
         }
@@ -636,7 +670,6 @@ namespace FIFAModdingUI.Windows
                 if (string.IsNullOrEmpty(openFileDialog.FileName))
                     return;
 
-                {
                     loadingDialog.Update("Loading Project", "Resetting files");
                     await AssetManager.Instance.ResetAsync();
                     //AssetManager.Instance.Reset();
@@ -650,13 +683,18 @@ namespace FIFAModdingUI.Windows
                         LogError("Unable to load project. The file doesn't exist");
                         return;
                     }
+
+                    ProjectManagement.Project = null;
+
                     var fileExtension = fiFile.Extension.ToLower();
                     switch (fileExtension)
                     {
+
                         case ".fbproject":
                             CancellationToken cancellation = default(CancellationToken);
                             try
                             {
+                                ProjectManagement.Project = new FrostbiteProject();
                                 await ProjectManagement.Project.LoadAsync(openFileDialog.FileName, cancellation);
                             }
                             catch (Exception ex)
@@ -686,21 +724,8 @@ namespace FIFAModdingUI.Windows
                             {
                                 using (FIFAModReader reader = new FIFAModReader(new FileStream(fiFile.FullName, FileMode.Open)))
                                 {
+                                    ProjectManagement.Project = new FrostbiteProject();
                                     ProjectManagement.Project.Load(reader);
-
-                                //    var fmtProjLoadInFIFAMod = new FMTProject("loadInFIFAMod");
-                                //    if (fmtProjLoadInFIFAMod.ReadFromFIFAMod(reader))
-                                //    {
-                                //        Log($"Successfully opened {fiFile.FullName}");
-                                //        fmtProjLoadInFIFAMod = null;
-                                //        if (File.Exists("loadInFIFAMod.fmtproj"))
-                                //            File.Delete("loadInFIFAMod.fmtproj");
-                                //    }
-                                //    else
-                                //    {
-                                //        Log($"Failed to open {fiFile.FullName}");
-                                //    }
-                                //    fmtProjLoadInFIFAMod = null;
                                 }
                             }
                             break;
@@ -750,7 +775,6 @@ namespace FIFAModdingUI.Windows
 
 
 
-                }
             }
             loadingDialog.Update("", "");
             //loadingDialog.Close();

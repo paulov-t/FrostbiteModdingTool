@@ -27,7 +27,7 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         public virtual AssetManager AssetManager => AssetManager.Instance;
 
-        public virtual ModSettings ModSettings { get; } = new ModSettings();
+        public virtual ModSettings ModSettings { get; protected set; } = new ModSettings();
 
         public virtual IEnumerable<AssetEntry> ModifiedAssetEntries
         {

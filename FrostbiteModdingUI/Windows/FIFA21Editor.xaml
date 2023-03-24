@@ -126,8 +126,7 @@
                                 </StackPanel>
                             </MenuItem.Header>
                         </MenuItem>
-                        <Separator></Separator>
-                        <MenuItem x:Name="btnCompileLegacyModFromFolder"  Click="btnCompileLegacyModFromFolder_Click">
+                        <MenuItem x:Name="btnCompileLegacyModFromFolder"  Click="btnCompileLegacyModFromFolder_Click" Visibility="Collapsed">
                             <MenuItem.Header>
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
                                     <MaterialDesign:PackIcon Kind="ZipBox" VerticalAlignment="Center" />
@@ -135,7 +134,7 @@
                                 </StackPanel>
                             </MenuItem.Header>
                         </MenuItem>
-                        <MenuItem x:Name="btnCleanUpLegacyFiles" Click="btnCleanUpLegacyFiles_Click">
+                        <MenuItem x:Name="btnCleanUpLegacyFiles" Click="btnCleanUpLegacyFiles_Click"  Visibility="Collapsed">
                             <MenuItem.Header>
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
                                     <MaterialDesign:PackIcon Kind="Cleaning" VerticalAlignment="Center" />
@@ -143,7 +142,6 @@
                                 </StackPanel>
                             </MenuItem.Header>
                         </MenuItem>
-                        <Separator></Separator>
                         <MenuItem x:Name="btnOpenEmbeddedFilesWindow" Click="btnOpenEmbeddedFilesWindow_Click">
                             <MenuItem.Header>
                                 <StackPanel  VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
@@ -152,8 +150,7 @@
                                 </StackPanel>
                             </MenuItem.Header>
                         </MenuItem>
-                        <Separator></Separator>
-                        <MenuItem x:Name="btnRebuildCacheSdk" Click="btnRebuildCacheSdk_Click">
+                        <MenuItem x:Name="btnRebuildCacheSdk" Click="btnRebuildCacheSdk_Click" Visibility="Collapsed" >
                             <MenuItem.Header>
                                 <StackPanel  VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
                                     <MaterialDesign:PackIcon Kind="OpenInNew" VerticalAlignment="Center" />
