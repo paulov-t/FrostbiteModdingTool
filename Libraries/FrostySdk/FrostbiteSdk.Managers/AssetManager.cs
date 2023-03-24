@@ -585,7 +585,7 @@ namespace FrostySdk.Managers
 
         public Task ResetAsync()
         {
-            return Task.FromResult(Reset);
+            return Task.Run(Reset);
         }
 
         public void Reset()
@@ -964,6 +964,27 @@ namespace FrostySdk.Managers
                 if (meta != null)
                 {
                     resAssetEntry.ModifiedEntry.ResMeta = meta;
+                }
+                resAssetEntry.IsDirty = true;
+            }
+        }
+
+        public void ModifyResCompressed(string resName, byte[] resData, byte[] resMeta = null)
+        {
+            if (RES.ContainsKey(resName))
+            {
+                ResAssetEntry resAssetEntry = RES[resName];
+
+                resAssetEntry.ModifiedEntry = new ModifiedAssetEntry();
+                resAssetEntry.ModifiedEntry.Data = resData;
+                using (CasReader casReader = new CasReader(new MemoryStream(resData)))
+                    resAssetEntry.ModifiedEntry.OriginalSize = casReader.Read().Length;
+
+                resAssetEntry.ModifiedEntry.Sha1 = GenerateSha1(resAssetEntry.ModifiedEntry.Data);
+
+                if (resMeta != null)
+                {
+                    resAssetEntry.ModifiedEntry.ResMeta = resMeta;
                 }
                 resAssetEntry.IsDirty = true;
             }
