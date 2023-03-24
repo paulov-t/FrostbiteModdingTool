@@ -28,7 +28,7 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         public FileInfo projectFileInfo { get { return new FileInfo(projectFilePath); } }
 
-        public override bool IsDirty => throw new NotImplementedException();
+        public override bool IsDirty => true;
 
         public override string Filename => projectFilePath;
 
@@ -46,7 +46,7 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         public override AssetManager AssetManager => AssetManager.Instance;
 
-        public override ModSettings ModSettings { get; } = new ModSettings();
+        //public override ModSettings ModSettings { get; private set; } = new ModSettings();
 
         public ModSettings GetModSettings()
         {
@@ -93,9 +93,9 @@ namespace FrostySdk.ModsAndProjects.Projects
             FMTProject project = new FMTProject(filePath);
             using (NativeReader nr = new NativeReader(filePath))
             {
-                nr.ReadInt();
-                nr.ReadInt();
-                nr.ReadLengthPrefixedString();
+                var projectVersion = nr.ReadInt();
+                var gameDataVersion = nr.ReadInt();
+                project.ModSettings = JsonConvert.DeserializeObject<ModSettings>(nr.ReadLengthPrefixedString());
 
                 var assetManagerPositions = new Dictionary<string, long>();
                 var countOfAssetManagers = nr.ReadInt();
@@ -257,7 +257,14 @@ namespace FrostySdk.ModsAndProjects.Projects
                 var json = nr.ReadLengthPrefixedString();
 
                 AssetEntryImporter assetEntryImporter = new AssetEntryImporter(AssetManager.Instance.GetEbxEntry(assetName));
-                assetEntryImporter.ImportWithJSON(Encoding.UTF8.GetBytes(json));
+                try
+                {
+                    assetEntryImporter.ImportWithJSON(Encoding.UTF8.GetBytes(json));
+                }
+                catch(Exception ex) 
+                {
+                    FileLogger.WriteLine($"Failed to load {assetName} from Project with message {ex.Message}");
+                }
             }
         }
 
@@ -285,7 +292,7 @@ namespace FrostySdk.ModsAndProjects.Projects
                 var assetName = nr.ReadLengthPrefixedString();
                 // Item Data
                 var data = nr.ReadLengthPrefixedBytes();
-                AssetManager.Instance.ModifyRes(assetName, data);
+                //AssetManager.Instance.ModifyResCompressed(assetName, data);
             }
         }
 
@@ -298,8 +305,9 @@ namespace FrostySdk.ModsAndProjects.Projects
             {
                 // Item Name
                 nw.Write(item.Id);
-                // Item Data
-                nw.WriteLengthPrefixedBytes(item.ModifiedEntry.Data);
+                // Item Data -- Need to decompress and export it
+                using(CasReader reader = new CasReader(new MemoryStream(item.ModifiedEntry.Data)))
+                    nw.WriteLengthPrefixedBytes(reader.Read());
             }
         }
 
