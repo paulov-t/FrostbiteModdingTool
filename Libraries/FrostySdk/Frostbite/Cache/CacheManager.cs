@@ -116,7 +116,9 @@ namespace FrostySdk.Frostbite
             return EnumerateEbx(name, string.Empty, false, false).Result.First();
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         protected static async ValueTask<IEnumerable<EbxAssetEntry>> EnumerateEbx(string name, string type, bool modifiedOnly, bool includeLinked)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             using (NativeReader nativeReader = new NativeReader(AssetManager.CacheDecompress()))
             {

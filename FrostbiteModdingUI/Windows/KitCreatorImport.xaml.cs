@@ -30,7 +30,7 @@ namespace FMT.Windows
 
         private async void Import_Click(object sender, RoutedEventArgs e)
         {
-            Dispatcher.Invoke(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
                 txtLog.Text = string.Empty;
                 //btnImport.IsEnabled = false;
@@ -47,7 +47,7 @@ namespace FMT.Windows
 
             ZipFile zip = new ZipFile(SelectedFile);
             var entries = zip.Entries.ToList();
-            Dispatcher.Invoke(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
                 pBar.Minimum = 0;
                 pBar.Maximum = entries.Count > 0 ? entries.Count : 1;

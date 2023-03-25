@@ -27,6 +27,7 @@ using System.Dynamic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -260,7 +261,7 @@ namespace FIFAModdingUI.Windows
 
         private void InitialiseBrowsers()
         {
-            UpdateAllBrowsersFull();
+            _ = UpdateAllBrowsersFull();
         }
 
         LauncherOptions LauncherOptions { get; set; }
@@ -726,6 +727,7 @@ namespace FIFAModdingUI.Windows
                                 {
                                     ProjectManagement.Project = new FrostbiteProject();
                                     ProjectManagement.Project.Load(reader);
+                                    ProjectManagement.Project.ModSettings.MergedModList.Add(ProjectManagement.Project.ModSettings);
                                 }
                             }
                             break;
@@ -739,19 +741,17 @@ namespace FIFAModdingUI.Windows
                             if (mbFBMod == MessageBoxResult.OK)
                             {
                                 FrostbiteMod frostbiteMod = new FrostbiteMod(fiFile.FullName);
-                                //using (FrostbiteModReader reader = new FrostbiteModReader(new FileStream(fiFile.FullName, FileMode.Open)))
+                                ProjectManagement.Instance.Project = new FMTProject("loadInFbMod");
+                                if (ProjectManagement.Instance.Project.Load(frostbiteMod))
                                 {
-                                    ProjectManagement.Instance.Project = new FMTProject("loadInFbMod");
-                                    if (ProjectManagement.Instance.Project.Load(frostbiteMod))
-                                    {
-                                        Log($"Successfully opened {fiFile.FullName}");
-                                    }
-                                    else
-                                    {
-                                        Log($"Failed to open {fiFile.FullName}");
-                                    }
+                                    ProjectManagement.Project.ModSettings.MergedModList.Add(ProjectManagement.Project.ModSettings);
+                                    Log($"Successfully opened {fiFile.FullName}");
                                 }
-                            }
+                                else
+                                {
+                                    Log($"Failed to open {fiFile.FullName}");
+                                }
+                        }
                             break;
                     }
 
@@ -1313,9 +1313,15 @@ namespace FIFAModdingUI.Windows
             var result = openFileDialog.ShowDialog();
             if (result.HasValue && result.Value)
             {
-                if (!string.IsNullOrEmpty(openFileDialog.FileName))
+                if (string.IsNullOrEmpty(openFileDialog.FileName))
+                    return;
+
                 {
                     await loadingDialog.UpdateAsync("Loading Project", "Loading and Merging Project File");
+                    IEnumerable<Assembly> currentAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+                    var assemblyWithType = currentAssemblies.FirstOrDefault(x => x.GetTypes().Any(x => x.GetInterface(nameof(IProject)) != null));
+                    if (assemblyWithType == null)
+                        return;
 
                     var mergerProject = new FrostbiteProject();
                     await mergerProject.LoadAsync(openFileDialog.FileName);

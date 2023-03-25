@@ -328,13 +328,13 @@ namespace FrostySdk.Managers
 
         public HashSet<string> TOCFileLocations { get; } = new HashSet<string>();
 
-        [Obsolete]
+        //[Obsolete]
         public int SB_CAS_Offset_Position { get; set; }
-        [Obsolete]
+        //[Obsolete]
         public int SB_CAS_Size_Position { get; set; }
-        [Obsolete]
+        //[Obsolete]
         public int SB_Sha1_Position { get; set; }
-        [Obsolete]
+        //[Obsolete]
         public int SB_OriginalSize_Position { get; set; }
 
         public string ExtraInformation { get; set; }
@@ -344,7 +344,7 @@ namespace FrostySdk.Managers
 
 
         public bool IsLegacy = false;
-        private bool disposedValue;
+        //private bool disposedValue;
 
 
         // ---- -----------------------------------------------------------------
