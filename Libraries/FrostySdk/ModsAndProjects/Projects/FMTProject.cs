@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using v2k4FIFAModding.Frosty;
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using static PInvoke.Kernel32;
 
 namespace FrostySdk.ModsAndProjects.Projects
@@ -277,8 +278,10 @@ namespace FrostySdk.ModsAndProjects.Projects
             {
                 // Item Name
                 nw.WriteLengthPrefixedString(item.Name);
-                // Item Data
-                nw.WriteLengthPrefixedBytes(item.ModifiedEntry.Data);
+                // Item Data -- Need to decompress and export it
+                //nw.WriteLengthPrefixedBytes(item.ModifiedEntry.Data);
+                using (CasReader reader = new CasReader(new MemoryStream(item.ModifiedEntry.Data)))
+                    nw.WriteLengthPrefixedBytes(reader.Read());
             }
         }
 
@@ -292,7 +295,17 @@ namespace FrostySdk.ModsAndProjects.Projects
                 var assetName = nr.ReadLengthPrefixedString();
                 // Item Data
                 var data = nr.ReadLengthPrefixedBytes();
-                //AssetManager.Instance.ModifyResCompressed(assetName, data);
+                AssetEntryImporter assetEntryImporter = new AssetEntryImporter(AssetManager.Instance.GetResEntry(assetName));
+                try
+                {
+                    assetEntryImporter.Import(data);
+                }
+                catch (Exception ex)
+                {
+                    FileLogger.WriteLine($"Failed to load {assetName} from Project with message {ex.Message}");
+                }
+                //using (CasReader reader = new CasReader(new MemoryStream(data)))
+                //    AssetManager.Instance.ModifyRes(assetName, data);
             }
         }
 
