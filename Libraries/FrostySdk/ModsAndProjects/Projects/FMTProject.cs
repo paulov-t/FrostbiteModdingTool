@@ -47,6 +47,8 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         public override AssetManager AssetManager => AssetManager.Instance;
 
+        public override string FileExtension => ".fmtproj";
+
         //public override ModSettings ModSettings { get; private set; } = new ModSettings();
 
         public ModSettings GetModSettings()

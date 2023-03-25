@@ -16,6 +16,8 @@ namespace FrostySdk.ModsAndProjects.Projects
 {
     public interface IProject
     {
+        public string FileExtension { get; }
+
         public bool IsDirty { get; }
         public string Filename { get; set; }
         public string DisplayName { get; }

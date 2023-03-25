@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,7 +39,7 @@ namespace FrostySdk
 
         private ModSettings modSettings;
 
-        public string DisplayName
+        public override string DisplayName
         {
             get
             {
@@ -50,7 +51,7 @@ namespace FrostySdk
             }
         }
 
-        public string Filename
+        public override string Filename
         {
             get
             {
@@ -62,7 +63,7 @@ namespace FrostySdk
             }
         }
 
-        public bool IsDirty
+        public override bool IsDirty
         {
             get
             {
@@ -73,10 +74,6 @@ namespace FrostySdk
                 return true;
             }
         }
-
-        public ModSettings ModSettings => modSettings;
-
-        public AssetManager AssetManager { get { return AssetManager.Instance; } }
 
         public FileSystem FileSystem { get { return AssetManager.Instance.FileSystem; } }
 
@@ -112,13 +109,8 @@ namespace FrostySdk
         {
             using (NativeReader nativeReader = new NativeReader(inStream))
             {
-                //if (nativeReader.ReadULong() == 98218709832262L)
-                //{
                 return InternalLoad(nativeReader).Result;
-                //}
             }
-
-            //return false;
         }
 
         public override async Task<bool> LoadAsync(string inFilename, CancellationToken cancellationToken = default(CancellationToken))
@@ -148,6 +140,8 @@ namespace FrostySdk
                 return entries;
             }
         }
+
+        public override string FileExtension => ".fbproject";
 
         public override async Task<bool> SaveAsync(string overrideFilename = "", bool updateDirtyState = true)
         {
@@ -694,7 +688,9 @@ namespace FrostySdk
         public int ChunkCount;
         public int LegacyCount;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private async Task<bool> InternalLoad(NativeReader reader, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             if (reader.ReadULong() != 98218709832262L)
                 return false;
@@ -1151,6 +1147,10 @@ namespace FrostySdk
             }
         }
 
+
+        /// <summary>
+        /// Description of the mod. Is usually a Multi-Line description of the entire mod.
+        /// </summary>
         public string Description
         {
             get
@@ -1163,6 +1163,13 @@ namespace FrostySdk
                 {
                     description = value;
                     isDirty = true;
+                }
+
+                if (!description.Contains(mergedModListDescription))
+                {
+                    description += Environment.NewLine;
+                    description += "Included Mods: " + Environment.NewLine;
+                    description += mergedModListDescription;
                 }
             }
         }
@@ -1178,6 +1185,21 @@ namespace FrostySdk
                 iconData = value;
                 isDirty = true;
             }
+        }
+
+        public List<ModSettings> MergedModList { get; set; } = new List<ModSettings>();
+
+        private string mergedModListDescription 
+        { 
+            get
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+                foreach(var mod in MergedModList)
+                {
+                    stringBuilder.AppendLine(mod.Author + "'s " + mod.Title);
+                }
+                return stringBuilder.ToString();
+            } 
         }
 
         public ModSettings()

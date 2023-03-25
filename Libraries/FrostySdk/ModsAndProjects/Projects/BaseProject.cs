@@ -42,6 +42,8 @@ namespace FrostySdk.ModsAndProjects.Projects
             }
         }
 
+        public abstract string FileExtension { get; }
+
         public virtual bool Load(in FIFAModReader reader)
         {
             var resources = reader.ReadResources()
