@@ -590,6 +590,8 @@ namespace FIFAModdingUI.Windows
             // FMT Project file type
             if (saveFileDialog.FileName.EndsWith(".fmtproj", StringComparison.OrdinalIgnoreCase))
             {
+                MessageBox.Show("FMTProj file type is EXPERIMENTAL. If concerned, use fbproject instead.");
+
                 // Same file -- Simple Update
                 if (ProjectManagement.Project is FMTProject fmtProj && fmtProj.Filename.Equals(saveFileDialog.FileName, StringComparison.OrdinalIgnoreCase))
                     fmtProj.Update();
@@ -796,12 +798,12 @@ namespace FIFAModdingUI.Windows
                 return;
             }
 
-            loadingDialog.Update("Launching game", "-", 0);
+            loadingDialog.UpdateAsync("Launching game", "-", 0);
             await Dispatcher.InvokeAsync(() => { btnLaunchFIFAInEditor.IsEnabled = false; });
 
             if (!string.IsNullOrEmpty(ProjectManagement.Project.Filename))
             {
-                loadingDialog.Update("Launching game", "Autosaving project", 25);
+                loadingDialog.UpdateAsync("Launching game", "Autosaving project", 25);
                 Log("Autosaving Project");
                 bool saved = await Task.Run(async() =>
                 {
@@ -829,7 +831,7 @@ namespace FIFAModdingUI.Windows
             var title = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Title : string.Empty;
             var version = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Version : string.Empty;
 
-            loadingDialog.Update("Launching game", "Creating Mod", 50);
+            loadingDialog.UpdateAsync("Launching game", "Creating Mod", 50);
             await Task.Run(() =>
             {
                 ProjectManagement.Project.WriteToMod(testmodname
@@ -847,13 +849,16 @@ namespace FIFAModdingUI.Windows
 
             try
             {
-                loadingDialog.Update("Launching game", "Compiling", 99);
+                loadingDialog.UpdateAsync("Launching game", "Compiling", 99);
 
                 ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
                 ModdingSupport.ModExecutor.UseModData = useModData;
                 frostyModExecutor.UseSymbolicLinks = false;
                 frostyModExecutor.ForceRebuildOfMods = true;
-                await frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { testmodname }.ToArray());
+                await Task.Run(async() =>
+                {
+                    await frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { testmodname }.ToArray());
+                });
             }
             catch (Exception ex)
             {

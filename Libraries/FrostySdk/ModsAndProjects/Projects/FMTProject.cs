@@ -6,9 +6,11 @@ using FrostySdk.Frostbite.IO.Output;
 using FrostySdk.Frosty.FET;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.Resources;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Formats.Tar;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -22,10 +24,12 @@ namespace FrostySdk.ModsAndProjects.Projects
 {
     public class FMTProject : BaseProject, IProject
     {
-        public static int MasterProjectVersion { get; } = 1;
+        public static int MasterProjectVersion { get; } = 2;
         private static string projectExtension { get; } = ".fmtproj";
         private static string projectFilter { get; } = $"FMT Project file (*{projectExtension})|*{projectExtension}";
         private string projectFilePath { get; set; }
+
+        public int ProjectVersion { get; private set; } = 2;
 
         public FileInfo projectFileInfo { get { return new FileInfo(projectFilePath); } }
 
@@ -96,7 +100,7 @@ namespace FrostySdk.ModsAndProjects.Projects
             FMTProject project = new FMTProject(filePath);
             using (NativeReader nr = new NativeReader(filePath))
             {
-                var projectVersion = nr.ReadInt();
+                project.ProjectVersion = nr.ReadInt();
                 var gameDataVersion = nr.ReadInt();
                 project.ModSettings = JsonConvert.DeserializeObject<ModSettings>(nr.ReadLengthPrefixedString());
 
@@ -108,13 +112,13 @@ namespace FrostySdk.ModsAndProjects.Projects
                 }
                 // Read Data
                 nr.Position = assetManagerPositions["ebx"];
-                EBXAssetsRead(nr);
+                project.EBXAssetsRead(nr);
                 nr.Position = assetManagerPositions["res"];
-                ResourceAssetsRead(nr);
+                project.ResourceAssetsRead(nr, out var textureResources);
                 nr.Position = assetManagerPositions["chunks"];
-                ChunkAssetsRead(nr);
+                project.ChunkAssetsRead(nr);
                 nr.Position = assetManagerPositions["legacy"];
-                LegacyFilesModifiedRead(nr);
+                project.LegacyFilesModifiedRead(nr);
                 LegacyFilesAddedRead(nr);
                 nr.Position = assetManagerPositions["embedded"];
                 EmbeddedFilesRead(nr);
@@ -246,7 +250,7 @@ namespace FrostySdk.ModsAndProjects.Projects
             }
         }
 
-        private static void EBXAssetsRead(NativeReader nr)
+        private void EBXAssetsRead(NativeReader nr)
         {
             // EBX Count
             var count = nr.ReadInt();
@@ -259,9 +263,16 @@ namespace FrostySdk.ModsAndProjects.Projects
                 //nw.WriteLengthPrefixedString(assetEntryExporter.ExportToJson());
                 var json = nr.ReadLengthPrefixedString();
 
-                AssetEntryImporter assetEntryImporter = new AssetEntryImporter(AssetManager.Instance.GetEbxEntry(assetName));
+                var ebxAssetEntry = AssetManager.Instance.GetEbxEntry(assetName);
+                if (ebxAssetEntry == null)
+                    continue;
+
+                AssetEntryImporter assetEntryImporter = new AssetEntryImporter(ebxAssetEntry);
                 try
                 {
+                    //if (ebxAssetEntry.Type == "TextureAsset")
+                    //    continue;
+
                     assetEntryImporter.ImportWithJSON(Encoding.UTF8.GetBytes(json));
                 }
                 catch(Exception ex) 
@@ -282,13 +293,15 @@ namespace FrostySdk.ModsAndProjects.Projects
                 nw.WriteLengthPrefixedString(item.Name);
                 // Item Data -- Need to decompress and export it
                 //nw.WriteLengthPrefixedBytes(item.ModifiedEntry.Data);
-                using (CasReader reader = new CasReader(new MemoryStream(item.ModifiedEntry.Data)))
-                    nw.WriteLengthPrefixedBytes(reader.Read());
+                //using (CasReader reader = new CasReader(new MemoryStream(item.ModifiedEntry.Data)))
+                //    nw.WriteLengthPrefixedBytes(reader.Read());
+                nw.WriteLengthPrefixedBytes(item.ModifiedEntry.Data);
             }
         }
 
-        private static void ResourceAssetsRead(NativeReader nr)
+        private void ResourceAssetsRead(NativeReader nr, out IList<Texture> textures)
         {
+            textures = new List<Texture>();
             // RES Count
             var count = nr.ReadInt();
             for (var i = 0; i < count; i++)
@@ -297,21 +310,38 @@ namespace FrostySdk.ModsAndProjects.Projects
                 var assetName = nr.ReadLengthPrefixedString();
                 // Item Data
                 var data = nr.ReadLengthPrefixedBytes();
-                AssetEntryImporter assetEntryImporter = new AssetEntryImporter(AssetManager.Instance.GetResEntry(assetName));
+
+                var resAssetEntry = AssetManager.Instance.GetResEntry(assetName);
+                if (resAssetEntry == null)
+                    continue;
+
+                AssetEntryImporter assetEntryImporter = new AssetEntryImporter(resAssetEntry);
                 try
                 {
                     assetEntryImporter.Import(data);
+                    resAssetEntry = AssetManager.Instance.GetResEntry(assetName);
+
+                    // Flag this as a texture!
+                    bool isTexture = false;
+                    if (AssetManager.Instance.EBX.ContainsKey(assetName))
+                    {
+                        var ebx = AssetManager.Instance.GetEbxEntry(assetName);
+                        if (ebx != null)
+                        {
+                            isTexture = ebx.Type == "TextureAsset";
+                            Texture texture = new Texture(resAssetEntry);
+                            textures.Add(texture);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
                     FileLogger.WriteLine($"Failed to load {assetName} from Project with message {ex.Message}");
                 }
-                //using (CasReader reader = new CasReader(new MemoryStream(data)))
-                //    AssetManager.Instance.ModifyRes(assetName, data);
             }
         }
 
-        private static void ChunkAssetsWrite(NativeWriter nw)
+        private void ChunkAssetsWrite(NativeWriter nw)
         {
             var modifiedChunkAssets = AssetManager.Instance.EnumerateChunks(modifiedOnly: true);
             // CHUNK Count
@@ -320,23 +350,49 @@ namespace FrostySdk.ModsAndProjects.Projects
             {
                 // Item Name
                 nw.Write(item.Id);
-                // Item Data -- Need to decompress and export it
-                using(CasReader reader = new CasReader(new MemoryStream(item.ModifiedEntry.Data)))
-                    nw.WriteLengthPrefixedBytes(reader.Read());
+                nw.Write(item.ModifiedEntry.LogicalOffset);
+                nw.Write(item.ModifiedEntry.LogicalSize);
+                nw.Write(item.ModifiedEntry.RangeStart);
+                nw.Write(item.ModifiedEntry.RangeEnd);
+                nw.Write(item.ModifiedEntry.FirstMip);
+                nw.Write(item.ModifiedEntry.H32);
+                nw.WriteLengthPrefixedString(item.ModifiedEntry.UserData);
+                nw.WriteLengthPrefixedBytes(item.ModifiedEntry.Data);
+                item.IsDirty = false;
             }
         }
 
-        private static void ChunkAssetsRead(NativeReader nr)
+
+        private void ChunkAssetsRead(NativeReader nr)
         {
+            if (ProjectVersion < 2)
+                return;
+
             // CHUNK Count
             var count = nr.ReadInt();
             for (var i = 0; i < count; i++)
             {
                 // Item Name
                 var assetName = nr.ReadGuid();
-                // Item Data
-                var data = nr.ReadLengthPrefixedBytes();
-                AssetManager.Instance.ModifyChunk(assetName, data);
+                uint logicalOffset = nr.ReadUInt();
+                uint logicalSize = nr.ReadUInt();
+                uint rangeStart = nr.ReadUInt();
+                uint rangeEnd = nr.ReadUInt();
+                int firstMip = nr.ReadInt();
+                int h = nr.ReadInt();
+                var userData = nr.ReadLengthPrefixedString();
+                byte[] data = nr.ReadLengthPrefixedBytes();
+                ChunkAssetEntry chunkAssetEntry = AssetManager.GetChunkEntry(assetName);
+                chunkAssetEntry.ModifiedEntry = new ModifiedAssetEntry(data);
+                chunkAssetEntry.ModifiedEntry.Sha1 = Sha1.Create(data);
+                chunkAssetEntry.ModifiedEntry.LogicalOffset = logicalOffset;
+                chunkAssetEntry.ModifiedEntry.LogicalSize = logicalSize;
+                chunkAssetEntry.ModifiedEntry.RangeStart = rangeStart;
+                chunkAssetEntry.ModifiedEntry.RangeEnd = rangeEnd;
+                chunkAssetEntry.ModifiedEntry.FirstMip = firstMip;
+                chunkAssetEntry.ModifiedEntry.H32 = h;
+                chunkAssetEntry.ModifiedEntry.UserData = userData;
+                chunkAssetEntry.ModifiedEntry.Data = data;
             }
         }
 
@@ -366,6 +422,9 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         private static void LegacyFilesModifiedWrite(NativeWriter nw)
         {
+            if (!AssetManager.Instance.CustomAssetManagers.ContainsKey("legacy"))
+                return;
+
             nw.WriteLengthPrefixedString("legacy"); // CFC
             nw.Write(AssetManager.Instance.EnumerateCustomAssets("legacy", modifiedOnly: true).Count()); // Count Added
             foreach (LegacyFileEntry lfe in AssetManager.Instance.EnumerateCustomAssets("legacy", modifiedOnly: true))
@@ -379,17 +438,36 @@ namespace FrostySdk.ModsAndProjects.Projects
             }
         }
 
-        private static void LegacyFilesModifiedRead(NativeReader nr)
+        private void LegacyFilesModifiedRead(NativeReader nr)
         {
             // -----------------------
             // Modified Legacy Files
             nr.ReadLengthPrefixedString(); // CFC 
             var count = nr.ReadInt(); // Count Added
+            List<LegacyFileEntry> legacyFileEntries = new List<LegacyFileEntry>(count);
             for (var iCount = 0; iCount < count; iCount++)
             {
-                nr.ReadLengthPrefixedString();
-                nr.ReadLengthPrefixedString();
+                var assetName = nr.ReadLengthPrefixedString();
+                var assetSerializedData = nr.ReadLengthPrefixedString();
+                dynamic lfeD = JsonConvert.DeserializeObject<dynamic>(assetSerializedData, new JsonSerializerSettings()
+                {
+                    TypeNameHandling = TypeNameHandling.All
+                });
+                LegacyFileEntry lfe = new LegacyFileEntry(new ModifiedAssetEntry()
+                {
+                    Data = lfeD.ModifiedEntry.Data
+                })
+                {
+                    Name = lfeD.Name
+                };
+                legacyFileEntries.Add(lfe);
             }
+
+            if (!AssetManager.Instance.CustomAssetManagers.ContainsKey("legacy"))
+                return;
+
+            var legacyFileManager = AssetManager.Instance.CustomAssetManagers["legacy"];
+            legacyFileManager.LoadEntriesModifiedFromProject(legacyFileEntries);
         }
 
         private static void LocaleINIWrite(NativeWriter nw)

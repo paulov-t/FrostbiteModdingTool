@@ -6,16 +6,16 @@ namespace FrostySdk.Ebx
     {
         public static ResourceRef Zero = new ResourceRef(0uL);
 
-        private ulong resourceId;
+        public ulong ResourceId { get; set; }
 
         public ResourceRef(ulong value)
         {
-            resourceId = value;
+            ResourceId = value;
         }
 
         public static implicit operator ulong(ResourceRef value)
         {
-            return value.resourceId;
+            return value.ResourceId;
         }
 
         public static implicit operator ResourceRef(ulong value)
@@ -28,12 +28,12 @@ namespace FrostySdk.Ebx
             if (obj is ResourceRef)
             {
                 ResourceRef resourceRef = (ResourceRef)obj;
-                return resourceId == resourceRef.resourceId;
+                return ResourceId == resourceRef.ResourceId;
             }
             if (obj is ulong)
             {
                 ulong num = (ulong)obj;
-                return resourceId == num;
+                return ResourceId == num;
             }
             return false;
         }
@@ -50,12 +50,12 @@ namespace FrostySdk.Ebx
 
         public override int GetHashCode()
         {
-            return Convert.ToInt32(-2128831035L * 16777619) ^ resourceId.GetHashCode();
+            return Convert.ToInt32(-2128831035L * 16777619) ^ ResourceId.GetHashCode();
         }
 
         public override string ToString()
         {
-            return resourceId.ToString("X16");
+            return ResourceId.ToString("X16");
         }
     }
 }

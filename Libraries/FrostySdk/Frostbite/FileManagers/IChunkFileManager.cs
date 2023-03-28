@@ -34,5 +34,6 @@ namespace Frostbite.FileManagers
         void SetCacheModeEnabled(bool enabled);
         void DuplicateAsset(string name, LegacyFileEntry originalAsset);
 
+        public void LoadEntriesModifiedFromProject(List<LegacyFileEntry> entries);
     }
 }

@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Windows.Shapes;
 using v2k4FIFAModding.Frosty;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
+using static FrostySdk.Frostbite.IO.Output.AssetEntryExporter;
 
 namespace FrostySdk.Frostbite.IO.Input
 {
@@ -86,7 +87,7 @@ namespace FrostySdk.Frostbite.IO.Input
             using (CasReader reader = new CasReader(new MemoryStream(bytes)))
                 result = reader.Read();
 
-            AssetManager.Instance.ModifyRes(AssetEntry.Name, bytes);
+            AssetManager.Instance.ModifyRes(AssetEntry.Name, result);
             return result != null;
         }
 
@@ -131,6 +132,12 @@ namespace FrostySdk.Frostbite.IO.Input
             if (ebx.RootObject == null)
                 return false;
 
+            var stringOfJson = Encoding.UTF8.GetString(bytes);
+
+            if (ebxAssetEntry.Type == "TextureAsset")
+            {
+
+            }
             JObject jobjectFromJson = new JObject();
             try
             {
@@ -143,6 +150,7 @@ namespace FrostySdk.Frostbite.IO.Input
                     Converters = {
                         new ReplaceArrayConverter()
                         , new PointerRefConverter()
+                        //, new ResourceRefConverter()
                     },
                     MaxDepth = 10
                 });

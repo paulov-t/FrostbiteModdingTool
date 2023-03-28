@@ -297,5 +297,10 @@ namespace FrostbiteSdk.Frostbite.FileManagers
         {
             throw new NotImplementedException();
         }
+
+        public void LoadEntriesModifiedFromProject(List<LegacyFileEntry> entries)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
