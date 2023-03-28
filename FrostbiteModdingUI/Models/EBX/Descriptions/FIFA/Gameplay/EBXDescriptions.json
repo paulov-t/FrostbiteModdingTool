@@ -236,31 +236,6 @@
 			]
 		},
 		{
-			"TypeName": "AttribSchema_gp_rules_foul_playercontactscore",
-			"Properties": [
-				{
-					"PropertyName": "PenaltyModifiersCollisionResult",
-					"Description": "Penalty modifiers for Collision Result Type:\r\n0:None 1:StumbleVeryHeavy 2:StumbleHeavy 3:StumbleMediumStrong 4:StumbleMedium 5:StumbleMediumLight 6:StumbleLight 7:ForceFall 8:ForceBallTouchCanceled"
-				},
-				{
-					"PropertyName": "PenaltyModifiersCollisionPartFoot",
-					"Description": "Penalty modifiers for Collision Part [Foot vs.]:\r\n0:Foot 1:Calf 2:Thigh 3:Hips 4:Torso 5:Head"
-				},
-				{
-					"PropertyName": "PenaltyModifiersCollisionPartCalf",
-					"Description": "Penalty modifiers for Collision Part [Foot vs.]:\r\n0:Foot 1:Calf 2:Thigh 3:Hips 4:Torso 5:Head"
-				},
-				{
-					"PropertyName": "PenaltyModifiersTackleAngle",
-					"Description": "Penalty modifiers for Tackle Angle:\r\n0:Behind 1:BehindSide 2:Side 3:ForwardSide 4:Forward 5:ETC(dummy)"
-				},
-				{
-					"PropertyName": "PenaltyWeightsStandTackle",
-					"Description": "Penalty weights for Stand Tackle:\r\n0:CollisionResult 1:CollisionIntensity 2:CollisionPart 3:TackleAngle"
-				}
-			]
-		},
-		{
 			"TypeName": "AttribSchema_gp_kickerror_passshotcontexteffect",
 			"Properties": [
 				{
@@ -302,6 +277,55 @@
 				{
 					"PropertyName": "PASSSHOT_CONTEXTEFFECT_WeakFoot_Difficulty",
 					"Description": "NO LONGER USED"
+				}
+			]
+		},
+		{
+			"TypeName": "AttribSchema_gp_rules_foul_playercontactscore",
+			"Properties": [
+				{
+					"PropertyName": "PenaltyModifiersCollisionResult",
+					"Description": "Penalty modifiers for Collision Result Type:\r\n0:None 1:StumbleVeryHeavy 2:StumbleHeavy 3:StumbleMediumStrong 4:StumbleMedium 5:StumbleMediumLight 6:StumbleLight 7:ForceFall 8:ForceBallTouchCanceled"
+				},
+				{
+					"PropertyName": "PenaltyModifiersCollisionPartArms",
+					"Description": "Penalty modifiers for Collision Part [Arms vs.]:\r\n0:Foot 1:Calf 2:Thigh 3:Hips 4:Torso 5:Head"
+				},
+				{
+					"PropertyName": "PenaltyModifiersCollisionPartCalf",
+					"Description": "Penalty modifiers for Collision Part [Calf vs.]:\r\n0:Foot 1:Calf 2:Thigh 3:Hips 4:Torso 5:Head"
+				},
+				{
+					"PropertyName": "PenaltyModifiersCollisionPartFoot",
+					"Description": "Penalty modifiers for Collision Part [Foot vs.]:\r\n0:Foot 1:Calf 2:Thigh 3:Hips 4:Torso 5:Head"
+				},
+				{
+					"PropertyName": "PenaltyModifiersCollisionPartHead",
+					"Description": "Penalty modifiers for Collision Part [Head vs.]:\r\n0:Foot 1:Calf 2:Thigh 3:Hips 4:Torso 5:Head"
+				},
+				{
+					"PropertyName": "PenaltyModifiersCollisionPartHips",
+					"Description": "Penalty modifiers for Collision Part [Hips vs.]:\r\n0:Foot 1:Calf 2:Thigh 3:Hips 4:Torso 5:Head"
+				},
+				{
+					"PropertyName": "PenaltyModifiersCollisionPartThigh",
+					"Description": "Penalty modifiers for Collision Part [Thigh vs.]:\r\n0:Foot 1:Calf 2:Thigh 3:Hips 4:Torso 5:Head"
+				},
+				{
+					"PropertyName": "PenaltyModifiersCollisionPartTorso",
+					"Description": "Penalty modifiers for Collision Part [Torso vs.]:\r\n0:Foot 1:Calf 2:Thigh 3:Hips 4:Torso 5:Head"
+				},
+				{
+					"PropertyName": "PenaltyModifiersTackleAngle",
+					"Description": "Penalty modifiers for Tackle Angle:\r\n0:Behind 1:BehindSide 2:Side 3:ForwardSide 4:Forward 5:Dummy"
+				},
+				{
+					"PropertyName": "PenaltyWeightsStandTackle",
+					"Description": "Penalty weights for Stand Tackle:\r\n0:CollisionResult 1:CollisionIntensity 2:CollisionPart 3:TackleAngle"
+				},
+				{
+					"PropertyName": "PenaltyWeightsSlideTackle",
+					"Description": "Penalty weights for Slide Tackle:\r\n0:CollisionResult 1:CollisionIntensity 2:CollisionPart 3:TackleAngle"
 				}
 			]
 		}
