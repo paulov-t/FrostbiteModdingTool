@@ -340,7 +340,7 @@ namespace FIFAModdingUI.Pages.Common
                 {
                     var itemOfArray = ((IList)p.PropertyValue)[i];
                     CreateEditor(new ModdableProperty(rootObject: p.RootObject, property: p.Property, arrayIndex: i
-                        , (moddableProperty, v) =>
+                        , async (moddableProperty, v) =>
                         {
 
                             /// --------------------
@@ -359,7 +359,7 @@ namespace FIFAModdingUI.Pages.Common
                             .Invoke(res, new object[2] { mp.ArrayIndex.Value, Convert.ChangeType(v.PropertyName, mp.ArrayType) });
 
                             mp.Property.SetValue(mp.RootObject, res);
-                            _ = SaveToRootObject();
+                            await SaveToRootObject();
                             /// --------------------
                         }
                         , p.VanillaRootObject)
@@ -402,53 +402,33 @@ namespace FIFAModdingUI.Pages.Common
                     continue;
                 }
 
+                
                 if (CreateEditorByList(p, propTreeViewParent, treeView))
                     continue;
 
-                //if (!CreateEditor(p.PropertyValue))
+                // if unable to use prebuilt controls, use old system
+                switch (p.PropertyType)
                 {
-                    // if unable to use prebuilt controls, use old system
-                    switch (p.PropertyType)
-                    {
-                        case "FrostySdk.Ebx.PointerRef":
-                            CreatePointerRefControl(p, ref propTreeViewParent);
-                            break;
-                        //case "System.Collections.Generic.List`1[System.Boolean]":
-
-                        //	var listBool = p.PropertyValue as List<System.Boolean>;
-
-                        //	for (var i = 0; i < listBool.Count; i++)
-                        //	{
-                        //		var point = listBool[i];
-
-                        //		var chk = new CheckBox() { Name = p.PropertyName + "_Points_" + i.ToString() + "_Value", IsChecked = listBool[i] };
-                        //                          chk.Checked += (object sender, RoutedEventArgs e) =>
-                        //		{
-                        //		};
-                        //		propTreeViewParent.Items.Add(chk);
-                        //	}
+                    case "FrostySdk.Ebx.PointerRef":
+                        CreatePointerRefControl(p, ref propTreeViewParent);
+                        break;
+                    // Unknown/Other Struct
+                    default:
+                        var structProperties = ModdableProperty.GetModdableProperties(p.PropertyValue, (s, n) =>
+                        {
+                            _ = SaveToRootObject();
+                        }).ToList();
+                        propTreeViewParent.Header = p.PropertyName;
+                        foreach (var property in structProperties)
+                        {
+                            _ = CreateEditor(property, propTreeViewParent);
+                        }
+                        //treeView.Items.Add(propTreeViewParent);
+                        break;
 
 
-                        //	break;
-
-
-                        // Unknown/Other Struct
-                        default:
-                            var structProperties = ModdableProperty.GetModdableProperties(p.PropertyValue, (s, n) =>
-                            {
-                                _ = SaveToRootObject();
-                            }).ToList();
-                            propTreeViewParent.Header = p.PropertyName;
-                            foreach (var property in structProperties)
-                            {
-                                _ = CreateEditor(property, propTreeViewParent);
-                            }
-                            //treeView.Items.Add(propTreeViewParent);
-                            break;
-
-
-                    }
                 }
+
                 if (AddToPropTreeViewParent)
                     treeView.Items.Add(propTreeViewParent);
 
@@ -576,26 +556,28 @@ namespace FIFAModdingUI.Pages.Common
 
         public async Task SaveToRootObject(bool forceReload = false)
         {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    AssetManager.Instance.ModifyEbx(AssetEntry.Name, Asset);
-                }
-                catch (Exception)
-                {
-                    //AssetManager.Instance.LogError($"Unable to modify EBX {AssetEntry.Name}");
-                }
-                //FrostyProject.Save("GameplayProject.fbproject", true);
-            });
-
-            //await loadingDialog.UpdateAsync("Saving hotspot", "Updating browsers");
-
-            //await Dispatcher.InvokeAsync(() =>
+            await AssetManager.Instance.ModifyEbxAsync(AssetEntry.Name, Asset);
+            //await Task.Run(() =>
             //{
-            //    if (EditorWindow != null)
-            //        EditorWindow.UpdateAllBrowsers();
+            //    try
+            //    {
+            //        AssetManager.Instance.ModifyEbx(AssetEntry.Name, Asset);
+            //    }
+            //    catch (Exception)
+            //    {
+            //        //AssetManager.Instance.LogError($"Unable to modify EBX {AssetEntry.Name}");
+            //        FileLogger.WriteLine($"Unable to modify EBX {AssetEntry.Name}");
+            //    }
+            //    //FrostyProject.Save("GameplayProject.fbproject", true);
             //});
+
+            ////await loadingDialog.UpdateAsync("Saving hotspot", "Updating browsers");
+
+            ////await Dispatcher.InvokeAsync(() =>
+            ////{
+            ////    if (EditorWindow != null)
+            ////        EditorWindow.UpdateAllBrowsers();
+            ////});
 
             await Dispatcher.InvokeAsync(() =>
             {

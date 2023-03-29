@@ -2,6 +2,7 @@
 using FrostbiteSdk;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -219,6 +220,9 @@ namespace FMT
                     case "en":
                         filename = "Resources\\Languages\\English.xaml";
                         break;
+                    case "es":
+                        filename = "Resources\\Languages\\Spanish.xaml";
+                        break;
                     default:
                         filename = "Resources\\Languages\\English.xaml";
                         break;
@@ -230,6 +234,12 @@ namespace FMT
                  //new ResourceDictionary { Source = new Uri(String.Concat(_prefix + filename), UriKind.Relative) }
                  new ResourceDictionary { Source = new Uri(String.Concat(filename), UriKind.Relative) }
                 );
+
+                // Fix Issue: 34
+                // Force English Culture number format of dot for floats / currancy
+                var englishCulture = new CultureInfo("en");
+                Thread.CurrentThread.CurrentCulture.NumberFormat = englishCulture.NumberFormat;
+
             }
             catch (Exception)
             {

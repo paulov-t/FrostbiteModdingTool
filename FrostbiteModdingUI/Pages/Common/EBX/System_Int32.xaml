@@ -4,14 +4,36 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:FrostbiteModdingUI.Pages.Common.EBX"
+             xmlns:val="clr-namespace:FMT.Pages.Common.EBX.Validation"
              mc:Ignorable="d" 
               d:DesignHeight="50" d:DesignWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition></ColumnDefinition>
-            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition Width="8*"></ColumnDefinition>
+            <ColumnDefinition Width="8*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="lblPropertyName" Grid.Column="0" Text="{Binding PropertyName, Mode=OneTime}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-        <TextBox x:Name="ValueBox" Grid.Column="1" Text="{Binding PropertyValue, Mode=TwoWay}" IsReadOnly="{Binding IsReadOnly, Mode=OneWay}" />
+        <TextBlock x:Name="lblPropertyName" Grid.Column="0" ToolTip="{Binding PropertyDescription}" Text="{Binding PropertyName, Mode=OneTime}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+        <Grid Grid.Column="1">
+            <TextBox x:Name="ValueBox" Grid.Column="1"
+                     ToolTip="{Binding PropertyDescription}"
+                     >
+                <TextBox.Text>
+                    <Binding Path="PropertyValue"
+                            UpdateSourceTrigger="PropertyChanged" Mode="TwoWay" >
+                        <Binding.ValidationRules>
+                            <ExceptionValidationRule>
+                            </ExceptionValidationRule>
+                            <val:ValidationRuleTyped></val:ValidationRuleTyped>
+                            <val:ValidationRuleInteger>
+                            </val:ValidationRuleInteger>
+                        </Binding.ValidationRules>
+                    </Binding>
+                </TextBox.Text>
+            </TextBox>
+            <TextBlock MinWidth="100" IsHitTestVisible="False" Text="{Binding PropertyOriginalValue, Mode=OneTime}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10,0,0,0" Foreground="DarkGray">
+            </TextBlock>
+            <TextBlock MinWidth="30" IsHitTestVisible="False" Visibility="{Binding HasPropertyDescriptionVisibility}" Text="?" FontSize="12" VerticalAlignment="Top" HorizontalAlignment="Right" TextAlignment="Right" Margin="3" Foreground="DarkGray">
+            </TextBlock>
+        </Grid>
     </Grid>
 </UserControl>

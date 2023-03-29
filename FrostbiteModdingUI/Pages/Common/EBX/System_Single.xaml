@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="FrostbiteModdingUI.Pages.Common.EBX.System_Int"
+﻿<UserControl x:Class="FrostbiteModdingUI.Pages.Common.EBX.System_Single"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -41,8 +41,8 @@
                             <ExceptionValidationRule>
                             </ExceptionValidationRule>
                             <val:ValidationRuleTyped></val:ValidationRuleTyped>
-                            <val:ValidationRuleInteger>
-                            </val:ValidationRuleInteger>
+                            <val:ValidationRuleFloat>
+                            </val:ValidationRuleFloat>
                         </Binding.ValidationRules>
                     </Binding>
                 </TextBox.Text>

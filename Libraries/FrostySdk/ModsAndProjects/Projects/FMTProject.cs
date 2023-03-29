@@ -242,7 +242,7 @@ namespace FrostySdk.ModsAndProjects.Projects
             nw.Write(modifiedEbxAssets != null ? modifiedEbxAssets.Count() : 0);
             foreach (var item in modifiedEbxAssets)
             {
-                AssetEntryExporter assetEntryExporter = new AssetEntryExporter(item);
+                using AssetEntryExporter assetEntryExporter = new AssetEntryExporter(item);
                 // Item Name
                 nw.WriteLengthPrefixedString(item.Name);
                 // EBX Stream to Json
@@ -257,10 +257,8 @@ namespace FrostySdk.ModsAndProjects.Projects
             for (var i = 0; i < count; i++)
             {
                 // Item Name
-                //nw.WriteLengthPrefixedString(item.Name);
                 var assetName = nr.ReadLengthPrefixedString();
                 // EBX Stream to Json
-                //nw.WriteLengthPrefixedString(assetEntryExporter.ExportToJson());
                 var json = nr.ReadLengthPrefixedString();
 
                 var ebxAssetEntry = AssetManager.Instance.GetEbxEntry(assetName);
@@ -270,15 +268,14 @@ namespace FrostySdk.ModsAndProjects.Projects
                 AssetEntryImporter assetEntryImporter = new AssetEntryImporter(ebxAssetEntry);
                 try
                 {
-                    //if (ebxAssetEntry.Type == "TextureAsset")
-                    //    continue;
-
                     assetEntryImporter.ImportWithJSON(Encoding.UTF8.GetBytes(json));
+                    ebxAssetEntry.IsDirty = false;
                 }
-                catch(Exception ex) 
+                catch (Exception ex) 
                 {
                     FileLogger.WriteLine($"Failed to load {assetName} from Project with message {ex.Message}");
                 }
+                assetEntryImporter = null;
             }
         }
 
@@ -338,6 +335,7 @@ namespace FrostySdk.ModsAndProjects.Projects
                 {
                     FileLogger.WriteLine($"Failed to load {assetName} from Project with message {ex.Message}");
                 }
+                assetEntryImporter = null;
             }
         }
 

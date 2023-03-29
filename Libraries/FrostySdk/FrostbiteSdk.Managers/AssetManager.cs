@@ -1034,6 +1034,26 @@ namespace FrostySdk.Managers
             }
         }
 
+        public async Task ModifyEbxAsync(string name, EbxAsset asset)
+        {
+            await Task.Run(() => 
+            {
+
+                try
+                {
+                    ModifyEbx(name, asset);
+                }
+                catch (Exception)
+                {
+                    //AssetManager.Instance.LogError($"Unable to modify EBX {AssetEntry.Name}");
+                    if(Logger != null)
+                        Logger.LogError($"Unable to modify EBX {name}");
+                    FileLogger.WriteLine($"Unable to modify EBX {name}");
+                }
+               
+            });
+        }
+
         public void ModifyEbxBinary(string name, byte[] data)
         {
             name = name.ToLower();
