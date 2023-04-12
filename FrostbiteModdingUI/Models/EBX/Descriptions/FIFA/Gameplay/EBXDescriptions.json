@@ -219,6 +219,40 @@
 			]
 		},
 		{
+			"TypeName": "AttribSchema_gp_physics_soccerball",
+			"Properties": [
+
+				{
+					"PropertyName": "BallRestitutionMaxSpeed",
+					"Description": "This governs what the max speed is where the restitution will be reduced by the max amount"
+				},
+				{
+					"PropertyName": "BallRestitutionMinSpeed",
+					"Description": "This governs when the ball restitution is at its max amount"
+				},
+				{
+					"PropertyName": "BallRestitutionReductionMax",
+					"Description": "This governs how much restitution is lost at max speed"
+				},
+				{
+					"PropertyName": "Soccerball_GripConstant",
+					"Description": "how much the ball grips the ground on a contact.\r\n1.0 is just enough grip to go into rolling mode, and never more.\r\n0.5 is super ball levels of grip.\r\n0.92 is default."
+				},
+				{
+					"PropertyName": "Soccerball_Inertia",
+					"Description": "The inertia constant of the soccerball. Default = 0.4"
+				},
+				{
+					"PropertyName": "Soccerball_Mass",
+					"Description": "The mass of the soccerball. Default 0.454"
+				},
+				{
+					"PropertyName": "Soccerball_Material",
+					"Description": "0 - Resitution\r\n1 - NOT USED Sliding Static Friction\r\n2 - Sliding Dynamic Friction\r\n3 - NOT USED Spinning Static Friction\r\n4 - Spinning Dynamic Friction\r\n5 - NOT USED Rolling Static Friction\r\n6 - Rolling Dynamic Friction\r\n\r\nRestitution determines how much energy is lost (how high the ball bounces) after the collision.  (0 means no bounce, 1 means no loss).  The minimum restitution of the two objects colliding is used.\r\n\r\nSliding friction determines how much of the ball's speed at the point of contact (not at its center) is converted into spin.  A low number will mean the ball will skip along the ground and maintain its old spin.  A high number will mean the ball will grip the ground and gain a new spin.  \r\n\r\nSpinning friction affects how the ball's spin around the contact normal (ie. around it's Y axis) will slow down over time.  \r\n\r\nRolling friction determines how the balls speed and roll will slow down over time."
+				}
+			]
+		},
+		{
 			"TypeName": "AttribSchema_gp_physics_touchcontacts",
 			"Properties": [
 				{
@@ -326,6 +360,44 @@
 				{
 					"PropertyName": "PenaltyWeightsSlideTackle",
 					"Description": "Penalty weights for Slide Tackle:\r\n0:CollisionResult 1:CollisionIntensity 2:CollisionPart 3:TackleAngle"
+				}
+			]
+		},
+		{
+			"TypeName": "AttribSchema_gp_kickcommon_pccanimselectionthresholds",
+			"Properties": [
+				{
+					"PropertyName": "PASS_SynergyThreshold_HighPower",
+					"Description": "if the requested kick speed is higher than this (in m/s) then it will use a high power asset."
+				},
+				{
+					"PropertyName": "PASS_SynergyThreshold_LowPower",
+					"Description": "if the requested kick speed is less than this (in m/s) then it will use a low power asset."
+				},
+				{
+					"PropertyName": "PASS_SynergyThreshold_VeryLowPower",
+					"Description": "if the requested kick speed is less than this (in m/s) then it will use a low power asset, and an additionally allow the very low power assets."
+				}
+			]
+		},
+		{
+			"TypeName": "AttribSchema_gp_kickcommon_animselectionthresholds",
+			"Properties": [
+				{
+					"PropertyName": "PASS_SynergyThreshold_DeflectRate",
+					"Description": "Percentage of current ball speed that is substracted from the ball out speed when deciding which power anim to use.  ie: if this number is high, we are more likely to choose a low power to redirect a ball."
+				},
+				{
+					"PropertyName": "PASS_SynergyThreshold_HighPower",
+					"Description": "if the requested kick speed is higher than this (in m/s) then it will use a high power asset."
+				},
+				{
+					"PropertyName": "PASS_SynergyThreshold_LowPower",
+					"Description": "if the requested kick speed is less than this (in m/s) then it will use a low power asset."
+				},
+				{
+					"PropertyName": "PASS_SynergyThreshold_VeryLowPower",
+					"Description": "if the requested kick speed is less than this (in m/s) then it will use a low power asset, and an additionally allow the very low power assets."
 				}
 			]
 		}
