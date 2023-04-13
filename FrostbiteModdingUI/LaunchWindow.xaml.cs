@@ -53,20 +53,20 @@ namespace FMT
             Loaded += LaunchWindow_Loaded;
         }
 
-        private async void LaunchWindow_Loaded(object sender, RoutedEventArgs e)
+        private void LaunchWindow_Loaded(object sender, RoutedEventArgs e)
         {
             WindowTitle = "FMT Launcher - " + App.ProductVersion;
             GameLocation = AppSettings.Settings.GameInstallEXEPath;
 
             DataContext = this;
 
-            await InitialiseSelectedGame(AppSettings.Settings.GameInstallEXEPath);
+            InitialiseSelectedGame(AppSettings.Settings.GameInstallEXEPath);
 
-            BuildSDKAndCache buildSDKAndCacheWindow = new BuildSDKAndCache();
-            if (CacheManager.DoesCacheNeedsRebuilding())
-            {
-                buildSDKAndCacheWindow.ShowDialog();
-            }
+            //BuildSDKAndCache buildSDKAndCacheWindow = new BuildSDKAndCache();
+            //if (CacheManager.DoesCacheNeedsRebuilding())
+            //{
+            //    buildSDKAndCacheWindow.ShowDialog();
+            //}
         }
 
         protected override void OnClosed(EventArgs e)
@@ -742,7 +742,7 @@ namespace FMT
         //public string LastGamePathLocation => App.ApplicationDirectory + "\\" + GameInstanceSingleton.Instance.GAMEVERSION + "LastLocation.json";
 
 
-        private async Task InitialiseSelectedGame(string filePath)
+        private void InitialiseSelectedGame(string filePath)
         {
             if (!File.Exists(filePath))
             {
@@ -750,27 +750,11 @@ namespace FMT
                 return;
             }
 
-            if (!string.IsNullOrEmpty(filePath))
-            {
+            if (string.IsNullOrEmpty(filePath))
+                throw new Exception("Game Path is NULL");
+
+
                 this.DataContext = this;
-                //AppSettings.Settings.GameInstallEXEPath = filePath;
-
-                //await File.WriteAllTextAsync(LastGamePathLocation, AppSettings.Settings.GameInstallEXEPath);
-
-                //if (GameInstanceSingleton.InitializeSingleton(filePath, true, this))
-                //{
-                //    if (!ProfilesLibrary.Initialize(GameInstanceSingleton.Instance.GAMEVERSION))
-                //    {
-                //        throw new Exception("Unable to Initialize Profile");
-                //    }
-                //    btnLaunch.IsEnabled = true;
-                //    GameInstanceSingleton.Logger = this;
-
-                //}
-                //else
-                //{
-                //    throw new Exception("Unsupported Game EXE Selected");
-                //}
 
                 DiscordInterop.DiscordRpcClient.UpdateDetails("In Launcher - " + GameInstanceSingleton.Instance.GAMEVERSION);
 
@@ -829,7 +813,8 @@ namespace FMT
                     new Mods.ModList();
                 }
 
-                launcherOptions = await LauncherOptions.LoadAsync();
+                //launcherOptions = await LauncherOptions.LoadAsync();
+                launcherOptions = LauncherOptions.Load();
                 switchUseModData.IsOn = launcherOptions.UseModData.HasValue
                                                 ? launcherOptions.UseModData.Value : ProfileManager.LoadedProfile.CanUseModData;
                 switchUseLegacyModSupport.IsOn = launcherOptions.UseLegacyModSupport.HasValue && GameInstanceSingleton.IsCompatibleWithLegacyMod()
@@ -838,7 +823,6 @@ namespace FMT
                 switchUseLiveEditor.IsOn = launcherOptions.UseLiveEditor.HasValue ? launcherOptions.UseLiveEditor.Value : false;
                 switchAutoCloseAfterLaunch.IsOn = launcherOptions.AutoCloseAppAfterLaunch.HasValue ? launcherOptions.AutoCloseAppAfterLaunch.Value : true;
                 btnLaunch.IsEnabled = ProfileManager.LoadedProfile.CanLaunchMods;
-            }
 
             DataContext = null;
             DataContext = this;

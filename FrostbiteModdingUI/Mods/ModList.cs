@@ -123,12 +123,12 @@ namespace FMT.Mods
                 }
             }
 
-            private static Dictionary<string, IFrostbiteMod> FrostbiteMods = new Dictionary<string, IFrostbiteMod>(100);
+            //private static Dictionary<string, IFrostbiteMod> FrostbiteMods = new Dictionary<string, IFrostbiteMod>(100);
 
             public IFrostbiteMod GetFrostbiteMod()
             {
-                if (FrostbiteMods.ContainsKey(Path))
-                    return FrostbiteMods[Path];
+                //if (FrostbiteMods.ContainsKey(Path))
+                //    return FrostbiteMods[Path];
 
                 IFrostbiteMod frostbiteMod;
                 switch (ModType)
@@ -143,7 +143,7 @@ namespace FMT.Mods
                         return null;
                 }
 
-                FrostbiteMods.Add(Path, frostbiteMod);
+                //FrostbiteMods.Add(Path, frostbiteMod);
 
                 return frostbiteMod;
             }

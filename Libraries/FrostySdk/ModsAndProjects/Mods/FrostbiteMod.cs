@@ -160,7 +160,7 @@ namespace FrostbiteSdk
             }
             //ModBytes = null;
             GC.Collect();
-            GC.WaitForPendingFinalizers();
+            //GC.WaitForPendingFinalizers();
 
         }
 
