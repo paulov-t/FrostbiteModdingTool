@@ -80,6 +80,16 @@
   "GameIdentifier": 16115019,
   "UseACBypass": false, // Can only be used with TU2 or below
   "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0004970",
-  "SteamId": "1811260"
+  "SteamId": "1811260",
+  "HasAntiCheat": true,
+  "Tools": {
+    "Internal": [
+      {
+        "Name": "BuildSDKAndCache",
+        "Window": "BuildSDKAndCache"
+      }
+    ],
+    "External": [ ]
+  }
 
 }
