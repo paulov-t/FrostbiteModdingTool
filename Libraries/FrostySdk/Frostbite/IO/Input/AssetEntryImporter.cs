@@ -138,9 +138,10 @@ namespace FrostySdk.Frostbite.IO.Input
             {
 
             }
-            JObject jobjectFromJson = new JObject();
+            //JObject jobjectFromJson = new JObject();
             try
             {
+                var originalName = ((dynamic)ebx.RootObject).Name;
                 JsonConvert.PopulateObject(Encoding.UTF8.GetString(bytes), ebx.RootObject, new JsonSerializerSettings()
                 {
                     ObjectCreationHandling = ObjectCreationHandling.Auto,
@@ -155,8 +156,9 @@ namespace FrostySdk.Frostbite.IO.Input
                     MaxDepth = 10
                 });
 
+                ((dynamic)ebx.RootObject).Name = originalName;
+                //jobjectFromJson = JObject.Parse(Encoding.UTF8.GetString(bytes));
 
-                jobjectFromJson = JObject.Parse(Encoding.UTF8.GetString(bytes));
 
             }
             catch (Exception populationException)
