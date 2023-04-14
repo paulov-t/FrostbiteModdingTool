@@ -58,6 +58,9 @@ namespace FIFAModdingUI.Windows
         {
             InitializeComponent();
             this.DataContext = this;
+
+
+
             Loaded += FIFA21Editor_Loaded;
             Owner = owner;
         }
@@ -158,11 +161,10 @@ namespace FIFAModdingUI.Windows
             DisableEditor();
             loadingDialog.Update("Loading Game Files", "");
 
-            BuildSDKAndCache buildSDKAndCacheWindow = new BuildSDKAndCache();
             if (CacheManager.DoesCacheNeedsRebuilding())
             {
                 loadingDialog.Update("", "");
-                buildSDKAndCacheWindow.ShowDialog();
+                await cacheManagerControl.Rebuild(forceRebuild: true);
             }
 
             await GameInstanceSingleton.InitializeSingletonAsync(filePath, true, this);
@@ -1293,13 +1295,6 @@ namespace FIFAModdingUI.Windows
         {
             FrostbiteModEmbeddedFiles frostbiteModEmbeddedFiles = new FrostbiteModEmbeddedFiles();
             frostbiteModEmbeddedFiles.ShowDialog();
-        }
-
-        private void btnRebuildCacheSdk_Click(object sender, RoutedEventArgs e)
-        {
-            BuildSDKAndCache buildSDKAndCache = new BuildSDKAndCache();
-            buildSDKAndCache.DoNotAutoRebuild = true;
-            buildSDKAndCache.Show();
         }
 
         private void btnImportKitCreatorZip_Click(object sender, RoutedEventArgs e)

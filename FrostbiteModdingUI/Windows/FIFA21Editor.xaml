@@ -7,16 +7,16 @@
         xmlns:Model="clr-namespace:FIFAModdingUI.Models" 
         mc:Ignorable="d"
          xmlns:localControls="clr-namespace:FIFAModdingUI.Pages.Common"
+         xmlns:ToolControls="clr-namespace:FMT.Pages.Common"
          xmlns:localPlayerControls="clr-namespace:FrostbiteModdingUI.Pages.Player"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:MaterialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:materialDesignColors="clr-namespace:MaterialDesignColors;assembly=MaterialDesignColors"
         
-        xmlns:FMTControlsControls="clr-namespace:FMT.Controls.Controls;assembly=FMT.Controls"
+        xmlns:FMTControls="clr-namespace:FMT.Controls.Controls;assembly=FMT.Controls"
         xmlns:FMTControlsPages="clr-namespace:FMT.Controls.Pages;assembly=FMT.Controls"
         xmlns:FMTControlsWindows="clr-namespace:FMT.Controls.Windows;assembly=FMT.Controls"
-        
        
         Title="{Binding Path=WindowTitle, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
         Height="720" Width="1280"
@@ -67,15 +67,13 @@
             <RowDefinition MaxHeight="20" Height="0"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <!--<Border x:Name="borderLoading" BorderBrush="Black" Grid.Row="0" Grid.RowSpan="3" BorderThickness="1" Panel.ZIndex="999" Background="#80000000">
-            <Grid>
-                <TextBlock x:Name="txtLoadingMessage" Margin="0" TextWrapping="Wrap" Text="Busy...Please Wait" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="26.667" FontWeight="Bold" Foreground="#7EFFFFFF"/>
-            </Grid>
-        </Border>-->
-        <FMTControlsControls:LoadingDialog x:Name="loadingDialog" Grid.RowSpan="3" Panel.ZIndex="999">
+        <FMTControls:LoadingDialog x:Name="loadingDialog" Grid.RowSpan="3" Panel.ZIndex="999">
             
-        </FMTControlsControls:LoadingDialog>
-        
+        </FMTControls:LoadingDialog>
+        <ToolControls:CacheManagerControl x:Name="cacheManagerControl" Grid.RowSpan="3" Panel.ZIndex="999" AutoRebuild="False">
+            
+        </ToolControls:CacheManagerControl>
+
         <Grid x:Name="TopMenu" DockPanel.Dock="Top" Grid.Row="0" VerticalAlignment="Center">
             <StackPanel Orientation="Horizontal">
                 <Menu DockPanel.Dock="Top" HorizontalContentAlignment="Center">
@@ -147,14 +145,6 @@
                                 <StackPanel  VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
                                     <MaterialDesign:PackIcon Kind="FolderZip" VerticalAlignment="Center" />
                                     <Label Content="Manage Embedded Files" FontSize="10" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </MenuItem.Header>
-                        </MenuItem>
-                        <MenuItem x:Name="btnRebuildCacheSdk" Click="btnRebuildCacheSdk_Click" Visibility="Collapsed" >
-                            <MenuItem.Header>
-                                <StackPanel  VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
-                                    <MaterialDesign:PackIcon Kind="OpenInNew" VerticalAlignment="Center" />
-                                    <Label Content="Open Cache SDK Builder" FontSize="10" VerticalAlignment="Center" />
                                 </StackPanel>
                             </MenuItem.Header>
                         </MenuItem>

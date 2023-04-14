@@ -4,47 +4,41 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-        xmlns:local="clr-namespace:FIFAModdingUI"
         xmlns:MaterialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:materialDesignColors="clr-namespace:MaterialDesignColors;assembly=MaterialDesignColors"
+        xmlns:ToolControls="clr-namespace:FMT.Pages.Common"
         mc:Ignorable="d"
         WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Topmost="True"
         Title="Build Frostbite Cache and SDK" Height="450" Width="800">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="300"></RowDefinition>
-            <RowDefinition></RowDefinition>
-        </Grid.RowDefinitions>
-        <StackPanel  HorizontalAlignment="Center" VerticalAlignment="Center" Width="600">
-            <StackPanel>
-                <StackPanel Height="30" VerticalAlignment="Center"  HorizontalAlignment="Right" Orientation="Horizontal">
-                    <MaterialDesign:PackIcon Kind="Build" VerticalAlignment="Center" />
-                    <Label Content="Rebuild Frostbite Cache" VerticalAlignment="Center" />
-                    <Label x:Name="lblCacheNeedsRebuilding" Content="(Cache needs rebuild)" Foreground="Red" VerticalAlignment="Center" Visibility="Collapsed"  />
+    <DockingManager Grid.Row="2" >
+        <DockingManager.Theme>
+            <Vs2013DarkTheme></Vs2013DarkTheme>
+        </DockingManager.Theme>
+        <DockingManager.DocumentHeaderTemplate>
+            <DataTemplate>
+                <StackPanel Orientation="Horizontal" Margin="0" MaxHeight="100">
+                    <Image Source="{Binding IconSource}" Margin="0,0,4,0"/>
+                    <TextBlock Text="{Binding Title}" FontSize="14" />
                 </StackPanel>
-                <Label>
-                You must build the cache before building the SDK
-                </Label>
-                <Button x:Name="btnRunBuildCache" Click="btnRunBuildCache_Click">
-                    Run
-                </Button>
-            </StackPanel>
-            <StackPanel>
-                <StackPanel Height="30" VerticalAlignment="Center"  HorizontalAlignment="Right" Orientation="Horizontal">
-                    <MaterialDesign:PackIcon Kind="Build" VerticalAlignment="Center" />
-                    <Label Content="Rebuilding Game SDK" VerticalAlignment="Center" />
-                </StackPanel>
-                <Label>
-                Remember to have the Game open and on the main menu during this procedure
-                </Label>
-                <Button x:Name="btnRunBuild" Click="btnRunBuild_Click">
-                    Run
-                </Button>
-                <Separator Margin="0,10,0,0"></Separator>
-                <Label x:Name="txtOuputMessage" FontSize="20"></Label>
-                <Label x:Name="txtOutputSubMessage" FontSize="12"></Label>
-            </StackPanel>
-            
-        </StackPanel>
-    </Grid>
+            </DataTemplate>
+        </DockingManager.DocumentHeaderTemplate>
+        <LayoutRoot>
+            <LayoutPanel Orientation="Vertical" >
+                <LayoutDocumentPaneGroup>
+                    <LayoutDocumentPane>
+                        <LayoutDocument Title="Cache Manager" CanClose="False">
+                            <ToolControls:CacheManagerControl x:Name="cacheManagerControl"  Panel.ZIndex="999" Visibility="Visible" AutoRebuild="False" AutoClose="False">
+
+                            </ToolControls:CacheManagerControl>
+                        </LayoutDocument>
+                        <LayoutDocument Title="SDK Manager" CanClose="False">
+                            <ToolControls:SDKManagerControl x:Name="sdkManagerControl"  Panel.ZIndex="999" Visibility="Visible">
+
+                            </ToolControls:SDKManagerControl>
+                        </LayoutDocument>
+                    </LayoutDocumentPane>
+                </LayoutDocumentPaneGroup>
+            </LayoutPanel>
+        </LayoutRoot>
+    </DockingManager>
 </mah:MetroWindow>

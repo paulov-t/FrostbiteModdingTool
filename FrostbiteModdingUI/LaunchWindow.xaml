@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-                      xmlns:MaterialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-                      xmlns:materialDesignColors="clr-namespace:MaterialDesignColors;assembly=MaterialDesignColors"
+        xmlns:MaterialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:materialDesignColors="clr-namespace:MaterialDesignColors;assembly=MaterialDesignColors"
         mc:Ignorable="d"
-        xmlns:FMTControlsControls="clr-namespace:FMT.Controls.Controls;assembly=FMT.Controls"
-                 
+        xmlns:FMTControls="clr-namespace:FMT.Controls.Controls;assembly=FMT.Controls"
+        xmlns:ToolControls="clr-namespace:FMT.Pages.Common"
         Title="{Binding WindowTitle}"
         
         ResizeMode="CanResizeWithGrip"
@@ -51,9 +51,12 @@
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition MaxHeight="20" Height="0"></RowDefinition>
         </Grid.RowDefinitions>
-        <FMTControlsControls:LoadingDialog x:Name="loadingDialog" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Collapsed">
+        <FMTControls:LoadingDialog x:Name="loadingDialog" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Collapsed">
 
-        </FMTControlsControls:LoadingDialog>
+        </FMTControls:LoadingDialog>
+        <ToolControls:CacheManagerControl x:Name="cacheManagerControl" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Visible">
+            
+        </ToolControls:CacheManagerControl>
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>

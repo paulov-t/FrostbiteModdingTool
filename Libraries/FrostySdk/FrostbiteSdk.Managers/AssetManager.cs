@@ -196,7 +196,7 @@ namespace FrostySdk.Managers
                     cam = (ICustomAssetManager)LoadTypeByName(ProfileManager.LegacyFileManager);
 
 
-                if (cam != null)
+                if (cam != null && !CustomAssetManagers.ContainsKey("legacy"))
                     CustomAssetManagers.Add("legacy", cam);
 
             }
@@ -322,7 +322,10 @@ namespace FrostySdk.Managers
             var t = assembly.GetTypes().FirstOrDefault(x => x.FullName.Contains(className, StringComparison.OrdinalIgnoreCase));
             if (t != null)
             {
-                CachedTypes.Add(className, t);
+                if (!CachedTypes.ContainsKey(className))
+                {
+                    CachedTypes.Add(className, t);
+                }
                 exc = null;
                 return Activator.CreateInstance(type: t, args: args);
             }

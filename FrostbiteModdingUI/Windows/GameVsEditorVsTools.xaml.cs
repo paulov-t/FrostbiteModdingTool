@@ -14,11 +14,6 @@ namespace FMT.Windows
     {
         Profile SelectedProfile { get; set; }
 
-        //public GameVsEditorVsTools()
-        //{
-        //    InitializeComponent();
-        //}
-
         public GameVsEditorVsTools(Window owner, Profile selectedProfile)
         {
             InitializeComponent();
@@ -26,22 +21,7 @@ namespace FMT.Windows
             SelectedProfile = selectedProfile;
             btnLoadGameModLauncher.IsEnabled = SelectedProfile.CanLaunchMods;
             btnLoadGameEditor.IsEnabled = SelectedProfile.CanEdit;
-            //Loaded += GameVsEditorVsTools_Loaded;
-            //Closing += GameVsEditorVsTools_Closing;
-        }
-
-        private void GameVsEditorVsTools_Loaded(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void GameVsEditorVsTools_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            //if(Owner.Visibility != Visibility.Visible)
-            //{
-
-            //}
-            //Owner.Show();
+            btnLoadGameTools.IsEnabled = SelectedProfile.Tools.Internal.Count + SelectedProfile.Tools.External.Count > 0;
         }
 
         private void btnLoadGameModLauncher_Click(object sender, RoutedEventArgs e)
@@ -74,7 +54,9 @@ namespace FMT.Windows
         private void btnLoadGameTools_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = true;
-
+            GameToolsWindow toolsWindow = new GameToolsWindow(Owner);
+            toolsWindow.Show();
+            this.Close();
         }
     }
 }

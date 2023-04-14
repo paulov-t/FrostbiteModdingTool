@@ -7,6 +7,8 @@
         xmlns:Model="clr-namespace:FIFAModdingUI.Models" 
         mc:Ignorable="d"
          xmlns:localControls="clr-namespace:FIFAModdingUI.Pages.Common"
+         xmlns:ToolControls="clr-namespace:FMT.Pages.Common"
+                 
          xmlns:localPlayerControls="clr-namespace:FrostbiteModdingUI.Pages.Player"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
@@ -69,6 +71,10 @@
         <FMTControlsControls:LoadingDialog x:Name="loadingDialog" Grid.RowSpan="3" Panel.ZIndex="999">
 
         </FMTControlsControls:LoadingDialog>
+        <ToolControls:CacheManagerControl x:Name="cacheManagerControl" Grid.RowSpan="3" Panel.ZIndex="999" AutoRebuild="False">
+
+        </ToolControls:CacheManagerControl>
+
         <Grid x:Name="TopMenu" DockPanel.Dock="Top" Grid.Row="0" VerticalAlignment="Center">
             <StackPanel Orientation="Horizontal">
                 <Menu DockPanel.Dock="Top" HorizontalContentAlignment="Center">

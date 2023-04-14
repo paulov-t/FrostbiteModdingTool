@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Media.Animation;
 using v2k4FIFAModdingCL;
 
 namespace FMT.Pages.Common
@@ -22,7 +23,8 @@ namespace FMT.Pages.Common
     public partial class CacheManagerControl : System.Windows.Controls.UserControl, ILogger
     {
         private CacheManager buildCache = new CacheManager();
-        public bool AutoRebuild = true;
+        public bool AutoRebuild { get; set; } = true;
+        public bool AutoClose { get; set; } = true;
 
         public CacheManagerControl()
         {
@@ -30,6 +32,8 @@ namespace FMT.Pages.Common
 
             //Loaded += CacheManagerControl_Loaded;
             IsVisibleChanged += CacheManagerControl_IsVisibleChanged;
+            txtOuputMessage.Text = string.Empty;
+            txtOutputSubMessage.Text = string.Empty;
         }
 
         private async void CacheManagerControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -53,14 +57,17 @@ namespace FMT.Pages.Common
         //}
 
 
-        public async Task Rebuild(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Rebuild(CancellationToken cancellationToken = default(CancellationToken), bool forceRebuild = false)
         {
-            if (CacheManager.DoesCacheNeedsRebuilding())
+            await Dispatcher.InvokeAsync(() => { btnRebuild.Visibility = Visibility.Collapsed; });
+
+            if (forceRebuild || CacheManager.DoesCacheNeedsRebuilding())
             {
+                Stopwatch sw = Stopwatch.StartNew();
                 await Task.Delay(1000);
 
-                await Dispatcher.InvokeAsync(() => { btnRebuild.IsEnabled = false; });
-                await Dispatcher.InvokeAsync(() => { txtOuputMessage.Text = "Building Cache. Please wait 3-15 minutes to complete!"; });
+                await Dispatcher.InvokeAsync(() => { txtOuputMessage.Text = "Building Cache. Please wait 1-15 minutes to complete!"; });
+                await Dispatcher.InvokeAsync(() => { txtOutputSubMessage.Text = string.Empty; });
 
                 if (FileSystem.Instance == null)
                     new FileSystem(GameInstanceSingleton.Instance.GAMERootPath);
@@ -72,15 +79,23 @@ namespace FMT.Pages.Common
                 AssetManager.Instance.Dispose();
                 AssetManager.Instance = null;
 
-                await buildCache.LoadDataAsync(GameInstanceSingleton.Instance.GAMEVERSION, GameInstanceSingleton.Instance.GAMERootPath, this, false, true);
+                if (FileSystem.Instance == null)
+                    new FileSystem(GameInstanceSingleton.Instance.GAMERootPath);
+
+                await buildCache.LoadDataAsync(GameInstanceSingleton.Instance.GAMEVERSION, FileSystem.Instance.BasePath, this, false, true);
 
                 await Task.Delay(2000);
-
-                await Dispatcher.InvokeAsync(() => { btnRebuild.IsEnabled = true; });
+                await Dispatcher.InvokeAsync(() => { txtOuputMessage.Text = $"Completed Cache Build in {sw.Elapsed}"; });
+                await Dispatcher.InvokeAsync(() => { txtOutputSubMessage.Text = string.Empty; });
+                sw.Stop();
+                sw = null;
 
             }
 
-            await Dispatcher.InvokeAsync(() => { this.Visibility = Visibility.Collapsed; });
+            await Dispatcher.InvokeAsync(() => { btnRebuild.Visibility = Visibility.Visible; });
+
+            if (AutoClose)
+                await Dispatcher.InvokeAsync(() => { this.Visibility = Visibility.Collapsed; });
         }
 
         public void Dispose()
@@ -93,14 +108,7 @@ namespace FMT.Pages.Common
 
         public void Log(string text, params object[] vars)
         {
-            //if (LastMessage == text)
-            //    return;
-
-            //LastMessage = text;
-
-            //Dispatcher.Invoke(() => { txtOutputSubMessage.Content = text; });
-            //txtOutputSubMessage.Content = text;
-            LogAsync(text);
+            _ = LogAsync(text);
         }
 
         private string LastMessage = string.Empty;
@@ -119,18 +127,18 @@ namespace FMT.Pages.Common
         public void LogWarning(string text, params object[] vars)
         {
             Debug.WriteLine("[WARNING] " + text);
-            LogAsync("[WARNING] " + text);
+            _ = LogAsync("[WARNING] " + text);
         }
 
         public void LogError(string text, params object[] vars)
         {
             Debug.WriteLine("[ERROR] " + text);
-            LogAsync("[ERROR] " + text);
+            _ = LogAsync("[ERROR] " + text);
         }
 
         private async void btnRebuild_Click(object sender, RoutedEventArgs e)
         {
-            await Rebuild();
+            await Rebuild(forceRebuild: true);
         }
     }
 }

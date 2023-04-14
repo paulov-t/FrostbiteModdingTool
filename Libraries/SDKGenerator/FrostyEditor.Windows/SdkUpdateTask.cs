@@ -5,6 +5,15 @@ namespace FrostyEditor.Windows
 {
     public class SdkUpdateTask : INotifyPropertyChanged
     {
+        public enum SdkUpdateTaskStage
+        {
+            Process = 0,
+            TypeInfo = 1,
+            TypeDump = 2,
+            CrossReference = 3,
+            CompileSdk = 4,
+        }
+
         public delegate bool TaskDelegate(SdkUpdateTask task, object state);
 
         private string displayName;
@@ -14,6 +23,8 @@ namespace FrostyEditor.Windows
         private string statusMessage;
 
         private string failMessage;
+
+        public SdkUpdateTaskStage Stage;
 
         public string DisplayName
         {

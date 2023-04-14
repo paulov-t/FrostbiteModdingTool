@@ -204,7 +204,36 @@ namespace FrostySdk
             public string EADesktopCommandLineSetting { get; set; }
 
             public string SteamId { get; set; }
+            public bool HasAntiCheat { get; set; }
+            public Tools Tools { get; set; }
+
         }
+
+        public struct Tools
+        {
+            public struct InternalTool
+            {
+                public string Name { get; set; }
+                public string Description { get; set; }
+                public string Window { get; set; }
+
+                public override string ToString()
+                {
+                    return Name;
+                }
+            }
+
+            public struct ExternalTool
+            {
+                public string Name { get; set; }
+                public string Description { get; set; }
+
+            }
+
+            public List<InternalTool> Internal { get; set; }
+            public List<ExternalTool> External { get; set; }
+        }
+
         public static string GetModProfileParentDirectoryPath()
         {
             var dir = AppContext.BaseDirectory + "\\Mods\\Profiles\\";

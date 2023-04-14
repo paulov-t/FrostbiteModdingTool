@@ -89,10 +89,10 @@ namespace FrostySdk.Frostbite
                     File.Delete(CachePath);
 
                 logger.Log("Initialised File & Resource System");
-                AssetManager.Instance = new AssetManager(logger);
+                if (AssetManager.Instance == null)
+                    AssetManager.Instance = new AssetManager(logger);
+
                 AssetManager.Instance.RegisterLegacyAssetManager();
-                //AssetManager.Instance.SetLogger(logger);
-                //AssetManager.Instance.Initialize(additionalStartup: true);
                 AssetManager.Instance.Initialize(loadSDK);
 
                 logger.Log("Initialised Asset Manager");

@@ -44,6 +44,17 @@ namespace SdkGenerator
         public string ProcessName = ProfileManager.ProfileName;
         public string OverrideProfileName = null;
 
+        private SdkUpdateTask currentTask;
+
+        public SdkUpdateTask CurrentTask
+        {
+            get { return currentTask; }
+            set { currentTask = value; if (TaskChanged != null) TaskChanged(this, value); }
+        }
+
+
+        public event EventHandler<SdkUpdateTask> TaskChanged;
+
         public Process GetProcess()
         {
             var eP = ProfileManager.EditorProfiles.Select(x => x.Name).ToList();
@@ -63,23 +74,26 @@ namespace SdkGenerator
 
         Process SdkProcess = null;
         bool ResultState = false;
-        public async Task<bool> Build()
+        public async Task<bool> Build(CancellationToken cancellationToken = default(CancellationToken))
         {
+            Logger.Log($"Searching for Compatible Processes");
+
+            CurrentTask = new SdkUpdateTask
+             {
+                 DisplayName = "Waiting for process to become active",
+                 Stage = SdkUpdateTask.SdkUpdateTaskStage.Process
+             };
             int attemptToFindProcess = 0;
             do
             {
                 SdkProcess = GetProcess();
 
-                if (SdkProcess != null)
-                {
-                    //string text = SdkProcess.MainModule?.ModuleName;
-                }
                 attemptToFindProcess++;
-                await Task.Delay(1000);
+                await Task.Delay(999);
                 if (attemptToFindProcess > 60)
-                {
                     break;
-                }
+
+                Logger.Log($"Searching for Compatible Processes {60 - attemptToFindProcess}s");
             }
             while (SdkProcess == null);
 
@@ -104,7 +118,7 @@ namespace SdkGenerator
                 Trace.WriteLine("Process Not Found");
                 Console.WriteLine("Process Not Found");
 
-                Logger.LogError($"Process Not Found");
+                Logger.LogError($"Process Not Found!");
 
 
                 ResultState = false;
@@ -121,28 +135,33 @@ namespace SdkGenerator
 				new SdkUpdateTask
                 {
                     DisplayName = "Scanning for type info offset",
-                    Task = OnFindTypeInfoOffset
+                    Task = OnFindTypeInfoOffset,
+                    Stage = SdkUpdateTask.SdkUpdateTaskStage.TypeInfo
                 },
                 new SdkUpdateTask
                 {
                     DisplayName = "Dumping types from memory",
-                    Task = OnGatherTypesFromMemory
+                    Task = OnGatherTypesFromMemory,
+                    Stage = SdkUpdateTask.SdkUpdateTaskStage.TypeDump
                 },
                 new SdkUpdateTask
                 {
                     DisplayName = "Cross referencing assets",
-                    Task = OnCrossReferenceAssets
+                    Task = OnCrossReferenceAssets,
+                    Stage = SdkUpdateTask.SdkUpdateTaskStage.CrossReference
                 },
                 new SdkUpdateTask
                 {
                     DisplayName = "Creating SDK",
-                    Task = OnCreateSdk
+                    Task = OnCreateSdk,
+                    Stage = SdkUpdateTask.SdkUpdateTaskStage.CompileSdk
                 }
             };
 
             SdkUpdateState state = new SdkUpdateState();
             foreach (SdkUpdateTask task in list)
             {
+                CurrentTask = task;
                 task.State = SdkUpdateTaskState.Active;
                 await Task.Run(delegate
                 {

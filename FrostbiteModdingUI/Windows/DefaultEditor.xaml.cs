@@ -2,6 +2,7 @@
 using FIFAModdingUI.Windows;
 using FMT;
 using FMT.FileTools;
+using FMT.Pages.Common;
 using FMT.Windows;
 using FolderBrowserEx;
 using Frostbite.FileManagers;
@@ -153,11 +154,10 @@ namespace FrostbiteModdingUI.Windows
             DisableEditor();
             loadingDialog.Update("Loading Game Files", "");
 
-            BuildSDKAndCache buildSDKAndCacheWindow = new BuildSDKAndCache();
             if (CacheManager.DoesCacheNeedsRebuilding())
             {
                 loadingDialog.Update("", "");
-                buildSDKAndCacheWindow.ShowDialog();
+                await cacheManagerControl.Rebuild(forceRebuild: true);
             }
 
             await GameInstanceSingleton.InitializeSingletonAsync(filePath, true, this);
@@ -971,13 +971,6 @@ namespace FrostbiteModdingUI.Windows
         {
             FrostbiteModEmbeddedFiles frostbiteModEmbeddedFiles = new FrostbiteModEmbeddedFiles();
             frostbiteModEmbeddedFiles.ShowDialog();
-        }
-
-        private void btnRebuildCacheSdk_Click(object sender, RoutedEventArgs e)
-        {
-            BuildSDKAndCache buildSDKAndCache = new BuildSDKAndCache();
-            buildSDKAndCache.DoNotAutoRebuild = true;
-            buildSDKAndCache.Show();
         }
 
         private void btnImportKitCreatorZip_Click(object sender, RoutedEventArgs e)

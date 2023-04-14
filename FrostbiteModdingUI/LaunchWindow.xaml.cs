@@ -61,12 +61,6 @@ namespace FMT
             DataContext = this;
 
             InitialiseSelectedGame(AppSettings.Settings.GameInstallEXEPath);
-
-            //BuildSDKAndCache buildSDKAndCacheWindow = new BuildSDKAndCache();
-            //if (CacheManager.DoesCacheNeedsRebuilding())
-            //{
-            //    buildSDKAndCacheWindow.ShowDialog();
-            //}
         }
 
         protected override void OnClosed(EventArgs e)
