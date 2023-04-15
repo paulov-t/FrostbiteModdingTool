@@ -659,6 +659,22 @@ namespace FrostySdk.Managers
                     RevertAsset(linkedAsset, dataOnly, suppressOnModify);
                 }
 
+                if(assetEntry is EbxAssetEntry && !assetEntry.LinkedAssets.Any() && assetEntry.Type == "TextureAsset")
+                {
+                    var resEntry = this.GetResEntry(entry.Name);
+                    if (resEntry != null)
+                    {
+                        RevertAsset(resEntry);
+                        Texture texture = new Texture(resEntry);
+                        if (texture != null)
+                        {
+                            var chunkEntry = this.GetChunkEntry(texture.ChunkId);
+                            if (chunkEntry != null)
+                                RevertAsset(chunkEntry);
+                        }
+                    }
+                }
+
                 assetEntry.ClearModifications();
                 if (dataOnly)
                 {
