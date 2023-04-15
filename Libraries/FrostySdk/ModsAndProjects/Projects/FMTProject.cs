@@ -381,6 +381,9 @@ namespace FrostySdk.ModsAndProjects.Projects
                 var userData = nr.ReadLengthPrefixedString();
                 byte[] data = nr.ReadLengthPrefixedBytes();
                 ChunkAssetEntry chunkAssetEntry = AssetManager.GetChunkEntry(assetName);
+                if (chunkAssetEntry == null)
+                    continue;
+
                 chunkAssetEntry.ModifiedEntry = new ModifiedAssetEntry(data);
                 chunkAssetEntry.ModifiedEntry.Sha1 = Sha1.Create(data);
                 chunkAssetEntry.ModifiedEntry.LogicalOffset = logicalOffset;
