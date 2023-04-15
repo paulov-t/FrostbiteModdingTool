@@ -4,6 +4,7 @@ using FMT;
 using FMT.Controls.Pages;
 using FMT.FileTools;
 using FMT.FileTools.Modding;
+using FMT.Pages.Common;
 using FMT.Windows;
 using FolderBrowserEx;
 using Frostbite.FileManagers;
@@ -67,6 +68,18 @@ namespace FIFAModdingUI.Windows
 
         private async void FIFA21Editor_Loaded(object sender, RoutedEventArgs e)
         {
+
+            if (CacheManager.DoesCacheNeedsRebuilding())
+            {
+                loadingDialog.Update("", "");
+                Dispatcher.Invoke(() => {
+                    cacheManagerControl.Visibility = Visibility.Visible;
+                });
+                await cacheManagerControl.Rebuild(forceRebuild: true);
+            }
+            Dispatcher.Invoke(() => {
+                cacheManagerControl.Visibility = Visibility.Collapsed;
+            });
 
             if (!string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
             {
@@ -161,11 +174,7 @@ namespace FIFAModdingUI.Windows
             DisableEditor();
             loadingDialog.Update("Loading Game Files", "");
 
-            if (CacheManager.DoesCacheNeedsRebuilding())
-            {
-                loadingDialog.Update("", "");
-                await cacheManagerControl.Rebuild(forceRebuild: true);
-            }
+            
 
             await GameInstanceSingleton.InitializeSingletonAsync(filePath, true, this);
             GameInstanceSingleton.Logger = this;

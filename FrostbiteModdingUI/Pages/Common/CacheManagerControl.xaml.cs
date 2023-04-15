@@ -66,6 +66,8 @@ namespace FMT.Pages.Common
 
             if (forceRebuild || CacheManager.DoesCacheNeedsRebuilding())
             {
+                await Dispatcher.InvokeAsync(() => { this.Visibility = Visibility.Visible; });
+
                 Stopwatch sw = Stopwatch.StartNew();
                 await Task.Delay(1000);
 

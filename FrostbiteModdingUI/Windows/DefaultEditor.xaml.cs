@@ -63,6 +63,18 @@ namespace FrostbiteModdingUI.Windows
 
         private async void DefaultEditor_Loaded(object sender, RoutedEventArgs e)
         {
+            if (CacheManager.DoesCacheNeedsRebuilding())
+            {
+                loadingDialog.Update("", "");
+                Dispatcher.Invoke(() => {
+                    cacheManagerControl.Visibility = Visibility.Visible;
+                });
+                await cacheManagerControl.Rebuild(forceRebuild: true);
+            }
+            Dispatcher.Invoke(() => {
+                cacheManagerControl.Visibility = Visibility.Collapsed;
+            });
+
 
             if (!string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
             {
@@ -153,12 +165,6 @@ namespace FrostbiteModdingUI.Windows
         {
             DisableEditor();
             loadingDialog.Update("Loading Game Files", "");
-
-            if (CacheManager.DoesCacheNeedsRebuilding())
-            {
-                loadingDialog.Update("", "");
-                await cacheManagerControl.Rebuild(forceRebuild: true);
-            }
 
             await GameInstanceSingleton.InitializeSingletonAsync(filePath, true, this);
             GameInstanceSingleton.Logger = this;

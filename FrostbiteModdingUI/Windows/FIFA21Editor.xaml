@@ -70,7 +70,7 @@
         <FMTControls:LoadingDialog x:Name="loadingDialog" Grid.RowSpan="3" Panel.ZIndex="999">
             
         </FMTControls:LoadingDialog>
-        <ToolControls:CacheManagerControl x:Name="cacheManagerControl" Grid.RowSpan="3" Panel.ZIndex="999" AutoRebuild="False">
+        <ToolControls:CacheManagerControl x:Name="cacheManagerControl" Grid.RowSpan="3" Panel.ZIndex="999" AutoRebuild="False" AutoClose="False">
             
         </ToolControls:CacheManagerControl>
 
