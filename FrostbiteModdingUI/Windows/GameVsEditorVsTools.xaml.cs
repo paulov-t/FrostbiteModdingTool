@@ -21,7 +21,10 @@ namespace FMT.Windows
             SelectedProfile = selectedProfile;
             btnLoadGameModLauncher.IsEnabled = SelectedProfile.CanLaunchMods;
             btnLoadGameEditor.IsEnabled = SelectedProfile.CanEdit;
-            btnLoadGameTools.IsEnabled = SelectedProfile.Tools.Internal.Count + SelectedProfile.Tools.External.Count > 0;
+            btnLoadGameTools.IsEnabled =
+                SelectedProfile.Tools.Internal != null && SelectedProfile.Tools.External != null
+                &&
+                SelectedProfile.Tools.Internal.Count + SelectedProfile.Tools.External.Count > 0;
         }
 
         private void btnLoadGameModLauncher_Click(object sender, RoutedEventArgs e)
