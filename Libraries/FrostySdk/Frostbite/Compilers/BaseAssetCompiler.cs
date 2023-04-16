@@ -730,6 +730,8 @@ namespace FrostySdk.Frostbite.Compilers
             // ------------------------------------------------------------------------------
             // Step 1. Discovery phase. Find the Edited Bundles and what TOC/SB they affect
             //
+            // ---------
+            // Step 1a. Cache has the SBFileLocation or TOCFileLocation
             var editedBundles = EntriesToNewPosition.SelectMany(x => x.Key.Bundles).Distinct();
             var groupedByTOCSB = new Dictionary<string, List<KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)>>>();
             if(EntriesToNewPosition.Any(
@@ -737,11 +739,23 @@ namespace FrostySdk.Frostbite.Compilers
                 || !string.IsNullOrEmpty(x.Key.TOCFileLocation)
                 ))
             {
+                // Group By SBFileLocation or TOCFileLocation
                 groupedByTOCSB = EntriesToNewPosition
                     .GroupBy(x => !string.IsNullOrEmpty(x.Key.SBFileLocation) ? x.Key.SBFileLocation : x.Key.TOCFileLocation)
                     .ToDictionary(x => x.Key, x => x.ToList());
+
+                // Remove from EntriesToNewPosition to stop any false errors occuring 
+                foreach(var items in groupedByTOCSB.Values)
+                {
+                    foreach (var item in items) 
+                    {
+                        EntriesToNewPosition.Remove(item.Key);
+                    }
+                }
             }
 
+            // ---------
+            // Step 1b. Discover via Bundle Indexes (which doesn't work particularly well)
             int sbIndex = -1;
             foreach (var catalogInfo in FileSystem.Instance.EnumerateCatalogInfos())
             {
@@ -759,14 +773,12 @@ namespace FrostySdk.Frostbite.Compilers
                     var nativePathToTOCFile = $"{directory}/{tocFileKey}.toc";
                     var actualPathToTOCFile = FileSystem.Instance.ResolvePath(nativePathToTOCFile, ModExecutor.UseModData);
                     using TOCFile tocFile = new TOCFile(nativePathToTOCFile, false, false, true, sbIndex, true);
-
 #if DEBUG
                     if (nativePathToTOCFile.Contains("global"))
                     {
 
                     }
 #endif
-
 
                     var hashedEntries = tocFile.BundleEntries.Select(x => Fnv1a.HashString(x.Name));
                     if (hashedEntries.Any(x => editedBundles.Contains(x)))
@@ -775,8 +787,6 @@ namespace FrostySdk.Frostbite.Compilers
                             groupedByTOCSB.Add(nativePathToTOCFile, new List<KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)>>());
 
                         var editedBundleEntries = EntriesToNewPosition.Where(x => x.Key.Bundles.Any(y => hashedEntries.Contains(y))).ToArray();
-                        //foreach (var item in editedBundleEntries.Where(x => x.Key is ChunkAssetEntry))
-                        //    groupedByTOCSB[nativePathToTOCFile].Add(item);
 
                         foreach (var item in editedBundleEntries)
                         {
