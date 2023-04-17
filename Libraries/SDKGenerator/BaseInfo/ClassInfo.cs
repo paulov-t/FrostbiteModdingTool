@@ -8,17 +8,19 @@ using System.IO;
 namespace SdkGenerator.BaseInfo
 {
 
-    public class ClassInfo : ISdkGenInfo
+    public class ClassInfo : ISdkGenInfo, IClassInfo
     {
-        public TypeInfo typeInfo;
+        public ITypeInfo typeInfo { get; set; }
 
-        public ushort id;
+        public ushort id { get; set; }
 
-        public ushort isDataContainer;
+        public ushort isDataContainer { get; set; }
 
-        public byte[] padding;
+        public byte[] padding { get; set; }
 
-        public long parentClass;
+        public long parentClass { get; set; }
+
+        public long nextOffset { get; set; } = 0;
 
         public virtual void Read(MemoryReader reader)
         {

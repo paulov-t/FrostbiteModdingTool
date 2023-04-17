@@ -204,6 +204,84 @@ namespace FrostySdk
 
             ZStd.Bind();
             Oodle.Bind(BasePath);
+
+            LoadCatalogs();
+        }
+
+        public Dictionary<Sha1, CatResourceEntry> CatResourceEntries { get; } = new Dictionary<Sha1, CatResourceEntry>();
+        public Dictionary<Sha1, CatPatchEntry> CatPatchEntries { get; } = new Dictionary<Sha1, CatPatchEntry>();
+        public Dictionary<int, string> CasFiles { get; } = new Dictionary<int, string>();
+
+        /// <summary>
+        /// Attempts to load in .CAT files
+        /// </summary>
+        private void LoadCatalogs()
+        {
+            foreach (string catalogName in Catalogs)
+            {
+                LoadCatalog("native_data/" + catalogName + "/cas.cat");
+                LoadCatalog("native_patch/" + catalogName + "/cas.cat");
+            }
+        }
+
+        /// <summary>
+        /// Attempts to load in .CAT files (if they exist)
+        /// </summary>
+        /// <param name="filename"></param>
+        private void LoadCatalog(string filename)
+        {
+            string fullPath = ResolvePath(filename);
+            if (!File.Exists(fullPath))
+            {
+                return;
+            }
+
+            using (CatReader reader = new CatReader(new FileStream(fullPath, FileMode.Open, FileAccess.Read), CreateDeobfuscator()))
+            {
+                for (int i = 0; i < reader.ResourceCount; i++)
+                {
+                    CatResourceEntry entry = reader.ReadResourceEntry();
+                    entry.ArchiveIndex = AddCas(filename, entry.ArchiveIndex);
+
+                    if (entry.LogicalOffset == 0 && !CatResourceEntries.ContainsKey(entry.Sha1))
+                    {
+                        CatResourceEntries.Add(entry.Sha1, entry);
+                    }
+                }
+
+                for (int i = 0; i < reader.EncryptedCount; i++)
+                {
+                    CatResourceEntry entry = reader.ReadEncryptedEntry();
+                    entry.ArchiveIndex = AddCas(filename, entry.ArchiveIndex);
+
+                    if (entry.LogicalOffset == 0 && !CatResourceEntries.ContainsKey(entry.Sha1))
+                    {
+                        CatResourceEntries.Add(entry.Sha1, entry);
+                    }
+                }
+
+                for (int i = 0; i < reader.PatchCount; i++)
+                {
+                    CatPatchEntry entry = reader.ReadPatchEntry();
+                    if (!CatPatchEntries.ContainsKey(entry.Sha1))
+                    {
+                        CatPatchEntries.Add(entry.Sha1, entry);
+                    }
+                }
+            }
+        }
+
+        private int AddCas(string catPath, int archiveIndex)
+        {
+            string casFilename = catPath.Substring(0, catPath.Length - 7) + "cas_" + archiveIndex.ToString("d2") + ".cas";
+            int hash = Fnv1.HashString(casFilename);
+
+            if (!CasFiles.ContainsKey(hash))
+            {
+                CasFiles.Add(hash, ResolvePath(casFilename));
+            }
+
+            return hash;
         }
 
         public IDeobfuscator CreateDeobfuscator()

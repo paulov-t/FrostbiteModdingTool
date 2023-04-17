@@ -18,7 +18,6 @@ namespace FrostySdk.Frostbite.Loaders
         {
             parent.WriteToLog("Loading data from manifest");
 
-            // @todo: Get proper superbundle names
             parent.superBundles.Add(new SuperBundleEntry { Name = "<none>" });
 
             foreach (DbObject bundle in parent.FileSystem.EnumerateBundles())

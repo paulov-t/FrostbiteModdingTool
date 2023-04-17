@@ -61,20 +61,22 @@ namespace SdkGenerator.StarWarsSquadronsPlugin
             {
 
             }
-
-            nameHash = reader.ReadUInt();
             flags = reader.ReadUShort();
             flags >>= 1;
-            //size = reader.ReadUShort();
             size = reader.ReadUInt();
-            reader.Position -= 4L;
-            size = reader.ReadUShort();
+            //size = reader.ReadUShort();
+            //size = reader.ReadUInt();
+            //reader.Position -= 4L;
+            //size = reader.ReadUShort();
 
-            guid = reader.ReadGuid();
-            if (!Regex.IsMatch(guid.ToString(), @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$"))
-            {
-                throw new System.FormatException("Guid is not valid");
-            }
+            //guid = reader.ReadGuid();
+            //if (!Regex.IsMatch(guid.ToString(), @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$"))
+            //{
+            //    throw new System.FormatException("Guid is not valid");
+            //}
+
+            //padding3 = reader.ReadUInt();
+            fieldCount = reader.ReadUShort();
 
             // Module 
             long namespaceNamePosition = reader.ReadLong();
@@ -143,11 +145,8 @@ namespace SdkGenerator.StarWarsSquadronsPlugin
                     {
                         fields.Add(fieldInfo);
                     }
-                }
 
 
-                foreach (var f in fields)
-                {
                 }
             }
         }

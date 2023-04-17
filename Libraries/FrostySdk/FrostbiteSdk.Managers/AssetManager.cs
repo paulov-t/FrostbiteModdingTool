@@ -1216,26 +1216,34 @@ namespace FrostySdk.Managers
             }
         }
 
-        public void DuplicateEntry(AssetEntry EntryToDuplicate, string NewEntryPath, bool IsLegacy)
+        public void DuplicateAsset(AssetEntry entryToDuplicate, string newEntryPath)
         {
-            if (EntryToDuplicate == null)
+            DuplicateEntry(entryToDuplicate, newEntryPath);
+        }
+
+        public void DuplicateEntry(AssetEntry entryToDuplicate, string newEntryPath)
+        {
+            if (entryToDuplicate == null)
                 throw new ArgumentNullException("Entry to duplicate must be provided!");
 
-            if (IsLegacy)
+            if (newEntryPath == null)
+                throw new ArgumentNullException("A new Path must be provided!");
+
+            if (entryToDuplicate is LegacyFileEntry)
             {
-                LegacyFileEntry ae = JsonConvert.DeserializeObject<LegacyFileEntry>(JsonConvert.SerializeObject(EntryToDuplicate));
-                ae.Name = NewEntryPath;
+                LegacyFileEntry ae = JsonConvert.DeserializeObject<LegacyFileEntry>(JsonConvert.SerializeObject(entryToDuplicate));
+                ae.Name = newEntryPath;
                 ICustomAssetManager customAssetManager = AssetManager.Instance.GetLegacyAssetManager();
-                customAssetManager.DuplicateAsset(NewEntryPath, (LegacyFileEntry)EntryToDuplicate);
+                customAssetManager.DuplicateAsset(newEntryPath, (LegacyFileEntry)entryToDuplicate);
             }
             else
             {
 
-                EbxAssetEntry ae = EntryToDuplicate.Clone() as EbxAssetEntry;
+                EbxAssetEntry ae = entryToDuplicate.Clone() as EbxAssetEntry;
                 var originalEbxData = AssetManager.Instance.GetEbx(ae);
 
-                ae.Name = NewEntryPath;
-                ae.DuplicatedFromName = EntryToDuplicate.Name;
+                ae.Name = newEntryPath;
+                ae.DuplicatedFromName = entryToDuplicate.Name;
                 ae.Sha1 = FMT.FileTools.Sha1.Create();
                 AssetManager.Instance.AddEbx(ae);
 
@@ -1245,10 +1253,10 @@ namespace FrostySdk.Managers
                     var dynamicRO = (dynamic)originalEbxData.RootObject;
                     ResAssetEntry resAssetEntry = AssetManager.Instance.GetResEntry(((dynamic)originalEbxData.RootObject).Resource);
                     var rae = resAssetEntry.Clone() as ResAssetEntry;
-                    rae.Name = NewEntryPath;
+                    rae.Name = newEntryPath;
                     rae.ResRid = GetNextRID();
                     rae.Sha1 = FMT.FileTools.Sha1.Create();
-                    rae.DuplicatedFromName = EntryToDuplicate.Name;
+                    rae.DuplicatedFromName = entryToDuplicate.Name;
 
                     dynamicRO.Resource = new ResourceRef(rae.ResRid);
 
@@ -1260,7 +1268,7 @@ namespace FrostySdk.Managers
                             cae.Id = AssetManager.Instance.GenerateChunkId(cae);
                             textureAsset.ChunkId = cae.Id;
                             var newTextureData = textureAsset.ToBytes();
-                            rae.ModifiedEntry = new ModifiedAssetEntry() { UserData = "DUP;" + EntryToDuplicate.Name, Data = Utils.CompressFile(newTextureData, textureAsset) };
+                            rae.ModifiedEntry = new ModifiedAssetEntry() { UserData = "DUP;" + entryToDuplicate.Name, Data = Utils.CompressFile(newTextureData, textureAsset) };
                             cae.ModifiedEntry = new ModifiedAssetEntry() { UserData = "DUP;" + textureAsset.ChunkEntry.Name, Data = Utils.CompressFile(AssetManager.Instance.GetChunkData(cae).ToArray()) };
                             cae.Sha1 = Sha1.Create();
                             cae.DuplicatedFromName = textureAsset.ChunkEntry.Name;
@@ -1269,8 +1277,8 @@ namespace FrostySdk.Managers
                     }
 
                     // Modify the newly Added EBX
-                    AssetManager.Instance.ModifyEbx(NewEntryPath, originalEbxData);
-                    ae.ModifiedEntry.UserData = "DUP;" + EntryToDuplicate.Name;
+                    AssetManager.Instance.ModifyEbx(newEntryPath, originalEbxData);
+                    ae.ModifiedEntry.UserData = "DUP;" + entryToDuplicate.Name;
                     // Add the RESOURCE
                     AssetManager.Instance.AddRes(rae);
                 }
@@ -1818,18 +1826,26 @@ namespace FrostySdk.Managers
             {
                 return GetResourceData(entry.ModifiedEntry.Data);
             }
-            switch (entry.Location)
+
+            var entryLocation = entry.Location;
+            if (entryLocation == AssetDataLocation.CasNonIndexed && (entry.ExtraData == null || entry.ExtraData.DataOffset == 0))
             {
-                //case AssetDataLocation.Cas:
-                //	if (entry.ExtraData == null)
-                //	{
-                //		return rm.GetResourceData(entry.Sha1);
-                //	}
-                //	return rm.GetResourceData(entry.ExtraData.BaseSha1, entry.ExtraData.DeltaSha1);
+                entryLocation = AssetDataLocation.Cas;
+            }
+
+            switch (entryLocation)
+            {
+                case AssetDataLocation.Cas:
+                    if (entry.ExtraData == null || entry.ExtraData.DataOffset == 0)
+                    {
+                        return GetResourceData(entry.Sha1);
+                    }
+                    //return GetResourceData(entry.ExtraData.BaseSha1, entry.ExtraData.DeltaSha1);
+                    return null;
                 //case AssetDataLocation.SuperBundle:
-                //	return rm.GetResourceData((entry.ExtraData.IsPatch ? "native_patch/" : "native_data/") + superBundles[entry.ExtraData.SuperBundleId].Name + ".sb", entry.ExtraData.DataOffset, entry.Size);
+                //    return GetResourceData((entry.ExtraData.IsPatch ? "native_patch/" : "native_data/") + superBundles[entry.ExtraData.SuperBundleId].Name + ".sb", entry.ExtraData.DataOffset, entry.Size);
                 //case AssetDataLocation.Cache:
-                //	return rm.GetResourceData(entry.ExtraData.DataOffset, entry.Size);
+                //    return GetResourceData(entry.ExtraData.DataOffset, entry.Size);
                 case AssetDataLocation.CasNonIndexed:
                     return GetResourceData(entry.ExtraData.CasPath, entry.ExtraData.DataOffset, entry.Size, entry);
                 default:
@@ -1986,6 +2002,76 @@ namespace FrostySdk.Managers
                 Debug.WriteLine("[DEBUG] [ERROR] " + e.Message);
             }
             return null;
+        }
+
+        public Stream GetResourceData(Sha1 sha1)
+        {
+            if (FileSystem.CatPatchEntries.ContainsKey(sha1))
+            {
+                CatPatchEntry patchEntry = FileSystem.CatPatchEntries[sha1];
+                return GetResourceData(patchEntry.BaseSha1, patchEntry.DeltaSha1);
+            }
+
+            if (!FileSystem.CatResourceEntries.ContainsKey(sha1))
+            {
+                return null;
+            }
+
+            CatResourceEntry entry = FileSystem.CatResourceEntries[sha1];
+            byte[] buffer = null;
+
+            if (entry.IsEncrypted && !KeyManager.Instance.HasKey(entry.KeyId))
+            {
+                return null;
+            }
+
+            using (NativeReader casReader = new NativeReader(new FileStream(FileSystem.CasFiles[entry.ArchiveIndex], FileMode.Open, FileAccess.Read)))
+            {
+                using (CasReader reader = new CasReader(casReader.CreateViewStream(entry.Offset, entry.Size),
+                           (entry.IsEncrypted) ? KeyManager.Instance.GetKey(entry.KeyId) : null, entry.EncryptedSize))
+                {
+                    buffer = reader.Read();
+                }
+            }
+
+            return (buffer != null) ? new MemoryStream(buffer) : null;
+        }
+
+        public Stream GetResourceData(Sha1 baseSha1, Sha1 deltaSha1)
+        {
+            if (!FileSystem.CatResourceEntries.ContainsKey(baseSha1) || !FileSystem.CatResourceEntries.ContainsKey(deltaSha1))
+            {
+                return null;
+            }
+
+            CatResourceEntry baseEntry = FileSystem.CatResourceEntries[baseSha1];
+            CatResourceEntry deltaEntry = FileSystem.CatResourceEntries[deltaSha1];
+
+            byte[] buffer = null;
+            using (NativeReader baseReader = new NativeReader(new FileStream(FileSystem.CasFiles[baseEntry.ArchiveIndex], FileMode.Open, FileAccess.Read)))
+            {
+                using (NativeReader deltaReader = (deltaEntry.ArchiveIndex == baseEntry.ArchiveIndex) ? baseReader : new NativeReader(new FileStream(FileSystem.CasFiles[deltaEntry.ArchiveIndex], FileMode.Open, FileAccess.Read)))
+                {
+                    byte[] baseKey = (baseEntry.IsEncrypted && KeyManager.Instance.HasKey(baseEntry.KeyId)) ? KeyManager.Instance.GetKey(baseEntry.KeyId) : null;
+                    byte[] deltaKey = (deltaEntry.IsEncrypted && KeyManager.Instance.HasKey(deltaEntry.KeyId)) ? KeyManager.Instance.GetKey(deltaEntry.KeyId) : null;
+
+                    if (baseEntry.IsEncrypted && baseKey == null || deltaEntry.IsEncrypted && deltaKey == null)
+                    {
+                        return null;
+                    }
+
+                    using (CasReader reader =
+                           new CasReader(baseReader.CreateViewStream(baseEntry.Offset, baseEntry.Size), baseKey,
+                               baseEntry.EncryptedSize,
+                               deltaReader.CreateViewStream(deltaEntry.Offset, deltaEntry.Size), deltaKey,
+                               deltaEntry.EncryptedSize))
+                    {
+                        buffer = reader.Read();
+                    }
+                }
+            }
+
+            return (buffer != null) ? new MemoryStream(buffer) : null;
         }
 
         public void ProcessBundleEbx(DbObject sb, int bundleId, BinarySbDataHelper helper)

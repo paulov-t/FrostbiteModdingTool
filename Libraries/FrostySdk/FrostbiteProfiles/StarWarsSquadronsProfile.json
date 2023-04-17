@@ -1,5 +1,5 @@
 {
-  "Name": "StarWarsSquadrons",
+  "Name": "starwarssquadrons",
   "DisplayName": "Star Wars Squadrons",
   "DataVersion": 20201001,
   "CacheName": "swsquadrons",
@@ -39,9 +39,9 @@
   // SDK Generating Info
   //
   "SDKFilename": "SWSSDK",
-  "SDKAOBScan": "48 39 1D ?? ?? ?? ?? ?? ?? 48 8b 43 10",
-  "SDKClassesFile": "FIFA23.Classes.txt",
-  "SDKGeneratorClassInfoType": "SdkGenerator.Fifa23.ClassInfo",
+  "SDKAOBScan": null,
+  "SDKClassesFile": "FIFA20.Classes.txt",
+  "SDKGeneratorClassInfoType": "SdkGenerator.StarWarsSquadronsPlugin.ClassInfo",
   "EBXTypeDescriptor": "EBXSharedTypeDescriptorV2",
 
   // Supported Launcher Filetypes
@@ -49,7 +49,7 @@
   // Will the Launcher support this Game?
   "CanLaunchMods": false,
   // Can this Application Edit this Game?
-  "CanEdit": false,
+  "CanEdit": true,
 
   // Custom .cache file Writer - Write these exclusively (example - Madden22CacheWriter)
   "CacheWriter": "CacheWriterSWSquadrons",

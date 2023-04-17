@@ -22,23 +22,23 @@ namespace SdkGenerator.StarWarsSquadronsPlugin
             long position = reader.Position;
 
             long typePosition = reader.ReadLong();
-            var previousOffset = reader.ReadLong();
             nextOffset = reader.ReadLong();
+            //nextOffset = reader.ReadLong();
             //long typePosition2 = reader.ReadLong();
 
             id = reader.ReadUShort();
             //
             //reader.ReadUShort();
-            isDataContainer = reader.ReadUShort();
-            padding = new byte[4]
-            {
-                reader.ReadByte(),
-                reader.ReadByte(),
-                         reader.ReadByte(),
-                         reader.ReadByte()
-                     };
+            //isDataContainer = reader.ReadUShort();
+            //padding = new byte[4]
+            //{
+            //    reader.ReadByte(),
+            //    reader.ReadByte(),
+            //             reader.ReadByte(),
+            //             reader.ReadByte()
+            //         };
 
-            parentClass = reader.ReadLong();
+            //parentClass = reader.ReadLong();
 
             reader.Position = typePosition;
             typeInfo = new TypeInfo();

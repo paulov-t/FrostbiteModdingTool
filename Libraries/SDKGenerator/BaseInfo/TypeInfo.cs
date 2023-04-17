@@ -6,31 +6,44 @@ using System.Collections.Generic;
 
 namespace SdkGenerator.BaseInfo
 {
-    public class TypeInfo : ISdkGenInfo
+    public class TypeInfo : ISdkGenInfo, ITypeInfo
     {
-        public string name;
+        //public string name;
 
-        public ushort flags;
+        //public ushort flags;
 
-        public uint size;
+        //public uint size;
 
-        public Guid guid;
+        //public Guid guid;
 
-        public ushort padding1;
+        //public ushort padding1;
 
-        public string nameSpace;
+        //public string nameSpace;
 
-        public ushort alignment;
+        //public ushort alignment;
 
-        public uint fieldCount;
+        //public uint fieldCount;
 
-        public uint padding3;
+        //public uint padding3;
 
-        public long parentClass;
+        //public long parentClass;
 
-        public List<FieldInfo> fields = new List<FieldInfo>();
+        //public List<FieldInfo> fields = new List<FieldInfo>();
 
         public int Type => (flags >> 4) & 0x1F;
+
+        public uint nameHash { get; set; }
+        public string name { get; set; }
+        public ushort flags { get; set; }
+        public uint size { get; set; }
+        public Guid guid { get; set; }
+        public ushort padding1 { get; set; }
+        public string nameSpace { get; set; }
+        public ushort alignment { get; set; }
+        public uint fieldCount { get; set; }
+        public uint padding3 { get; set; }
+        public long parentClass { get; set; }
+        public List<IFieldInfo> fields { get; set; } = new List<IFieldInfo>();
 
         public virtual void Read(MemoryReader reader)
         {

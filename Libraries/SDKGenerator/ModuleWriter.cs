@@ -305,10 +305,10 @@ namespace SdkGenerator
                 return "";
             }
             StringBuilder stringBuilder = new StringBuilder();
-            string parentClassName = classObj.GetValue("parent", "").Replace(':', '_');
+            string parentClassName = classObj.GetValue("parent", "").Replace(':', '_').Replace('-', '_').Replace("(", "").Replace(")", "").Replace(",", "");
             EbxFieldType ebxFieldType = (EbxFieldType)classObj.GetValue("type", 0);
             DbObject value = classObj.GetValue<DbObject>("meta");
-            string className = classObj.GetValue<string>("name").Replace(':', '_');
+            string className = classObj.GetValue<string>("name").Replace(':', '_').Replace('-', '_').Replace("(", "").Replace(")", "").Replace(",", "");
 
             if (string.IsNullOrEmpty(className))
                 return string.Empty;
@@ -373,7 +373,14 @@ namespace SdkGenerator
             var class_fields = classObj.GetValue<DbObject>("fields").list.OrderBy(x => ((DbObject)x).GetValue<int>("offset"));
             foreach (DbObject item in class_fields)
             {
+                if (!item.HasValue("name"))
+                    continue;
+
+                if (!item.HasValue("type"))
+                    continue;
+
                 stringBuilder.Append(WriteField(item));
+
                 if (!flag && item.GetValue<string>("name").Equals("Name", StringComparison.OrdinalIgnoreCase) && ebxFieldType == EbxFieldType.Pointer && (byte)item.GetValue("type", 0) == 7)
                 {
                     string name = typeof(EbxClassMetaAttribute).GetProperties()[4].Name;
@@ -424,32 +431,36 @@ namespace SdkGenerator
             }
             if (ebxFieldType == EbxFieldType.Struct && classObj.GetValue<DbObject>("fields").Count > 0)
             {
-                stringBuilder.AppendLine("public override bool Equals(object obj)\r\n{");
-                stringBuilder.AppendLine("if (obj == null || !(obj is " + className + "))\r\nreturn false;");
-                stringBuilder.AppendLine(className + " b = (" + className + ")obj;");
-                stringBuilder.Append("return ");
-                int num = 0;
-                foreach (DbObject item2 in classObj.GetValue<DbObject>("fields"))
-                {
-                    DbObject value4 = item2.GetValue<DbObject>("meta");
-                    if (value4 == null || !value4.HasValue("hidden"))
-                    {
-                        string value5 = item2.GetValue<string>("name");
-                        stringBuilder.AppendLine(((num++ != 0) ? "&& " : "") + value5 + " == b." + value5);
-                    }
-                }
-                stringBuilder.AppendLine(";\r\n}");
-                stringBuilder.AppendLine("public override int GetHashCode()\r\n{\r\nunchecked {\r\nint hash = (int)2166136261;");
-                foreach (DbObject item3 in classObj.GetValue<DbObject>("fields"))
-                {
-                    DbObject value6 = item3.GetValue<DbObject>("meta");
-                    if (value6 == null || !value6.HasValue("hidden"))
-                    {
-                        string value7 = item3.GetValue<string>("name");
-                        stringBuilder.AppendLine("hash = (hash * 16777619) ^ " + value7 + ".GetHashCode();");
-                    }
-                }
-                stringBuilder.AppendLine("return hash;\r\n}\r\n}");
+                //stringBuilder.AppendLine("public override bool Equals(object obj)\r\n{");
+                //stringBuilder.AppendLine("if (obj == null || !(obj is " + className + "))\r\nreturn false;");
+                //stringBuilder.AppendLine(className + " b = (" + className + ")obj;");
+                //stringBuilder.Append("return ");
+                //int num = 0;
+                //foreach (DbObject fieldItem in classObj.GetValue<DbObject>("fields"))
+                //{
+                //    DbObject value4 = fieldItem.GetValue<DbObject>("meta");
+                //    if (value4 == null || !value4.HasValue("hidden"))
+                //    {
+                //        string fieldName = fieldItem.GetValue<string>("name");
+                //        if (string.IsNullOrEmpty(fieldName))
+                //            continue;
+
+                //        stringBuilder.AppendLine(((num++ != 0) ? "&& " : "") + fieldName + " == b." + fieldName);
+                //    }
+                //}
+                //stringBuilder.AppendLine(";\r\n}");
+
+                //stringBuilder.AppendLine("public override int GetHashCode()\r\n{\r\nunchecked {\r\nint hash = (int)2166136261;");
+                //foreach (DbObject item3 in classObj.GetValue<DbObject>("fields"))
+                //{
+                //    DbObject value6 = item3.GetValue<DbObject>("meta");
+                //    if (value6 == null || !value6.HasValue("hidden"))
+                //    {
+                //        string value7 = item3.GetValue<string>("name");
+                //        stringBuilder.AppendLine("hash = (hash * 16777619) ^ " + value7 + ".GetHashCode();");
+                //    }
+                //}
+                //stringBuilder.AppendLine("return hash;\r\n}\r\n}");
             }
             stringBuilder.AppendLine("}");
             return stringBuilder.ToString();
@@ -458,6 +469,9 @@ namespace SdkGenerator
         private string WriteField(DbObject fieldObj)
         {
             StringBuilder stringBuilder = new StringBuilder();
+            if (!fieldObj.HasValue("name"))
+                return string.Empty;
+
             string fieldName = fieldObj.GetValue<string>("name");
             EbxFieldType ebxFieldType = (EbxFieldType)fieldObj.GetValue("type", 0);
             string baseType = fieldObj.GetValue("baseType", "");
@@ -514,9 +528,10 @@ namespace SdkGenerator
             }
             else
             {
-                stringBuilder.AppendLine("public " + fieldType + " " + fieldName + " { get { return _" + fieldName + "; } set { _" + fieldName + " = value; } }");
+                //stringBuilder.AppendLine("public " + fieldType + " " + fieldName + " { get { return _" + fieldName + "; } set { _" + fieldName + " = value; } }");
+                stringBuilder.AppendLine("public " + fieldType + " " + fieldName + " { get; set; }");
             }
-            stringBuilder.AppendLine("protected " + fieldType + " _" + fieldName + (flag2 ? (" = new " + fieldType + "()") : "") + ";");
+            //stringBuilder.AppendLine("protected " + fieldType + " _" + fieldName + (flag2 ? (" = new " + fieldType + "()") : "") + ";");
             return stringBuilder.ToString();
         }
 

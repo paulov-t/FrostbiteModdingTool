@@ -4,19 +4,27 @@ using FrostySdk;
 
 namespace SdkGenerator.BaseInfo
 {
-    public class FieldInfo : ISdkGenInfo
+    public class FieldInfo : ISdkGenInfo, IFieldInfo
     {
-        public string name;
+        public uint nameHash { get; set; }
+        public string name { get; set; }
+        public ushort flags { get; set; }
+        public uint offset { get; set; }
+        public ushort padding1 { get; set; }
+        public long typeOffset { get; set; }
+        public int index { get; set; }
 
-        public ushort flags;
+        //public string name;
 
-        public uint offset;
+        //public ushort flags;
 
-        public ushort padding1;
+        //public uint offset;
 
-        public long typeOffset;
+        //public ushort padding1;
 
-        public int index;
+        //public long typeOffset;
+
+        //public int index;
 
         public virtual void Read(MemoryReader reader)
         {
