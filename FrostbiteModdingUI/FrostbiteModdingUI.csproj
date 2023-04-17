@@ -1,29 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<!--<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">-->
 
-  <PropertyGroup>
-	  <OutputType>WinExe</OutputType>
-	  <TargetFramework>net7.0-windows</TargetFramework>
-	  <!--<Nullable>enable</Nullable>-->
-	  <UseWPF>true</UseWPF>
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <Optimize>false</Optimize>
-    <PublishTrimmed>false</PublishTrimmed>
-    <PublishSingleFile>true</PublishSingleFile>
-    
-    <PublishReadyToRun>false</PublishReadyToRun>
-    <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
-    <Company>Paulv2k4 / V / Paulov</Company>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>paulv2k4.ico</ApplicationIcon>
-   
-  
-  <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  <Deterministic>false</Deterministic>
-  <AssemblyName>FMT</AssemblyName>
-  <RootNamespace>FMT</RootNamespace>
-	  <!--<IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>-->
-</PropertyGroup>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net7.0-windows</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Optimize>false</Optimize>
+        <PublishTrimmed>false</PublishTrimmed>
+        <PublishSingleFile>true</PublishSingleFile>
+        <PublishReadyToRun>false</PublishReadyToRun>
+        <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
+        <Company>Paulv2k4 / V / Paulov</Company>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>paulv2k4.ico</ApplicationIcon>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <Deterministic>false</Deterministic>
+        <AssemblyName>FMT</AssemblyName>
+        <RootNamespace>FMT</RootNamespace>
+    </PropertyGroup>
 
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -160,6 +154,12 @@
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	
     </None>
+    <None Update="Resources\images\DeadSpaceCover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\images\FIFA18Cover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\images\FIFA20Cover.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -186,10 +186,16 @@
     </None>
     <None Update="Resources\images\Madden23Cover.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</None>
     <None Update="Resources\images\NeedForSpeedUnboundCover.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</None>
+    <None Update="Resources\images\StarWarsSquadronsCover.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</None>
     <None Update="SDK\BF4SDK.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -231,6 +237,9 @@
 	  <None Update="SDK\MADDEN23SDK.dll">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	  <None Update="SDK\SWSSDK.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -263,12 +272,15 @@
 	  </None>
 	  <None Include="..\Plugins\Madden23Plugin\bin\Debug\net7.0-windows\Madden23Plugin.dll" Link="Plugins\Madden23Plugin.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
 	  <None Include="..\Plugins\NFSUnboundPlugin\bin\Debug\net7.0-windows\NeedForSpeedUnboundPlugin.dll" Link="Plugins\NeedForSpeedUnboundPlugin.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
 	  <None Include="..\Plugins\StarWarsSquadronsPlugin\bin\Debug\net7.0-windows\StarWarsSquadronsPlugin.dll" Link="Plugins\StarWarsSquadronsPlugin.dll">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
   </ItemGroup>
   <ItemGroup>

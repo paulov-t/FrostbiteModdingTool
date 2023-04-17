@@ -958,7 +958,7 @@ namespace FrostbiteModdingTests
             AssetManager.Instance.DuplicateEntry(
                 AssetManager.Instance.GetCustomAssetEntry("legacy", "data/ui/imgAssets/heads/p192563.dds")
                 , "data/ui/imgAssets/heads/p271517.dds"
-                , true);
+                );
 
             projectManagement.Project.WriteToMod("test.fbmod", new FrostySdk.ModSettings());
 
@@ -986,7 +986,8 @@ namespace FrostbiteModdingTests
 
 
             //    }.ToArray()).Wait();
-            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { @"G:\Work\FIFA Modding\GraphicMod\FIFA 23\FIFER Licensing Mod V2.fifamod" }.ToArray()).Wait();
+            //frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { @"G:\Work\FIFA Modding\GraphicMod\FIFA 23\FIFER Licensing Mod V2.fifamod" }.ToArray()).Wait();
+            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { @"G:\Work\FIFA Modding\GraphicMod\FIFA 23\Antony_Matheus_3.0_AlieFFR.fifamod" }.ToArray()).Wait();
 
         }
 

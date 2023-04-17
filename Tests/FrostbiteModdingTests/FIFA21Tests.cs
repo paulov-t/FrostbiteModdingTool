@@ -517,7 +517,7 @@ namespace FrostbiteModdingTests
             AssetManager.Instance.DuplicateEntry(
                 AssetManager.Instance.GetCustomAssetEntry("legacy", "data/ui/imgAssets/heads/p102064.dds")
                 , "data/ui/imgAssets/heads/p258487.dds"
-                , true);
+                );
 
             var testR = "test.fbmod";
             projectManagement.Project.WriteToMod(testR, new FrostySdk.ModSettings());
@@ -538,7 +538,7 @@ namespace FrostbiteModdingTests
             AssetManager.Instance.DuplicateEntry(
                 AssetManager.Instance.GetEbxEntry("content/character/kit/kit_0/aston_villa_2/home_0_0/jersey_2_0_0_color")
                 , "content/character/kit/kit_0/aston_villa_999999/home_0_0/jersey_999999_0_0_color"
-                , false);
+                );
 
             var testR = "test.fbmod";
             projectManagement.Project.WriteToMod(testR, new FrostySdk.ModSettings());

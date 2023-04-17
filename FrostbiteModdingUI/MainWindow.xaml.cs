@@ -24,8 +24,6 @@ namespace FMT
     {
         public List<Window> EditorWindows = new List<Window>();
 
-        //public List<Profile> ProfilesWithEditorScreen = ProfilesLibrary.EditorProfiles.ToList();
-
         private List<Profile> profiles;
 
         public List<Profile> ProfilesWithEditor
@@ -33,11 +31,9 @@ namespace FMT
             get
             {
 
-#pragma warning disable CA1416 // Validate platform compatibility
                 if (profiles == null || !profiles.Any())
                     profiles = ProfileManager.EditorProfiles.ToList();
                 return profiles;
-#pragma warning restore CA1416 // Validate platform compatibility
 
             }
             set { profiles = value; }
@@ -46,9 +42,7 @@ namespace FMT
         public string WindowTitle { get; set; }
 
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public MainWindow()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             InitializeComponent();
 

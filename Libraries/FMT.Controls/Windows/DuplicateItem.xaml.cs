@@ -32,7 +32,7 @@ namespace FMT.Controls.Windows
 
         private void btnDuplicate_Click(object sender, RoutedEventArgs e)
         {
-            AssetManager.Instance.DuplicateEntry(EntryToDuplicate, NewEntryPath, IsLegacy);
+            AssetManager.Instance.DuplicateEntry(EntryToDuplicate, NewEntryPath);
 
             DialogResult = true;
             this.Close();

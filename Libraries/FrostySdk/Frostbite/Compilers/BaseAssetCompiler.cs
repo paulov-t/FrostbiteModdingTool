@@ -142,94 +142,6 @@ namespace FrostySdk.Frostbite.Compilers
         protected static void CopyDataFolder(string from_datafolderpath, string to_datafolderpath, ILogger logger)
         {
             CopyDirectory(from_datafolderpath, to_datafolderpath, true, logger);
-            //Directory.CreateDirectory(to_datafolderpath);
-
-
-            //var dataFiles = Directory.EnumerateFiles(from_datafolderpath, "*.*", SearchOption.AllDirectories);
-            //var dataFileCount = dataFiles.Count();
-            //var indexOfDataFile = 0;
-            ////ParallelOptions options = new ParallelOptions { MaxDegreeOfParallelism = 8 };
-            ////Parallel.ForEach(dataFiles, (f) =>
-            //foreach (var originalFilePath in dataFiles)
-            //{
-            //    var finalDestinationPath = originalFilePath.ToLower().Replace(from_datafolderpath.ToLower(), to_datafolderpath.ToLower());
-
-            //    bool Copied = false;
-
-            //    var lastIndexOf = finalDestinationPath.LastIndexOf("\\");
-            //    var newDirectory = finalDestinationPath.Substring(0, lastIndexOf) + "\\";
-            //    if (!Directory.Exists(newDirectory))
-            //    {
-            //        Directory.CreateDirectory(newDirectory);
-            //    }
-
-
-            //    if (!finalDestinationPath.Contains("moddata", StringComparison.OrdinalIgnoreCase))
-            //    {
-            //        throw new Exception("Incorrect Copy of Files to ModData");
-            //    }
-
-            //    var fIDest = new FileInfo(finalDestinationPath);
-            //    var fIOrig = new FileInfo(originalFilePath);
-
-            //    var isPatch = fIOrig.FullName.Contains("Patch", StringComparison.OrdinalIgnoreCase);
-
-            //    if (fIDest.Exists && finalDestinationPath.Contains("moddata", StringComparison.OrdinalIgnoreCase))
-            //    {
-            //        var isCas = fIDest.Extension.Contains("cas", StringComparison.OrdinalIgnoreCase);
-            //        var twogbinsize = 2L * (1048576L * 1024L);
-            //        if (
-            //            isCas
-            //            && fIDest.Length != fIOrig.Length
-            //            && (isPatch || (fIDest.Length >= twogbinsize))
-            //            )
-            //        {
-            //            fIDest.Delete();
-            //        }
-            //        else if
-            //            (
-            //                !isCas
-            //            //&&
-            //            //(
-            //            //    fIDest.Length != fIOrig.Length
-            //            //    ||
-            //            //        (
-            //            //            //fIDest.LastWriteTime.Day != fIOrig.LastWriteTime.Day
-            //            //            //&& fIDest.LastWriteTime.Hour != fIOrig.LastWriteTime.Hour
-            //            //            //&& fIDest.LastWriteTime.Minute != fIOrig.LastWriteTime.Minute
-            //            //            !File.ReadAllBytes(finalDestinationPath).SequenceEqual(File.ReadAllBytes(originalFilePath))
-            //            //        )
-            //            //)
-            //            )
-            //        {
-            //            File.Delete(finalDestinationPath);
-            //        }
-            //    }
-
-            //    if (!File.Exists(finalDestinationPath))
-            //    {
-            //        // Quick Copy
-            //        if (fIOrig.Length < 1024 * 100)
-            //        {
-            //            using (var inputStream = new NativeReader(File.Open(originalFilePath, FileMode.Open)))
-            //            using (var outputStream = new NativeWriter(File.Open(finalDestinationPath, FileMode.Create)))
-            //            {
-            //                outputStream.Write(inputStream.ReadToEnd());
-            //            }
-            //        }
-            //        else
-            //        {
-            //            //File.Copy(f, finalDestination);
-            //            CopyFile(originalFilePath, finalDestinationPath);
-            //        }
-            //        Copied = true;
-            //    }
-            //    indexOfDataFile++;
-
-            //    if (Copied)
-            //        logger.Log($"Data Setup - Copied ({indexOfDataFile}/{dataFileCount}) - {originalFilePath}");
-            //    //});
-            //}
         }
 
         protected Dictionary<string, List<ModdedFile>> GetModdedCasFiles()
@@ -335,22 +247,38 @@ namespace FrostySdk.Frostbite.Compilers
             return false;
         }
 
-        public void WriteChangesToSuperBundle(DbObject origDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
+        protected virtual void WriteChangesToSuperBundle(DbObject origDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
         {
-            if (assetBundle.Key is EbxAssetEntry)
-                WriteEbxChangesToSuperBundle(origDbo, writer, assetBundle);
-            else if (assetBundle.Key is ResAssetEntry)
-                WriteResChangesToSuperBundle(origDbo, writer, assetBundle);
-            else if (assetBundle.Key is ChunkAssetEntry)
-                WriteChunkChangesToSuperBundle(origDbo, writer, assetBundle);
+            switch (assetBundle.Key.GetType().Name)
+            {
+                case "EbxAssetEntry":
+                    WriteEbxChangesToSuperBundle(origDbo, writer, assetBundle);
+                    break;
+                case "ResAssetEntry":
+                    WriteResChangesToSuperBundle(origDbo, writer, assetBundle);
+                    break;
+                case "ChunkAssetEntry":
+                    WriteChunkChangesToSuperBundle(origDbo, writer, assetBundle);
+                    break;
+            }
+
+            //if (assetBundle.Key is EbxAssetEntry)
+            //    WriteEbxChangesToSuperBundle(origDbo, writer, assetBundle);
+            //else if (assetBundle.Key is ResAssetEntry)
+            //    WriteResChangesToSuperBundle(origDbo, writer, assetBundle);
+            //else if (assetBundle.Key is ChunkAssetEntry)
+            //    WriteChunkChangesToSuperBundle(origDbo, writer, assetBundle);
         }
 
-        private void WriteEbxChangesToSuperBundle(DbObject origDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
+        protected virtual void WriteEbxChangesToSuperBundle(DbObject origDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
         {
             if (origDbo == null)
                 throw new ArgumentNullException(nameof(origDbo));
 
             if (!ModExecuter.modifiedEbx.ContainsKey(assetBundle.Key.Name))
+                return;
+
+            if (assetBundle.Key.Name.Contains("_mesh"))
                 return;
 
             var originalSizePosition = origDbo.HasValue("SB_OriginalSize_Position")
@@ -370,7 +298,7 @@ namespace FrostySdk.Frostbite.Compilers
             }
         }
 
-        private void WriteResChangesToSuperBundle(DbObject origResDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
+        protected virtual void WriteResChangesToSuperBundle(DbObject origResDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
         {
             if (origResDbo == null)
                 throw new ArgumentNullException(nameof(origResDbo));
@@ -381,33 +309,57 @@ namespace FrostySdk.Frostbite.Compilers
             if (!origResDbo.HasValue("SB_ResMeta_Position") || origResDbo.GetValue<int>("SB_ResMeta_Position") == 0)
                 return;
 
+#if DEBUG
+            if(assetBundle.Key.Type == "MeshSet")
+            {
+
+            }
+#endif
+
+            //if (assetBundle.Key.Type == "MeshSet")
+            //    return;
+
             var resMetaPosition = origResDbo.GetValue<int>("SB_ResMeta_Position");
             var originalSizePosition = origResDbo.HasValue("SB_OriginalSize_Position")
                 ? origResDbo.GetValue<int>("SB_OriginalSize_Position")
                 : origResDbo.HasValue("SBOSizePos") ? origResDbo.GetValue<int>("SBOSizePos")
                 : 0;
+            long? sha1Position = origResDbo.HasValue("SB_Sha1_Position") ? origResDbo.GetValue<long>("SB_Sha1_Position") : null;
 
-            writer.BaseStream.Position = resMetaPosition;
-            writer.WriteBytes(ModExecuter.modifiedRes[assetBundle.Key.Name].ResMeta);
-
-            if (ModExecuter.modifiedRes[assetBundle.Key.Name].ResRid != 0)
+            if (assetBundle.Key.Type != "MeshSet")
             {
-                writer.BaseStream.Position = origResDbo.GetValue<int>("SB_ReRid_Position");
-                writer.Write(ModExecuter.modifiedRes[assetBundle.Key.Name].ResRid);
+                writer.BaseStream.Position = resMetaPosition;
+                writer.WriteBytes(ModExecuter.modifiedRes[assetBundle.Key.Name].ResMeta);
             }
 
-            var originalSizeOfData = assetBundle.Value.Item3;
-            writer.Position = originalSizePosition;
-            writer.Write((uint)originalSizeOfData, Endian.Little);
-
-            if (origResDbo.HasValue("SB_Sha1_Position") && assetBundle.Value.Item4 != Sha1.Zero)
+            if (assetBundle.Key.Type != "MeshSet")
             {
-                writer.Position = origResDbo.GetValue<long>("SB_Sha1_Position");
-                writer.Write(assetBundle.Value.Item4);
+                if (ModExecuter.modifiedRes[assetBundle.Key.Name].ResRid != 0)
+                {
+                    writer.BaseStream.Position = origResDbo.GetValue<int>("SB_ReRid_Position");
+                    writer.Write(ModExecuter.modifiedRes[assetBundle.Key.Name].ResRid);
+                }
+            }
+
+            if (assetBundle.Key.Type != "MeshSet")
+            {
+                var originalSizeOfData = assetBundle.Value.Item3;
+                writer.Position = originalSizePosition;
+                writer.Write((uint)originalSizeOfData, Endian.Little);
+
+            }
+
+            if (assetBundle.Key.Type != "MeshSet")
+            { 
+                if (sha1Position.HasValue && assetBundle.Value.Item4 != Sha1.Zero)
+                {
+                    writer.Position = sha1Position.Value;
+                    writer.Write(assetBundle.Value.Item4);
+                }
             }
         }
 
-        private void WriteChunkChangesToSuperBundle(DbObject origChunkDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
+        protected virtual void WriteChunkChangesToSuperBundle(DbObject origChunkDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
         {
             if (origChunkDbo == null)
                 throw new ArgumentNullException(nameof(origChunkDbo));
@@ -744,61 +696,52 @@ namespace FrostySdk.Frostbite.Compilers
                     .GroupBy(x => !string.IsNullOrEmpty(x.Key.SBFileLocation) ? x.Key.SBFileLocation : x.Key.TOCFileLocation)
                     .ToDictionary(x => x.Key, x => x.ToList());
 
-                // Remove from EntriesToNewPosition to stop any false errors occuring 
-                foreach(var items in groupedByTOCSB.Values)
-                {
-                    foreach (var item in items) 
-                    {
-                        EntriesToNewPosition.Remove(item.Key);
-                    }
-                }
+                
             }
 
             // ---------
             // Step 1b. Discover via Bundle Indexes (which doesn't work particularly well)
             int sbIndex = -1;
-            foreach (var catalogInfo in FileSystem.Instance.EnumerateCatalogInfos())
-            {
-                foreach (
-                    string sbKey in catalogInfo.SuperBundles.Keys
-                    )
-                {
-                    sbIndex++;
-                    string tocFileKey = sbKey;
-                    if (catalogInfo.SuperBundles[sbKey])
-                    {
-                        tocFileKey = sbKey.Replace("win32", catalogInfo.Name);
-                    }
+            //            foreach (var catalogInfo in FileSystem.Instance.EnumerateCatalogInfos())
+            //            {
+            //                foreach (
+            //                    string sbKey in catalogInfo.SuperBundles.Keys
+            //                    )
+            //                {
+            //                    sbIndex++;
+            //                    string tocFileKey = sbKey;
+            //                    if (catalogInfo.SuperBundles[sbKey])
+            //                    {
+            //                        tocFileKey = sbKey.Replace("win32", catalogInfo.Name);
+            //                    }
 
-                    var nativePathToTOCFile = $"{directory}/{tocFileKey}.toc";
-                    var actualPathToTOCFile = FileSystem.Instance.ResolvePath(nativePathToTOCFile, ModExecutor.UseModData);
-                    using TOCFile tocFile = new TOCFile(nativePathToTOCFile, false, false, true, sbIndex, true);
-#if DEBUG
-                    if (nativePathToTOCFile.Contains("global"))
-                    {
+            //                    var nativePathToTOCFile = $"{directory}/{tocFileKey}.toc";
+            //                    var actualPathToTOCFile = FileSystem.Instance.ResolvePath(nativePathToTOCFile, ModExecutor.UseModData);
+            //                    using TOCFile tocFile = new TOCFile(nativePathToTOCFile, false, false, true, sbIndex, true);
+            //#if DEBUG
+            //                    if (nativePathToTOCFile.Contains("global"))
+            //                    {
 
-                    }
-#endif
+            //                    }
+            //#endif
 
-                    var hashedEntries = tocFile.BundleEntries.Select(x => Fnv1a.HashString(x.Name));
-                    if (hashedEntries.Any(x => editedBundles.Contains(x)))
-                    {
-                        if (!groupedByTOCSB.ContainsKey(nativePathToTOCFile))
-                            groupedByTOCSB.Add(nativePathToTOCFile, new List<KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)>>());
+            //                    var hashedEntries = tocFile.BundleEntries.Select(x => Fnv1a.HashString(x.Name));
+            //                    if (hashedEntries.Any(x => editedBundles.Contains(x)))
+            //                    {
+            //                        if (!groupedByTOCSB.ContainsKey(nativePathToTOCFile))
+            //                            groupedByTOCSB.Add(nativePathToTOCFile, new List<KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)>>());
 
-                        var editedBundleEntries = EntriesToNewPosition.Where(x => x.Key.Bundles.Any(y => hashedEntries.Contains(y))).ToArray();
+            //                        var editedBundleEntries = EntriesToNewPosition.Where(x => x.Key.Bundles.Any(y => hashedEntries.Contains(y))).ToArray();
 
-                        foreach (var item in editedBundleEntries)
-                        {
-                            if (!groupedByTOCSB[nativePathToTOCFile].Any(x => x.Key == item.Key))
-                                groupedByTOCSB[nativePathToTOCFile].Add(item);
+            //                        foreach (var item in editedBundleEntries)
+            //                        {
+            //                            if (!groupedByTOCSB[nativePathToTOCFile].Any(x => x.Key == item.Key))
+            //                                groupedByTOCSB[nativePathToTOCFile].Add(item);
+            //                        }
 
-                            EntriesToNewPosition.Remove(item.Key);
-                        }
-
-                    }
-                }
-            }
+            //                    }
+            //                }
+            //            }
 
             List<Task> tasks = new List<Task>();
 
@@ -815,7 +758,8 @@ namespace FrostySdk.Frostbite.Compilers
 
                 //tasks.Add(Task.Run(() =>
                 //{
-                using TOCFile tocFile = new TOCFile(tocPath, false, false, true, sbIndex, false);
+                //using TOCFile tocFile = new TOCFile(tocPath, false, false, true, sbIndex, false);
+                using TOCFile tocFile = new TOCFile(tocPath, false, false, true);
                 {
                     DbObject dboOriginal = tocFile.TOCObjects;
                     if (dboOriginal == null)
@@ -955,19 +899,23 @@ namespace FrostySdk.Frostbite.Compilers
             // ------------------------------------------------------------------------------
             // Step 3. Apply bundle changes to CAS Files
             //
-            foreach (var tocGroup in groupedByTOCSB)
+            //foreach (var tocGroup in groupedByTOCSB)
             {
                 foreach (var abtc in assetBundleToCAS)
                 {
                     var resolvedCasPath = FileSystem.Instance.ResolvePath(abtc.Key, ModExecutor.UseModData);
                     using (var nwCas = new NativeWriter(new FileStream(resolvedCasPath, FileMode.Open)))
                     {
+                        FileLogger.WriteLine($"Writing {assetBundleToCAS.Values.Count} assets to {resolvedCasPath}");
                         foreach (var assetEntry in abtc.Value)
                         {
-                            var assetBundles = tocGroup.Value.Where(x => x.Key.Equals(assetEntry.Item1));
-                            foreach (var assetBundle in assetBundles)
+                            var assetBundle = EntriesToNewPosition.FirstOrDefault(x => x.Key.Equals(assetEntry.Item1));// tocGroup.Value.FirstOrDefault(x => x.Key.Equals(assetEntry.Item1));
+                            //foreach (var assetBundle in assetBundles)
                             {
                                 WriteChangesToSuperBundle(assetEntry.Item2, nwCas, assetBundle);
+
+                                // Remove from EntriesToNewPosition to stop any false errors occuring 
+                                EntriesToNewPosition.Remove(assetEntry.Item1);
                             }
                         }
                     }

@@ -8,7 +8,7 @@
                       xmlns:materialDesignColors="clr-namespace:MaterialDesignColors;assembly=MaterialDesignColors"
         xmlns:mwpfui="http://schemas.modernwpf.com/2019"
         mc:Ignorable="d"
-        Title="{Binding WindowTitle}" Height="500" Width="600" WindowStartupLocation="CenterScreen">
+        Title="{Binding WindowTitle}" Height="500" Width="600" WindowStartupLocation="CenterScreen" Background="#131317">
     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="70"></RowDefinition>
@@ -26,28 +26,8 @@
         <ComboBox Width="100" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,20,20" x:Name="cbLanguageSelection" SelectionChanged="cbLanguageSelection_SelectionChanged">
             <ComboBoxItem></ComboBoxItem>
             <ComboBoxItem>English</ComboBoxItem>
-            <!--<ComboBoxItem>Deutsch</ComboBoxItem>-->
             <ComboBoxItem>Português</ComboBoxItem>
         </ComboBox>
-        <!--<Button x:Name="btnLauncher" Grid.Row="2"  Background="Transparent" VerticalContentAlignment="Stretch" BorderBrush="{x:Null}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Center" IsEnabled="True"
-                    Click="btnLauncher_Click"
-                    ToolTip="Game Mod Launcher">
-            <StackPanel VerticalAlignment="Center"  HorizontalAlignment="Left" Orientation="Horizontal">
-                <MaterialDesign:PackIcon Kind="PlayBox" Width="60" Height="50" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                <Label Content="{DynamicResource textLauncher}" VerticalAlignment="Center" FontSize="20" />
-            </StackPanel>
-        </Button>
-        <Label Grid.Row="3" Content="Editors" VerticalAlignment="Bottom" HorizontalAlignment="Left" FontSize="20"></Label>
-        <ListView x:Name="lstProfiles" Grid.Row="4" ItemsSource="{Binding ProfilesWithEditor}" SelectionChanged="lstProfiles_SelectionChanged" BorderThickness="1,0,0,0"> 
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel VerticalAlignment="Center"  HorizontalAlignment="left" Orientation="Horizontal" Margin="5">
-                        <Image Grid.Row="0" Height="60" Width="50" Source="{Binding EditorIcon}" Stretch="Fill" Margin="10,0,10,0" />
-                        <TextBlock Text="{Binding EditorName}" VerticalAlignment="Center" FontSize="18" TextWrapping="Wrap" />
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>-->
         <ItemsControl Grid.Row="4" ItemsSource="{Binding ProfilesWithEditor}" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Visible" HorizontalAlignment="Center" HorizontalContentAlignment="Stretch">
             <ItemsControl.ItemTemplate>
                 <DataTemplate >
