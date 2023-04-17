@@ -105,19 +105,9 @@ namespace FMT.Pages.Common
 
         public async Task UpdateLoadingVisibility(bool show)
         {
-            await Task.Run(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
-                Dispatcher.Invoke(() =>
-                {
-                    this.borderLoading.Visibility = show ? Visibility.Visible : Visibility.Hidden;
-                });
-
-                //await Dispatcher.InvokeAsync(() =>
-                //{
-                //    this.DataContext = null;
-                //    this.DataContext = this;
-                //    this.UpdateLayout();
-                //});
+                this.borderLoading.Visibility = show ? Visibility.Visible : Visibility.Hidden;
             });
         }
 
@@ -370,7 +360,6 @@ namespace FMT.Pages.Common
 
         private async void btnImport_Click(object sender, RoutedEventArgs e)
         {
-            var importStartTime = DateTime.Now;
 
             try
             {
@@ -379,9 +368,9 @@ namespace FMT.Pages.Common
                 var dialogResult = openFileDialog.ShowDialog();
                 if (dialogResult.HasValue && dialogResult.Value == true)
                 {
-                    _ = UpdateLoadingVisibility(true);
-
                     MainEditorWindow.Log("Importing " + openFileDialog.FileName);
+
+                    await UpdateLoadingVisibility(true);
 
                     if (SelectedEntry.Type == "SkinnedMeshAsset")
                     {
@@ -434,7 +423,7 @@ namespace FMT.Pages.Common
                 MainEditorWindow.LogError(ex.Message + Environment.NewLine);
             }
 
-            _ = UpdateLoadingVisibility(false);
+            await UpdateLoadingVisibility(false);
 
         }
 

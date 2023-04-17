@@ -68,7 +68,10 @@
                                                             <MenuItem Header="Revert"
                                                                      x:Name="btnRevert" Tag="{Binding}"
                                                                               Click="btnRevert_Click" />
-                                                        </ContextMenu>
+                                                        <MenuItem Header="Import"
+                                                                     x:Name="btnImport" Tag="{Binding}"
+                                                                              Click="btnImport_Click" />
+                                                    </ContextMenu>
                                                                         </TextBlock.ContextMenu>
                                                                         <TextBlock.Style>
                                                                             <Style TargetType="TextBlock">

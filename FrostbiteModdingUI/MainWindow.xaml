@@ -11,10 +11,8 @@
         Title="{Binding WindowTitle}" Height="500" Width="600" WindowStartupLocation="CenterScreen" Background="#131317">
     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>
-            <RowDefinition Height="70"></RowDefinition>
-            <RowDefinition Height="5"></RowDefinition>
-            <RowDefinition Height="50"></RowDefinition>
-            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="75"></RowDefinition>
+            <RowDefinition Height="10"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -28,7 +26,7 @@
             <ComboBoxItem>English</ComboBoxItem>
             <ComboBoxItem>Português</ComboBoxItem>
         </ComboBox>
-        <ItemsControl Grid.Row="4" ItemsSource="{Binding ProfilesWithEditor}" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Visible" HorizontalAlignment="Center" HorizontalContentAlignment="Stretch">
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding ProfilesWithEditor}" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Visible" HorizontalAlignment="Center" HorizontalContentAlignment="Stretch">
             <ItemsControl.ItemTemplate>
                 <DataTemplate >
                     <mah:Tile Title="{Binding DisplayName}" Tag="{Binding}" Style="{Binding EditorIcon}" Background="Black" Padding="0" Margin="1" Click="Tile_Click">

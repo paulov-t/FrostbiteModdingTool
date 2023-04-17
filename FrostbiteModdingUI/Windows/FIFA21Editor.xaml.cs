@@ -608,7 +608,13 @@ namespace FIFAModdingUI.Windows
                     fmtProj.Update();
                 // Different file -- Create new file and Update
                 else
-                    ProjectManagement.Project = new FMTProject(saveFileDialog.FileName).Update();
+                {
+                    var storedPreviousModSettings = ProjectManagement.Project.ModSettings.CloneJson();
+
+                    ProjectManagement.Project = new FMTProject(saveFileDialog.FileName);
+                    ProjectManagement.Project.ModSettings.UpdateFromOtherModSettings(storedPreviousModSettings);
+                    ((FMTProject)ProjectManagement.Project).Update();
+                }
             }
             // Legacy fbproject file type
             else if (saveFileDialog.FileName.EndsWith(".fbproject", StringComparison.OrdinalIgnoreCase))
