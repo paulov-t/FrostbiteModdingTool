@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using v2k4FIFAModding.Frosty;
 
 namespace FrostySdk
 {
@@ -1221,6 +1222,17 @@ namespace FrostySdk
         public void ClearDirtyFlag()
         {
             isDirty = false;
+        }
+
+        public ModSettings UpdateFromOtherModSettings(ModSettings otherModSettings)
+        {
+            var storedPreviousModSettings = otherModSettings.CloneJson();
+            Author = storedPreviousModSettings.Author;
+            Description = storedPreviousModSettings.Description;
+            Title = storedPreviousModSettings.Title;
+            Category = storedPreviousModSettings.Category;
+            Version = storedPreviousModSettings.Version;
+            return this;
         }
     }
 
