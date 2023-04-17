@@ -689,56 +689,64 @@ namespace FrostySdk.Frostbite.Compilers
             {
                 // Group By SBFileLocation or TOCFileLocation
                 groupedByTOCSB = EntriesToNewPosition
+                    .Where(x => !string.IsNullOrEmpty(x.Key.SBFileLocation) ? x.Key.SBFileLocation.Contains(directory) : x.Key.TOCFileLocation.Contains(directory))
                     .GroupBy(x => !string.IsNullOrEmpty(x.Key.SBFileLocation) ? x.Key.SBFileLocation : x.Key.TOCFileLocation)
                     .ToDictionary(x => x.Key, x => x.ToList());
 
                 
             }
 
+            var groupedByTOCSBCount = groupedByTOCSB.Values.Sum(y => y.Count);
+            var doStep1b = groupedByTOCSBCount != EntriesToNewPosition.Count;
+
             // ---------
-            // Step 1b. Discover via Bundle Indexes (which doesn't work particularly well)
-            int sbIndex = -1;
-            //            foreach (var catalogInfo in FileSystem.Instance.EnumerateCatalogInfos())
-            //            {
-            //                foreach (
-            //                    string sbKey in catalogInfo.SuperBundles.Keys
-            //                    )
-            //                {
-            //                    sbIndex++;
-            //                    string tocFileKey = sbKey;
-            //                    if (catalogInfo.SuperBundles[sbKey])
-            //                    {
-            //                        tocFileKey = sbKey.Replace("win32", catalogInfo.Name);
-            //                    }
+            // Step 1b. Discover via Bundle Indexes
+            if (doStep1b)
+            {
+                int sbIndex = -1;
+                foreach (var catalogInfo in FileSystem.Instance.EnumerateCatalogInfos())
+                {
+                    foreach (
+                        string sbKey in catalogInfo.SuperBundles.Keys
+                        )
+                    {
+                        sbIndex++;
+                        string tocFileKey = sbKey;
+                        if (catalogInfo.SuperBundles[sbKey])
+                        {
+                            tocFileKey = sbKey.Replace("win32", catalogInfo.Name);
+                        }
 
-            //                    var nativePathToTOCFile = $"{directory}/{tocFileKey}.toc";
-            //                    var actualPathToTOCFile = FileSystem.Instance.ResolvePath(nativePathToTOCFile, ModExecutor.UseModData);
-            //                    using TOCFile tocFile = new TOCFile(nativePathToTOCFile, false, false, true, sbIndex, true);
-            //#if DEBUG
-            //                    if (nativePathToTOCFile.Contains("global"))
-            //                    {
+                        var nativePathToTOCFile = $"{directory}/{tocFileKey}.toc";
+                        var actualPathToTOCFile = FileSystem.Instance.ResolvePath(nativePathToTOCFile, ModExecutor.UseModData);
+                        using TOCFile tocFile = new TOCFile(nativePathToTOCFile, false, false, true, sbIndex, true);
+#if DEBUG
+                        if (nativePathToTOCFile.Contains("global"))
+                        {
 
-            //                    }
-            //#endif
+                        }
+#endif
 
-            //                    var hashedEntries = tocFile.BundleEntries.Select(x => Fnv1a.HashString(x.Name));
-            //                    if (hashedEntries.Any(x => editedBundles.Contains(x)))
-            //                    {
-            //                        if (!groupedByTOCSB.ContainsKey(nativePathToTOCFile))
-            //                            groupedByTOCSB.Add(nativePathToTOCFile, new List<KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)>>());
+                        var hashedEntries = tocFile.BundleEntries.Select(x => Fnv1a.HashString(x.Name));
+                        if (hashedEntries.Any(x => editedBundles.Contains(x)))
+                        {
+                            if (!groupedByTOCSB.ContainsKey(nativePathToTOCFile))
+                                groupedByTOCSB.Add(nativePathToTOCFile, new List<KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)>>());
 
-            //                        var editedBundleEntries = EntriesToNewPosition.Where(x => x.Key.Bundles.Any(y => hashedEntries.Contains(y))).ToArray();
+                            var editedBundleEntries = EntriesToNewPosition.Where(x => x.Key.Bundles.Any(y => hashedEntries.Contains(y))).ToArray();
 
-            //                        foreach (var item in editedBundleEntries)
-            //                        {
-            //                            if (!groupedByTOCSB[nativePathToTOCFile].Any(x => x.Key == item.Key))
-            //                                groupedByTOCSB[nativePathToTOCFile].Add(item);
-            //                        }
+                            foreach (var item in editedBundleEntries)
+                            {
+                                if (!groupedByTOCSB[nativePathToTOCFile].Any(x => x.Key == item.Key))
+                                    groupedByTOCSB[nativePathToTOCFile].Add(item);
+                            }
 
-            //                    }
-            //                }
-            //            }
+                        }
+                    }
+                }
 
+                groupedByTOCSBCount = groupedByTOCSB.Values.Sum(y => y.Count);
+            }
             List<Task> tasks = new List<Task>();
 
             var assetBundleToCAS = new Dictionary<string, List<(AssetEntry, DbObject)>>();
@@ -807,7 +815,7 @@ namespace FrostySdk.Frostbite.Compilers
                                 }
                             }
 
-                            if (assetBundle.Key is ResAssetEntry)
+                            else if (assetBundle.Key is ResAssetEntry)
                             {
 
                                 foreach (DbObject dbInBundle in origResBundles)
@@ -823,7 +831,7 @@ namespace FrostySdk.Frostbite.Compilers
                                 }
                             }
 
-                            if (assetBundle.Key is ChunkAssetEntry)
+                            else if (assetBundle.Key is ChunkAssetEntry)
                             {
                                 foreach (DbObject dbInBundle in origChunkBundles)
                                 {
