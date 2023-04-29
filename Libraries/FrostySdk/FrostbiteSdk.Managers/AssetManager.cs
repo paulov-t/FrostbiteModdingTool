@@ -133,6 +133,8 @@ namespace FrostySdk.Managers
             if (disposing)
             {
                 FileSystem.Instance = null;
+                AssetManagerInitialised = null;
+                AssetManagerModified = null;
 
                 PluginsInitialised = false;
                 PluginAssemblies.Clear();
@@ -691,10 +693,10 @@ namespace FrostySdk.Managers
                 }
 
                 assetEntry.IsDirty = false;
-                if (!assetEntry.IsAdded && !suppressOnModify)
-                {
-                    assetEntry.OnModified();
-                }
+                //if (!assetEntry.IsAdded && !suppressOnModify)
+                //{
+                //    assetEntry.OnModified();
+                //}
             }
         }
 

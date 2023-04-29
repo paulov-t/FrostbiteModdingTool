@@ -2,6 +2,7 @@ using FMT.FileTools;
 using FrostySdk.FrostbiteSdk.Managers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Fnv1a = FMT.FileTools.Fnv1a;
@@ -9,7 +10,7 @@ using Fnv1a = FMT.FileTools.Fnv1a;
 namespace FrostySdk.Managers
 {
     [Serializable]
-    public class AssetEntry : IAssetEntry, IEqualityComparer<AssetEntry>//, IDisposable
+    public class AssetEntry : IAssetEntry, IEqualityComparer<AssetEntry>, INotifyPropertyChanged
     {
         public AssetEntry(ModifiedAssetEntry modifiedAssetEntry = null)
         {
@@ -261,10 +262,10 @@ namespace FrostySdk.Managers
                 if (dirty != value)
                 {
                     dirty = value;
-                    if (dirty)
-                    {
-                        OnModified();
-                    }
+                    //if (dirty)
+                    //{
+                    //    OnModified();
+                    //}
                 }
             }
         }
@@ -350,7 +351,8 @@ namespace FrostySdk.Managers
         // ---- -----------------------------------------------------------------
         // ---- -----------------------------------------------------------------
 
-        public event EventHandler AssetModified;
+        //public event EventHandler AssetModified;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public void LinkAsset(AssetEntry assetToLink)
         {
@@ -416,10 +418,10 @@ namespace FrostySdk.Managers
             ModifiedEntry = null;
         }
 
-        public void OnModified()
-        {
-            this.AssetModified?.Invoke(this, new EventArgs());
-        }
+        //public void OnModified()
+        //{
+        //    this.AssetModified?.Invoke(this, new EventArgs());
+        //}
 
         public bool Equals(AssetEntry x, AssetEntry y)
         {
