@@ -59,13 +59,6 @@ namespace FIFAModdingUI.Pages.Common
         private void AssetManager_AssetManagerModified(IAssetEntry modifiedAsset)
         {
             RequiresRefresh = true;
-
-            //await Update();
-            //do
-            //{
-
-            //}
-            //while (assetTreeView.ItemsSource.GetEnumerator().MoveNext());
         }
 
         public int HalfMainWindowWidth { get { return MainEditorWindow != null ? (int)Math.Round(((Window)MainEditorWindow).ActualWidth / 2) : 400; } }
@@ -148,7 +141,7 @@ namespace FIFAModdingUI.Pages.Common
 
         private IEnumerable<IAssetEntry> GetFilteredAssets(ReadOnlySpan<char> filterSpan, bool onlymodified)
         {
-            var assets = allAssets;
+            var assets = allAssets ?? allAssets.ToList();
             if (assets == null)
                 return null;
 
@@ -174,18 +167,8 @@ namespace FIFAModdingUI.Pages.Common
             return assets;
         }
 
-        //public List<string> CurrentAssets { get; set; }
-
-        //public int CurrentTier { get; set; }
-
-        //public string CurrentPath { get; set; }
-
-        //public void SelectOption(string name)
-        //{
-
-        //}
-
         private Dictionary<string, AssetPath> assetPathMapping = new Dictionary<string, AssetPath>(StringComparer.OrdinalIgnoreCase);
+        
         private AssetPath selectedPath = null;
 
         private AssetPath assetPath;
@@ -211,67 +194,63 @@ namespace FIFAModdingUI.Pages.Common
             //if (AssetPath == null)
             AssetPath = new AssetPath("", "", null, true);
 
-            var assets = await GetFilteredAssetEntriesAsync();
+            var assets = (await GetFilteredAssetEntriesAsync()).ToList();
 
             await Task.Run(() =>
             {
 
-                //foreach (AssetEntry item in assets)
                 foreach (IAssetEntry item in assets)
                 {
                     var path = item.Path;
                     if (!path.StartsWith("/"))
                         path = path.Insert(0, "/");
-                    //if ((!ShowOnlyModified || item.IsModified) && FilterText(item.Name, item))
+
+                    string[] directories = path.Split(new char[1]
                     {
-                        string[] directories = path.Split(new char[1]
+                        '/'
+                    }, StringSplitOptions.RemoveEmptyEntries);
+                    AssetPath assetPath2 = AssetPath;
+                    foreach (string directory in directories)
+                    {
+                        bool flag = false;
+                        foreach (AssetPath child in assetPath2.Children)
                         {
-                            '/'
-                        }, StringSplitOptions.RemoveEmptyEntries);
-                        AssetPath assetPath2 = AssetPath;
-                        foreach (string directory in directories)
-                        {
-                            bool flag = false;
-                            foreach (AssetPath child in assetPath2.Children)
+                            if (child.PathName.Equals(directory, StringComparison.OrdinalIgnoreCase))
                             {
-                                if (child.PathName.Equals(directory, StringComparison.OrdinalIgnoreCase))
+                                if (directory.ToCharArray().Any((char a) => char.IsUpper(a)))
                                 {
-                                    if (directory.ToCharArray().Any((char a) => char.IsUpper(a)))
-                                    {
-                                        child.UpdatePathName(directory);
-                                    }
-                                    assetPath2 = child;
-                                    flag = true;
-                                    break;
+                                    child.UpdatePathName(directory);
+                                }
+                                assetPath2 = child;
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if (!flag)
+                        {
+                            string text2 = assetPath2.FullPath + "/" + directory;
+                            AssetPath assetPath3 = null;
+                            if (!assetPathMapping.ContainsKey(text2))
+                            {
+                                assetPath3 = new AssetPath(directory, text2, assetPath2);
+                                assetPathMapping.Add(text2, assetPath3);
+                            }
+                            else
+                            {
+                                assetPath3 = assetPathMapping[text2];
+                                assetPath3.Children.Clear();
+                                if (assetPath3 == selectedPath)
+                                {
+                                    selectedPath.IsSelected = true;
                                 }
                             }
-                            if (!flag)
-                            {
-                                string text2 = assetPath2.FullPath + "/" + directory;
-                                AssetPath assetPath3 = null;
-                                if (!assetPathMapping.ContainsKey(text2))
-                                {
-                                    assetPath3 = new AssetPath(directory, text2, assetPath2);
-                                    assetPathMapping.Add(text2, assetPath3);
-                                }
-                                else
-                                {
-                                    assetPath3 = assetPathMapping[text2];
-                                    assetPath3.Children.Clear();
-                                    if (assetPath3 == selectedPath)
-                                    {
-                                        selectedPath.IsSelected = true;
-                                    }
-                                }
-                                assetPath2.Children.Add(assetPath3);
-                                assetPath2 = assetPath3;
-                            }
+                            assetPath2.Children.Add(assetPath3);
+                            assetPath2 = assetPath3;
                         }
                     }
                 }
                 if (!assetPathMapping.ContainsKey("/"))
                 {
-                    //assetPathMapping.Add("/", new AssetPath("![root]", "", null, bInRoot: true));
                     assetPathMapping.Add("/", new AssetPath("", "", null, bInRoot: true));
                 }
                 AssetPath.Children.Insert(0, assetPathMapping["/"]);
@@ -285,6 +264,12 @@ namespace FIFAModdingUI.Pages.Common
                         assetPathMapping["/" + item.Path].Children.Add(fileAssetPath);
                     }
                 }
+
+                // assets is no longer needed
+                assets = null;
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
             });
 
             BrowserItems.Clear();
@@ -293,22 +278,7 @@ namespace FIFAModdingUI.Pages.Common
                 BrowserItems.Add(aP);
             }
 
-            //         await Dispatcher.InvokeAsync((Action)(() =>
-            //{
-            //	assetTreeView.ItemsSource = assetPath.Children;
-            //	assetTreeView.Items.SortDescriptions.Add(new SortDescription("PathName", ListSortDirection.Ascending));
-            //}));
-            //       await Dispatcher.InvokeAsync(() =>
-            //{
-            // assetTreeView.ItemsSource = AssetPath.Children.OrderBy(x=>x.PathName);
-            // //assetTreeView.Items.SortDescriptions.Add(new SortDescription("PathName", ListSortDirection.Ascending));
-            //});
-
-            //Dispatcher.Invoke(() =>
-            //{
-            //	this.DataContext = null;
-            //	this.DataContext = this;
-            //});
+            
             IsUpdating = false;
 
         }
@@ -403,117 +373,9 @@ namespace FIFAModdingUI.Pages.Common
 
         AssetPath SelectedAssetPath = null;
 
-        //private void Label_MouseUp(object sender, MouseButtonEventArgs e)
-        //{
-        //	Label label = sender as Label;
-        //	if (label != null && label.Tag != null)
-        //	{
-        //		SelectedAssetPath = label.Tag as AssetPath;
-        //		UpdateAssetListView();
-        //	}
-        //}
-
-        //private void Label_KeyUp(object sender, KeyEventArgs e)
-        //{
-        //	if (e.Key == Key.Enter || e.Key == Key.Return)
-        //	{
-        //		Label label = sender as Label;
-        //		if (label != null && label.Tag != null)
-        //		{
-        //			SelectedAssetPath = label.Tag as AssetPath;
-        //			UpdateAssetListView();
-        //		}
-        //	}
-        //}
-
-        //public void UpdateAssetListView()
-        //{
-        //	var filterText = string.Empty;
-        //	bool onlyModified = false;
-        //	Dispatcher.Invoke(() => {
-        //		filterText = txtFilter.Text;
-        //		onlyModified = chkShowOnlyModified.IsChecked.HasValue && chkShowOnlyModified.IsChecked.Value;
-        //	});
-
-
-        //	if (SelectedAssetPath != null)
-        //	{
-        //		if (SelectedAssetPath.FullPath.Length > 3)
-        //		{
-        //			var filterPath = (SelectedAssetPath.FullPath.Substring(1, SelectedAssetPath.FullPath.Length - 1));
-        //			var filteredAssets = AllAssetEntries.Where(x => x.Path.ToLower() == filterPath.ToLower());
-        //			filteredAssets = filteredAssets.Where(x => x.Name.Contains(filterText, StringComparison.OrdinalIgnoreCase));
-
-        //			filteredAssets = filteredAssets.Where(x =>
-
-        //				(
-        //				onlyModified == true
-        //				&& x.IsModified
-        //				)
-        //				|| onlyModified == false
-
-        //				).ToList();
-
-        //			//Dispatcher.Invoke(() =>
-        //			//{
-        //			//	var selectedit = assetListView.SelectedItem;
-        //			//	assetListView.ItemsSource = filteredAssets.OrderBy(x => x.Name);
-        //			//	assetListView.SelectedItem = selectedit;
-        //			//});
-
-        //		}
-        //	}
-        //}
-
-
-
-        //      private void AssetEntry_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        //{
-        //          IAssetEntry entry = (IAssetEntry)((TextBlock)sender).Tag;
-
-        //          if (entry is EbxAssetEntry ebxAssetEntry)
-        //              OpenAsset(ebxAssetEntry);
-        //          else if (entry is LegacyFileEntry legacyFileEntry)
-        //              OpenAsset(legacyFileEntry);
-        //          else if (entry is LiveTuningUpdate.LiveTuningUpdateEntry ltuEntry)
-        //              OpenAsset(ltuEntry);
-        //      }
-
-        //private void AssetEntry_KeyUp(object sender, KeyEventArgs e)
-        //{
-        //	if (e.Key == Key.Enter || e.Key == Key.Return)
-        //	{
-        //		IAssetEntry entry = (IAssetEntry)((TextBlock)sender).Tag;
-
-        //              if (entry is EbxAssetEntry ebxAssetEntry)
-        //			OpenAsset(ebxAssetEntry);
-        //		else if (entry is LegacyFileEntry legacyFileEntry)
-        //			OpenAsset(legacyFileEntry);
-        //		else if (entry is LiveTuningUpdate.LiveTuningUpdateEntry ltuEntry)
-        //			OpenAsset(ltuEntry);
-        //          }
-        //      }
-
         MainViewModel ModelViewerModel;
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-        private void ResetViewers()
-        {
-            SelectedEntry = null;
-            SelectedLegacyEntry = null;
-            //btnImport.IsEnabled = false;
-            //btnExport.IsEnabled = false;
-            //btnRevert.IsEnabled = false;
-
-            //ImageViewerScreen.Visibility = Visibility.Collapsed;
-            //TextViewer.Visibility = Visibility.Collapsed;
-            //EBXViewer.Visibility = Visibility.Collapsed;
-            ////BackupEBXViewer.Visibility = Visibility.Collapsed;
-            //UnknownFileViewer.Visibility = Visibility.Collapsed;
-            //ModelDockingManager.Visibility = Visibility.Collapsed;
-            //BIGViewer.Visibility = Visibility.Collapsed;
-        }
 
         private void DisplayUnknownFileViewer(Stream stream)
         {
@@ -535,243 +397,6 @@ namespace FIFAModdingUI.Pages.Common
             //UnknownFileViewer.Visibility = Visibility.Visible;
         }
 
-        private async Task OpenEbxAsset(EbxAssetEntry ebxEntry)
-        {
-            try
-            {
-                SelectedEntry = ebxEntry;
-                SelectedEbxAsset = AssetManager.Instance.GetEbx(ebxEntry);
-                if (ebxEntry.Type == "TextureAsset")
-                {
-                    try
-                    {
-                        MainEditorWindow.Log("Loading Texture " + ebxEntry.Filename);
-                        var res = AssetManager.Instance.GetResEntry(ebxEntry.Name);
-                        if (res != null)
-                        {
-                            MainEditorWindow.Log("Loading RES " + ebxEntry.Filename);
-
-                            BuildTextureViewerFromAssetEntry(res);
-                        }
-                        else
-                        {
-                            throw new Exception("Unable to find RES Entry for " + ebxEntry.Name);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        MainEditorWindow.Log($"Failed to load texture with the message :: {e.Message}");
-                    }
-
-
-
-                }
-                else if (ebxEntry.Type == "SkinnedMeshAsset")
-                {
-                    if (ebxEntry == null || ebxEntry.Type == "EncryptedAsset")
-                    {
-                        return;
-                    }
-
-                    MainEditorWindow.Log("Loading 3D Model " + ebxEntry.Filename);
-
-                    var resentry = AssetManager.Instance.GetResEntry(ebxEntry.Name);
-                    var res = AssetManager.Instance.GetRes(resentry);
-                    MeshSet meshSet = new MeshSet(res);
-
-                    var exporter = new MeshSetToFbxExport();
-                    exporter.Export(AssetManager.Instance, SelectedEbxAsset.RootObject, "test_noSkel.obj", "2012", "Meters", true, null, "*.obj", meshSet);
-                    Thread.Sleep(250);
-
-                    if (ModelViewerModel != null)
-                        ModelViewerModel.Dispose();
-
-                    ModelViewerModel = new MainViewModel(skinnedMeshAsset: SelectedEbxAsset, meshSet: meshSet);
-                    //this.ModelViewer.DataContext = ModelViewerModel;
-                    //this.ModelDockingManager.Visibility = Visibility.Visible;
-                    //await ModelViewerEBX.LoadEbx(ebxEntry, SelectedEbxAsset, ProjectManagement.Instance.Project, MainEditorWindow);
-
-                    //               this.btnExport.IsEnabled = ProfileManager.CanExportMeshes;
-                    //this.btnImport.IsEnabled = ProfileManager.CanImportMeshes;
-                    //this.btnRevert.IsEnabled = SelectedEntry.HasModifiedData;
-
-                }
-                else if (string.IsNullOrEmpty(ebxEntry.Type) || ebxEntry.Type == "UnknownType")
-                {
-                    DisplayUnknownFileViewer(AssetManager.Instance.GetEbxStream(ebxEntry));
-                }
-                else
-                {
-                    if (ebxEntry == null || ebxEntry.Type == "EncryptedAsset")
-                    {
-                        return;
-                    }
-                    var ebx = ProjectManagement.Instance.Project.AssetManager.GetEbx(ebxEntry);
-                    if (ebx != null)
-                    {
-                        MainEditorWindow.Log("Loading EBX " + ebxEntry.Filename);
-
-                        //var successful = await EBXViewer.LoadEbx(ebxEntry, ebx, ProjectManagement.Instance.Project, MainEditorWindow);
-                        //EBXViewer.Visibility = Visibility.Visible;
-
-                        //btnRevert.IsEnabled = true;
-                        //btnImport.IsEnabled = true;
-                        //btnExport.IsEnabled = true;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                MainEditorWindow.Log($"Failed to load file with message {e.Message}");
-                Debug.WriteLine(e.ToString());
-
-                DisplayUnknownFileViewer(AssetManager.Instance.GetEbxStream(ebxEntry));
-
-            }
-        }
-
-        //private async Task OpenAsset(IAssetEntry entry)
-        //{
-        //	ResetViewers();
-        //	if (entry is EbxAssetEntry ebxEntry)
-        //          {
-        //		await OpenEbxAsset(ebxEntry);
-        //		return;
-        //	}
-
-        //	if(entry is LiveTuningUpdate.LiveTuningUpdateEntry ltuEntry)
-        //	{
-        //		await OpenLTUAsset(ltuEntry);
-        //		return;
-        //	}
-
-        //	try
-        //	{
-
-
-
-        //					LegacyFileEntry legacyFileEntry = entry as LegacyFileEntry;
-        //					if (legacyFileEntry != null)
-        //					{
-        //						SelectedLegacyEntry = legacyFileEntry;
-        //						//btnImport.IsEnabled = true;
-
-        //						List<string> textViewers = new List<string>()
-        //				{
-        //					"LUA",
-        //					"XML",
-        //					"INI",
-        //					"NAV",
-        //					"JSON",
-        //					"TXT",
-        //					"CSV",
-        //					"TG", // some custom XML / JS / LUA file that is used in FIFA
-        //					"JLT", // some custom XML / LUA file that is used in FIFA
-        //					"PLS" // some custom XML / LUA file that is used in FIFA
-        //				};
-
-        //						List<string> imageViewers = new List<string>()
-        //				{
-        //					"PNG",
-        //					"DDS"
-        //				};
-
-        //					List<string> bigViewers = new List<string>()
-        //				{
-        //					"BIG",
-        //					"AST"
-        //				};
-
-        //					if (textViewers.Contains(legacyFileEntry.Type))
-        //						{
-        //							MainEditorWindow.Log("Loading Legacy File " + SelectedLegacyEntry.Filename);
-
-        //							//btnImport.IsEnabled = true;
-        //							//btnExport.IsEnabled = true;
-        //							//btnRevert.IsEnabled = true;
-
-        //							//TextViewer.Visibility = Visibility.Visible;
-        //							//using (var nr = new NativeReader(AssetManager.Instance.GetCustomAsset("legacy", legacyFileEntry)))
-        //							//{
-        //							//	TextViewer.Text = UTF8Encoding.UTF8.GetString(nr.ReadToEnd());
-        //							//}
-        //						}
-        //						else if (imageViewers.Contains(legacyFileEntry.Type))
-        //						{
-        //							MainEditorWindow.Log("Loading Legacy File " + SelectedLegacyEntry.Filename);
-        //							//btnImport.IsEnabled = true;
-        //							//btnExport.IsEnabled = true;
-        //							//ImageViewerScreen.Visibility = Visibility.Visible;
-
-        //							BuildTextureViewerFromStream((MemoryStream)ProjectManagement.Instance.Project.AssetManager.GetCustomAsset("legacy", legacyFileEntry));
-
-
-        //						}
-        //					else if (bigViewers.Contains(legacyFileEntry.Type))
-        //                          {
-        //						//BIGViewer.Visibility = Visibility.Visible;
-        //						//BIGViewer.AssetEntry = legacyFileEntry;
-        //						//BIGViewer.ParentBrowser = this;
-        //						//switch(legacyFileEntry.Type)
-        //      //                        {
-        //						//	default:
-        //						//		BIGViewer.LoadBig();
-        //						//		break;
-
-        //						//}
-
-        //						//btnImport.IsEnabled = true;
-        //						//btnExport.IsEnabled = true;
-        //						//btnRevert.IsEnabled = true;
-        //                          }
-        //					else
-        //					{
-        //						MainEditorWindow.Log("Loading Unknown Legacy File " + SelectedLegacyEntry.Filename);
-        //						//btnExport.IsEnabled = true;
-        //      //                        btnImport.IsEnabled = true;
-        //      //                        btnRevert.IsEnabled = true;
-
-        //						//unknownFileDocumentsPane.Children.Clear();
-        //						//var newLayoutDoc = new LayoutDocument();
-        //						//newLayoutDoc.Title = SelectedEntry.DisplayName;
-        //						//WpfHexaEditor.HexEditor hexEditor = new WpfHexaEditor.HexEditor();
-        //      //                        using (var nr = new NativeReader(ProjectManagement.Instance.Project.AssetManager.GetCustomAsset("legacy", legacyFileEntry)))
-        //      //                        {
-        //      //                            hexEditor.Stream = new MemoryStream(nr.ReadToEnd());
-        //      //                        }
-        //      //                        newLayoutDoc.Content = hexEditor;
-        //						//hexEditor.BytesModified += HexEditor_BytesModified;
-        //						//unknownFileDocumentsPane.Children.Insert(0, newLayoutDoc);
-        //						//unknownFileDocumentsPane.SelectedContentIndex = 0;
-
-
-        //						//UnknownFileViewer.Visibility = Visibility.Visible;
-        //					}
-
-        //				}
-
-        //	}
-        //	catch (Exception e)
-        //	{
-        //		MainEditorWindow.Log($"Failed to load file with message {e.Message}");
-        //		Debug.WriteLine(e.ToString());
-
-        //		//DisplayUnknownFileViewer(AssetManager.Instance.GetEbxStream(ebxEntry));
-
-        //	}
-
-        //	DataContext = null;
-        //	DataContext = this;
-        //}
-
-        //private async Task OpenLTUAsset(LiveTuningUpdate.LiveTuningUpdateEntry entry)
-        //{
-        //          MainEditorWindow.Log("Loading EBX " + entry.Filename);
-        //	var ebx = entry.GetAsset();
-        //          //var successful = await EBXViewer.LoadEbx(entry, ebx, ProjectManagement.Instance.Project, MainEditorWindow);
-        //          //EBXViewer.Visibility = Visibility.Visible;
-        //      }
-
         private void HexEditor_BytesModified(object sender, WpfHexaEditor.Core.EventArguments.ByteEventArgs e)
         {
             var hexEditor = sender as WpfHexaEditor.HexEditor;
@@ -787,165 +412,6 @@ namespace FIFAModdingUI.Pages.Common
 
                 }
             }
-        }
-
-        private void BackupEBXViewer_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            //Xceed.Wpf.Toolkit.PropertyGrid.PropertyGrid propertyGrid = sender as Xceed.Wpf.Toolkit.PropertyGrid.PropertyGrid;
-            //if (propertyGrid != null)
-            //{
-            //	var ebxAsset = AssetManager.Instance.GetEbx((EbxAssetEntry)SelectedEntry);
-            //	ebxAsset.SetRootObject(propertyGrid.SelectedObject);
-            //	AssetManager.Instance.ModifyEbx(SelectedEntry.Name, ebxAsset);
-            //	UpdateAssetListView();
-            //}
-        }
-
-        private void BackupEBXViewer_SelectedPropertyItemChanged(object sender, RoutedPropertyChangedEventArgs<Xceed.Wpf.Toolkit.PropertyGrid.PropertyItemBase> e)
-        {
-            Xceed.Wpf.Toolkit.PropertyGrid.PropertyGrid propertyGrid = sender as Xceed.Wpf.Toolkit.PropertyGrid.PropertyGrid;
-            if (propertyGrid != null)
-            {
-                var ebxAsset = AssetManager.Instance.GetEbx((EbxAssetEntry)SelectedEntry);
-
-                bool hasChanged = false;
-                var obj1 = ebxAsset.RootObject;
-                var obj2 = propertyGrid.SelectedObject;
-                var props = obj1.GetProperties();
-                foreach (var p in props)
-                {
-                    foreach (var p2 in Utilities.GetProperties(obj2))
-                    {
-                        if (p.Name == p2.Name)
-                        {
-                            if (!p.GetValue(obj1).Equals(p2.GetValue(obj2)))
-                            {
-                                hasChanged = true;
-                                break;
-                            }
-                        }
-
-                        if (hasChanged)
-                            break;
-                    }
-                }
-                if (hasChanged)
-                {
-                    ebxAsset.SetRootObject(propertyGrid.SelectedObject);
-                    AssetManager.Instance.ModifyEbx(SelectedEntry.Name, ebxAsset);
-                    //UpdateAssetListView();
-                }
-            }
-
-        }
-
-        private void BuildTextureViewerFromAssetEntry(ResAssetEntry res)
-        {
-
-            using (Texture textureAsset = new Texture(res))
-            {
-                //try
-                //{
-                //	ImageViewer.Source = null;
-                //	CurrentDDSImageFormat = textureAsset.PixelFormat;
-
-
-                //	var bPath = Directory.GetCurrentDirectory() + @"\temp.png";
-
-                //	TextureExporter textureExporter = new TextureExporter();
-                //	MemoryStream memoryStream = new MemoryStream();
-
-                //                Stream expToStream = null;
-                //                try
-                //	{
-                //                    expToStream = textureExporter.ExportToStream(textureAsset, TextureUtils.ImageFormat.PNG);
-                //		expToStream.Position = 0;
-                //                    //var ddsData = textureExporter.WriteToDDS(textureAsset);
-                //                    //BuildTextureViewerFromStream(new MemoryStream(ddsData));
-
-                //                }
-                //	catch (Exception exception_ToStream)
-                //	{
-                //		MainEditorWindow.LogError($"Error loading texture with message :: {exception_ToStream.Message}");
-                //		MainEditorWindow.LogError(exception_ToStream.ToString());
-                //		ImageViewer.Source = null; ImageViewerScreen.Visibility = Visibility.Collapsed;
-
-                //		textureExporter.Export(textureAsset, res.Filename + ".DDS", "*.DDS");
-                //		MainEditorWindow.LogError($"As the viewer failed. The image has been exported to {res.Filename}.dds instead.");
-                //		return;
-                //	}
-
-                //	//using var nr = new NativeReader(expToStream);
-                //	//nr.Position = 0;
-                //	//var textureBytes = nr.ReadToEnd();
-
-                //	//ImageViewer.Source = LoadImage(textureBytes);
-                //	ImageViewer.Source = LoadImage(((MemoryStream)expToStream).ToArray());
-                //	ImageViewerScreen.Visibility = Visibility.Visible;
-                //	ImageViewer.MaxHeight = textureAsset.Height;
-                //	ImageViewer.MaxWidth = textureAsset.Width;
-
-                //                btnExport.IsEnabled = true;
-                //	btnImport.IsEnabled = true;
-                //	btnRevert.IsEnabled = true;
-
-                //}
-                //catch (Exception e)
-                //{
-                //	MainEditorWindow.LogError($"Error loading texture with message :: {e.Message}");
-                //	MainEditorWindow.LogError(e.ToString());
-                //	ImageViewer.Source = null; ImageViewerScreen.Visibility = Visibility.Collapsed;
-                //}
-            }
-        }
-
-        public string CurrentDDSImageFormat { get; set; }
-
-        //private void BuildTextureViewerFromStream(Stream stream, AssetEntry assetEntry = null)
-        private void BuildTextureViewerFromStream(MemoryStream stream)
-        {
-
-            //try
-            //{
-            //	ImageViewer.Source = null;
-
-            //	var bPath = Directory.GetCurrentDirectory() + @"\temp.png";
-
-            //	ImageEngineImage imageEngineImage = new ImageEngineImage(((MemoryStream)stream).ToArray());
-            //	var iData = imageEngineImage.Save(new ImageFormats.ImageEngineFormatDetails(ImageEngineFormat.BMP), MipHandling.KeepTopOnly, removeAlpha: false);
-
-            //	ImageViewer.Source = LoadImage(iData);
-            //	ImageViewerScreen.Visibility = Visibility.Visible;
-
-            //	btnExport.IsEnabled = true;
-            //	btnImport.IsEnabled = true;
-            //	btnRevert.IsEnabled = true;
-
-            //}
-            //catch (Exception e)
-            //{
-            //	MainEditorWindow.LogError(e.Message);
-            //	ImageViewer.Source = null; ImageViewerScreen.Visibility = Visibility.Collapsed;
-            //}
-
-        }
-
-        private static System.Windows.Media.Imaging.BitmapImage LoadImage(byte[] imageData)
-        {
-            if (imageData == null || imageData.Length == 0) return null;
-            var image = new System.Windows.Media.Imaging.BitmapImage();
-            using (var mem = new MemoryStream(imageData))
-            {
-                mem.Position = 0;
-                image.BeginInit();
-                image.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat;
-                image.CacheOption = BitmapCacheOption.OnLoad;
-                image.UriSource = null;
-                image.StreamSource = mem;
-                image.EndInit();
-            }
-            image.Freeze();
-            return image;
         }
 
         private async void btnImport_Click(object sender, RoutedEventArgs e)
@@ -1035,11 +501,6 @@ namespace FIFAModdingUI.Pages.Common
             }
         }
 
-        private void txtFilter_TextChanged(object sender, TextChangedEventArgs e)
-        {
-
-        }
-
         private async void txtFilter_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -1058,42 +519,6 @@ namespace FIFAModdingUI.Pages.Common
             Update();
         }
 
-        private void TextViewer_LostFocus(object sender, RoutedEventArgs e)
-        {
-            //var bytes = ASCIIEncoding.UTF8.GetBytes(TextViewer.Text);
-
-            //if (SelectedLegacyEntry != null)
-            //{
-            //	AssetManager.Instance.ModifyLegacyAsset(SelectedLegacyEntry.Name
-            //				, bytes
-            //				, false);
-            //	UpdateAssetListView();
-            //}
-        }
-
-        private void TextBlock_PreviewKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter || e.Key == Key.Return)
-            {
-                TextBlock label = sender as TextBlock;
-                if (label != null && label.Tag != null)
-                {
-                    SelectedAssetPath = label.Tag as AssetPath;
-                    //UpdateAssetListView();
-                }
-            }
-        }
-
-        private void TextBlock_PreviewMouseUp(object sender, MouseButtonEventArgs e)
-        {
-            TextBlock label = sender as TextBlock;
-            if (label != null && label.Tag != null)
-            {
-                SelectedAssetPath = label.Tag as AssetPath;
-                //UpdateAssetListView();
-            }
-        }
-
         private void assetTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             var assetTreeViewSelectedItem = assetTreeView.SelectedItem as AssetPath;
@@ -1103,18 +528,6 @@ namespace FIFAModdingUI.Pages.Common
                 //UpdateAssetListView();
             }
         }
-
-        //private void assetListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        //{
-        //    IAssetEntry entry = (IAssetEntry)((ListView)sender).SelectedItem;
-
-        //    if (entry is EbxAssetEntry ebxAssetEntry)
-        //        OpenAsset(ebxAssetEntry);
-        //    else if (entry is LegacyFileEntry legacyFileEntry)
-        //        OpenAsset(legacyFileEntry);
-        //    else if (entry is LiveTuningUpdate.LiveTuningUpdateEntry ltuEntry)
-        //        OpenAsset(ltuEntry);
-        //}
 
         private void btnDuplicate_Click(object sender, RoutedEventArgs e)
         {
