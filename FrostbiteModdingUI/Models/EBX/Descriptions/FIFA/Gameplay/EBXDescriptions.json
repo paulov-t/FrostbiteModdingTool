@@ -400,6 +400,87 @@
 					"Description": "if the requested kick speed is less than this (in m/s) then it will use a low power asset, and an additionally allow the very low power assets."
 				}
 			]
+		},
+		{
+			"TypeName": "AttribSchema_gp_player_injury",
+			"Properties": [
+				{
+					"PropertyName": "ATTR_InjuryProbabilityModifierByAngle",
+					"Description": "Much different gap angle makes more likely higher injury probability."
+				},
+				{
+					"PropertyName": "ATTR_InjuryProbabilityModifierByFatigue",
+					"Description": "Injury probability rate based on fatigue level.\r\nThis value is used for multiplier of force."
+				},
+				{
+					"PropertyName": "ATTR_InjuryProbabilityModifierByTraits",
+					"Description": "If player has injury prone traits, this value will muiltiply to probability value."
+				},
+				{
+					"PropertyName": "Injury_AOGPowerKickInjuryProbabilityByFatigue",
+					"Description": "Injury Probability of Power Kick based on the long time fatigue"
+				},
+				{
+					"PropertyName": "Injury_AOGSprintInjuryProbabilityByFatigue",
+					"Description": "Injury Probability of Long Time Sprint based on the long time fatigue"
+				},
+				{
+					"PropertyName": "Injury_AOGStretchInjuryProbabilityByFatigue",
+					"Description": "Injury Probability of Stretch Kick based on the long time fatigue"
+				},
+				{
+					"PropertyName": "Injury_LongTermFatigueInjuryProbability",
+					"Description": "Long term fatigue injury probability for...\r\n0 - PULLED_CALF\r\n1 - PULLED_QUAD\r\n2 - PULLED_HAM\r\n3 - PULLED_GROIN\r\n4 - PULLED_HIP_FLEXOR\r\n5 - TORN_CALF\r\n6 - TORN_QUAD\r\n7 - TORN_HAM\r\n8 - TORN_GROIN\r\n9 - TORN_HIP_FLEXOR\r\n\r\nLow probability [0.0 .. 1.0] High probability"
+				},
+				{
+					"PropertyName": "Injury_LongTermFatigueThresholds",
+					"Description": "Long term fatigue threshold for...\r\n0 - PULLED_CALF\r\n1 - PULLED_QUAD\r\n2 - PULLED_HAM\r\n3 - PULLED_GROIN\r\n4 - PULLED_HIP_FLEXOR\r\n5 - TORN_CALF\r\n6 - TORN_QUAD\r\n7 - TORN_HAM\r\n8 - TORN_GROIN\r\n9 - TORN_HIP_FLEXOR\r\n\r\nLow fatigue (max gauge) [0.0 .. 1.0] High fatigue (min gauge)"
+				},
+				{
+					"PropertyName": "Injury_MaxForceForBodyJoint",
+					"Description": "Normalize force between 0 and max (this value)\r\n\r\n0 - INJURY_JOINT_ANKLE\r\n1 - INJURY_JOINT_KNEE\r\n2 - INJURY_JOINT_ELBOW\r\n3 - INJURY_JOINT_SHOULDER\r\n"
+				},
+				{
+					"PropertyName": "Injury_MaxForceForBodyPart",
+					"Description": "Normalize force between 0 and max (this value)\r\n\r\n0 - INJURY_PART_FOOT\r\n1 - INJURY_PART_LEG\r\n2 - INJURY_PART_UPPERLEG\r\n3 - INJURY_PART_FOREARM\r\n4 - INJURY_PART_ARM\r\n5 - INJURY_PART_HEAD\r\n6 - INJURY_PART_TORSO\r\n7 - INJURY_PART_HIPS\r\n"
+				},
+				{
+					"PropertyName": "Injury_MaxTorqueForBodyJoint",
+					"Description": "Normalize torque force between 0 and max (this value)\r\n\r\n0 - INJURY_JOINT_ANKLE\r\n1 - INJURY_JOINT_KNEE\r\n2 - INJURY_JOINT_ELBOW\r\n3 - INJURY_JOINT_SHOULDER\r\n"
+				},
+				{
+					"PropertyName": "Injury_MinForceForBodyJoint",
+					"Description": "Normalize force between min (this value) and max\r\n\r\n0 - INJURY_JOINT_ANKLE\r\n1 - INJURY_JOINT_KNEE\r\n2 - INJURY_JOINT_ELBOW\r\n3 - INJURY_JOINT_SHOULDER\r\n"
+				},
+				{
+					"PropertyName": "Injury_MinForceForBodyPart",
+					"Description": "Normalize force between min (this value) and max\r\n\r\n0 - INJURY_PART_FOOT\r\n1 - INJURY_PART_LEG\r\n2 - INJURY_PART_UPPERLEG\r\n3 - INJURY_PART_FOREARM\r\n4 - INJURY_PART_ARM\r\n5 - INJURY_PART_HEAD\r\n6 - INJURY_PART_TORSO\r\n7 - INJURY_PART_HIPS\r\n"
+				},
+				{
+					"PropertyName": "Injury_MinTorqueForBodyJoint",
+					"Description": "Normalize torque force between min (this value) and max\r\n\r\n0 - INJURY_JOINT_ANKLE\r\n1 - INJURY_JOINT_KNEE\r\n2 - INJURY_JOINT_ELBOW\r\n3 - INJURY_JOINT_SHOULDER\r\n"
+				},
+				{
+					"PropertyName": "Injury_PlayerAttributesMaximumReductionRate",
+					"Description": "We'll decrease the player attributes by injuries so this value is maximum % of the reduction."
+				},
+				{
+					"PropertyName": "Injury_probabilityTableForLight",
+					"Description": "injury probability table for light injury."
+				},
+				{
+					"PropertyName": "Injury_probabilityTableForMiddle",
+					"Description": "injury probability table for middle injury."
+				},
+				{
+					"PropertyName": "Injury_probabilityTableForSevere",
+					"Description": "probability table for severe injury, 1.0 means 100%, 0.1 means 10%."
+				},
+				{
+					"PropertyName": "Injury_SprintMinMaxTime",
+					"Description": "Sprint time which causes some injuries when a player is sprinting for a long time.\r\n0 - min time [ticks]\r\n1 - max time [ticks]\r\nInterpolate probability/chance between min and max"
+				}
+			]
 		}
 	]
 }
