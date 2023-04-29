@@ -1,4 +1,6 @@
 using FMT.FileTools;
+using FrostySdk.IO;
+using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
 
@@ -110,15 +112,15 @@ namespace FrostySdk.Resources
             long namePosition = reader.ReadInt64LittleEndian();
             long bonePositions = reader.ReadInt64LittleEndian();
             ushort boneCount = reader.ReadUInt16LittleEndian(); //438
-            BonesPerVertex = reader.ReadByte();
+            BonesPerVertex = (byte)reader.ReadByte();
             MaterialId = reader.ReadUShort();
             StartIndex = reader.ReadByte(); // 0 ? 
             vertexStride = reader.ReadByte(); // 68
             PrimitiveType = (PrimitiveType)reader.ReadByte(); // 3
-            PrimitiveCount = reader.ReadUInt32LittleEndian();
+            PrimitiveCount = (uint)reader.ReadUInt32LittleEndian();
             StartIndex = reader.ReadUInt32LittleEndian();
             VertexOffset = reader.ReadUInt32LittleEndian();
-            VertexCount = reader.ReadUInt32LittleEndian(); // 3157
+            VertexCount = (uint)reader.ReadUInt32LittleEndian(); // 3157
             UnknownInt = reader.ReadUInt();
             FIFA23_UnknownInt1 = reader.ReadUInt(); // hmmm
             FIFA23_UnknownInt2 = reader.ReadUInt(); // hmmm more unknownness
@@ -181,10 +183,10 @@ namespace FrostySdk.Resources
             MaterialId = reader.ReadUInt16LittleEndian();
             vertexStride = reader.ReadByte();
             PrimitiveType = (PrimitiveType)reader.ReadByte();
-            PrimitiveCount = reader.ReadUInt32LittleEndian();
+            PrimitiveCount = (uint)reader.ReadUInt32LittleEndian();
             StartIndex = reader.ReadUInt32LittleEndian();
             VertexOffset = reader.ReadUInt32LittleEndian();
-            VertexCount = reader.ReadUInt32LittleEndian();
+            VertexCount = (uint)reader.ReadUInt32LittleEndian();
             UnknownInt = reader.ReadUInt();
             for (int l = 0; l < 6; l++)
             {
@@ -413,10 +415,10 @@ namespace FrostySdk.Resources
                 writer.WriteUInt64LittleEndian(0uL);
             }
             writer.WriteUInt16LittleEndian((ushort)BoneList.Count);
-            writer.Write(bonesPerVertex);
+            writer.Write((byte)bonesPerVertex);
             writer.WriteUInt16LittleEndian((ushort)MaterialId);
             writer.Write((byte)0);
-            writer.Write(vertexStride);
+            writer.Write((byte)vertexStride);
             writer.Write((byte)PrimitiveType);
             writer.WriteUInt32LittleEndian(PrimitiveCount);
             writer.WriteUInt32LittleEndian(StartIndex);

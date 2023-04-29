@@ -110,7 +110,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
         }
         private List<object> ReadRes(SBHeaderInformation information, NativeReader reader, int baseBundleOffset = 0)
         {
-            List<object> list = new List<object>();
+            List<object> resObjects = new List<object>();
             int shaCount = information.ebxCount;
             for (int i = 0; i < information.resCount; i++)
             {
@@ -134,10 +134,10 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                 dbObject.AddValue("name", name);
                 dbObject.AddValue("nameHash", Fnv1.HashString(name));
                 dbObject.AddValue("originalSize", originalSize);
-                list.Add(dbObject);
+                resObjects.Add(dbObject);
                 reader.Position = position;
             }
-            foreach (DbObject item in list)
+            foreach (DbObject item in resObjects)
             {
                 //var type = reader.ReadUInt(Endian.Big);
                 var type = reader.ReadUInt(Endian.Little);
@@ -145,13 +145,13 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                 item.AddValue("resType", type);
                 item.SetValue("actualResType", resType);
             }
-            foreach (DbObject item2 in list)
+            foreach (DbObject item2 in resObjects)
             {
                 item2.AddValue("SB_ResMeta_Position", reader.Position + baseBundleOffset);
                 var resMeta = reader.ReadBytes(16);
                 item2.AddValue("resMeta", resMeta);
             }
-            foreach (DbObject item3 in list)
+            foreach (DbObject item3 in resObjects)
             {
                 // var resRid = reader.ReadLong(Endian.Little);
                 item3.AddValue("SB_ReRid_Position", reader.Position + baseBundleOffset);
@@ -159,7 +159,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                 var resRid = reader.ReadULong(Endian.Little);
                 item3.SetValue("resRid", resRid);
             }
-            return list;
+            return resObjects;
         }
         private List<object> ReadChunks(SBHeaderInformation information, NativeReader reader, int baseBundleOffset = 0)
         {

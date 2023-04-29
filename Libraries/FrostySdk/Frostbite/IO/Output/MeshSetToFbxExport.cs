@@ -833,8 +833,8 @@ namespace FrostySdk.Frostbite.IO.Output
         //}
         public MeshSet LoadMeshSet(AssetManager assetManager, string resName)
         {
-            //MeshSet meshSet = new MeshSet(assetManager.GetRes(assetManager.GetResEntry(((dynamic)rootObject).Name)));
-            MeshSet meshSet = new MeshSet(assetManager.GetRes(assetManager.GetResEntry(resName)), ProfileManager.Game, assetManager.GetResEntry(resName));
+            MeshSet meshSet = new MeshSet(assetManager.GetRes(assetManager.GetResEntry(resName)));
+            //MeshSet meshSet = new MeshSet(assetManager.GetRes(assetManager.GetResEntry(resName)), ProfileManager.Game, assetManager.GetResEntry(resName));
             return meshSet;
         }
 

@@ -52,15 +52,24 @@ namespace FrostySdk.Frostbite.PluginInterfaces
         public string ChunkDataBundleName { get { return $"{NativeFileLocation}-TOC"; } }
         public int ChunkDataBundleId { get { return Fnv1a.HashString(ChunkDataBundleName); } }
 
+
         /// <summary>
-		/// Reads the TOC file and process any data within it (Chunks) and its Bundles (In Cas files)
-		/// </summary>
-		/// <param name="nativeFilePath"></param>
-		/// <param name="log"></param>
-		/// <param name="process"></param>
-		/// <param name="modDataPath"></param>
-		/// <param name="sbIndex"></param>
-		/// <param name="headerOnly">If true then do not read/process Cas Bundles</param>
+        /// ONLY USED FOR TESTING
+        /// </summary>
+        public TOCFile()
+        {
+
+        }
+
+        /// <summary>
+        /// Reads the TOC file and process any data within it (Chunks) and its Bundles (In Cas files)
+        /// </summary>
+        /// <param name="nativeFilePath"></param>
+        /// <param name="log"></param>
+        /// <param name="process"></param>
+        /// <param name="modDataPath"></param>
+        /// <param name="sbIndex"></param>
+        /// <param name="headerOnly">If true then do not read/process Cas Bundles</param>
         public TOCFile(string nativeFilePath, bool log = true, bool process = true, bool modDataPath = false, int sbIndex = -1, bool headerOnly = false)
         {
             NativeFileLocation = nativeFilePath;

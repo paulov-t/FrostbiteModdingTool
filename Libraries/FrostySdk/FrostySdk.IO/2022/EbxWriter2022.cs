@@ -110,21 +110,6 @@ namespace FrostySdk.FrostySdk.IO
             }
             originalAssetArrays = asset.arrays;
             WriteEbxObjects(asset.RootObjects.Distinct(), asset.FileGuid);
-
-
-            // ---------------------
-            // Debugging
-            //
-            //if (File.Exists("ebxV4Out.dat"))
-            //    File.Delete("ebxV4Out.dat");
-
-            //var endPos = Position;
-            //Position = 0;
-            //using (var fsOut = new FileStream("ebxV4Out.dat", FileMode.CreateNew))
-            //    BaseStream.CopyToAsync(fsOut);
-            //Position = endPos;
-            //
-            // ---------------------
         }
 
         public void WriteEbxObjects(IEnumerable<object> objects, Guid fileGuid)
@@ -350,11 +335,14 @@ namespace FrostySdk.FrostySdk.IO
             // Compare to Original? EBXX Stuff
             //
             List<EbxArray> origEbxArrays = new List<EbxArray>();
-            var oldEntry = AssetManager.Instance.GetEbxEntry(stringsToCStringOffsets.Keys.First());
-            var oldEbxStream = AssetManager.Instance.GetEbxStream(oldEntry);
-            using (var reader = new EbxReader22B(oldEbxStream, true))
+            if (stringsToCStringOffsets.Any())
             {
-                origEbxArrays.AddRange(reader.arrays.Where(x => x.Count > 0).OrderBy(x => x.Offset));
+                var oldEntry = AssetManager.Instance.GetEbxEntry(stringsToCStringOffsets.Keys.First());
+                var oldEbxStream = AssetManager.Instance.GetEbxStream(oldEntry);
+                using (var reader = new EbxReader22B(oldEbxStream, true))
+                {
+                    origEbxArrays.AddRange(reader.arrays.Where(x => x.Count > 0).OrderBy(x => x.Offset));
+                }
             }
             var ebxxArrays = arrays.Where(x => x.Count > 0).OrderBy(x => x.Offset).ToArray();
             var ebxxArrayCount = ebxxArrays.Count();
@@ -373,8 +361,10 @@ namespace FrostySdk.FrostySdk.IO
                 var arr = ebxxArrays[iEbxxArray];
                 Write(arr.Offset);
                 Write(arr.Count);
-                Write(origEbxArrays[iEbxxArray].PathDepth);
-                //Write(0x00);
+                if(origEbxArrays.Count - 1 > iEbxxArray)
+                    Write(origEbxArrays[iEbxxArray].PathDepth);
+                else
+                    Write(0x00);
                 Write((ushort)origEbxArrays[iEbxxArray].TypeFlags);
                 Write((ushort)arr.ClassRef);
             }

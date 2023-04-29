@@ -546,15 +546,21 @@ namespace ModdingSupport
                             resource.FillAssetEntry(resEntry);
                             resEntry.Size = resourceData.Length;
                             modifiedRes.Add(resEntry.Name, resEntry);
-                            if (!archiveData.ContainsKey(resEntry.Sha1))
+                            if (archiveData.ContainsKey(resEntry.Sha1))
+                            {
+                                FileLogger.WriteLine($"Replacing {resEntry.Sha1} ArchiveData with {kvpMods.Value.ModDetails.Title} in ModifiedRes list");
+                                archiveData[resEntry.Sha1].Data = resourceData;
+                            }
+                            else
+                            {
                                 archiveData.Add(resEntry.Sha1, new ArchiveInfo
                                 {
                                     Data = resourceData,
                                     RefCount = 1
                                 });
+                            }
 
 
-                            archiveData[resEntry.Sha1].Data = resourceData;
 
                             break;
                         case ModResourceType.Chunk:
@@ -630,32 +636,6 @@ namespace ModdingSupport
                     }
 
 
-                    //if (resource.Type == ModResourceType.Chunk)
-                    //{
-                    //    Guid guid = new Guid(resource.Name);
-                    //    if (ModifiedChunks.ContainsKey(guid))
-                    //    {
-                    //        ModifiedChunks.Remove(guid);
-                    //    }
-                    //    ChunkAssetEntry chunkAssetEntry = new ChunkAssetEntry();
-                    //    resource.FillAssetEntry(chunkAssetEntry);
-                    //    chunkAssetEntry.Size = resourceData.Length;
-
-                    //    ModifiedChunks.Add(guid, chunkAssetEntry);
-                    //    if (!archiveData.ContainsKey(chunkAssetEntry.Sha1))
-                    //    {
-                    //        archiveData.TryAdd(chunkAssetEntry.Sha1, new ArchiveInfo
-                    //        {
-                    //            Data = resourceData,
-                    //        });
-                    //    }
-                    //    else
-                    //    {
-                    //        archiveData[chunkAssetEntry.Sha1].Data = resourceData;
-                    //    }
-                    //}
-
-                    //else 
                     if (resource.Type == ModResourceType.Legacy)
                     {
                         LegacyFileEntry legacyAssetEntry = new LegacyFileEntry();

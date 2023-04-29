@@ -855,7 +855,7 @@ namespace FrostbiteModdingTests
                 SkeletonAsset = "content/character/rig/skeleton/player/skeleton_player"
             });
 
-            projectManagement.Project.WriteToMod("test.fbmod", new FrostySdk.ModSettings());
+            projectManagement.Project.WriteToMod("test.fbmod", new FrostySdk.ModSettings() { Title = "Imported mesh test" });
             ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
             frostyModExecutor.ForceRebuildOfMods = true;
             frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();

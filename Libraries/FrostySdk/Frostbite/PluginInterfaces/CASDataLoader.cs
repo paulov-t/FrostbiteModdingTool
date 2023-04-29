@@ -103,6 +103,9 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                                 ebxobjectinlist.SetValue("offset", casBundle.Offsets[i]);
                                 ebxobjectinlist.SetValue("size", casBundle.Sizes[i]);
 
+                                ebxobjectinlist.SetValue("TOCOffsetPosition", casBundle.TOCOffsets[i]);
+                                ebxobjectinlist.SetValue("TOCSizePosition", casBundle.TOCSizes[i]);
+
                                 ebxobjectinlist.SetValue("CASFileLocation", NativeFileLocation);
 
                                 ebxobjectinlist.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
@@ -126,7 +129,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                                 resobjectinlist.SetValue("res", true);
                                 resobjectinlist.SetValue("offset", casBundle.Offsets[ebxCount + i]);
                                 resobjectinlist.SetValue("size", casBundle.Sizes[ebxCount + i]);
-
+                                resobjectinlist.SetValue("TOCOffsetPosition", casBundle.TOCOffsets[i]);
+                                resobjectinlist.SetValue("TOCSizePosition", casBundle.TOCSizes[i]);
                                 resobjectinlist.SetValue("CASFileLocation", NativeFileLocation);
 
                                 resobjectinlist.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);

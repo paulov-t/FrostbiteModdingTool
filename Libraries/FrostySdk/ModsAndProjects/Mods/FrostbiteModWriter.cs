@@ -173,26 +173,26 @@ namespace FrostySdk
                 //if (name.Contains("gp_"))
                 //if (name.Contains("fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime"))
 #if DEBUG
-                if (name.Contains("fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime"))
-                {
-                    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                }
-                if (name.Contains("gp_positioning_zonal_defense_attribute", StringComparison.OrdinalIgnoreCase))
-                {
-                    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                }
-                if (name.Contains("cpuaiballhandler", StringComparison.OrdinalIgnoreCase))
-                {
-                    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                }
-                if (name.Contains("cpuaithroughpass", StringComparison.OrdinalIgnoreCase))
-                {
-                    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                }
-                //            if (name.Contains("head_"))
+                //if (name.Contains("fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime"))
                 //{
-                //                File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                //            }
+                //    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
+                //}
+                //if (name.Contains("gp_positioning_zonal_defense_attribute", StringComparison.OrdinalIgnoreCase))
+                //{
+                //    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
+                //}
+                //if (name.Contains("cpuaiballhandler", StringComparison.OrdinalIgnoreCase))
+                //{
+                //    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
+                //}
+                //if (name.Contains("cpuaithroughpass", StringComparison.OrdinalIgnoreCase))
+                //{
+                //    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
+                //}
+                if (name.Contains("head_"))
+                {
+                    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
+                }
                 //            if (name.Contains("hotspot"))
                 //            {
                 //                File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);

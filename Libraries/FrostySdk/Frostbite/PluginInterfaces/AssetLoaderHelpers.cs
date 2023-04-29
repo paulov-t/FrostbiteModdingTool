@@ -22,12 +22,21 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             assetEntry.ExtraData = new AssetExtraData();
             assetEntry.ExtraData.DataOffset = (uint)item.GetValue("offset", 0L);
 
-            int cas = item.GetValue("cas", 0);
-            int catalog = item.GetValue("catalog", 0);
-            bool patch = item.GetValue("patch", false);
-            assetEntry.ExtraData.Cas = (ushort)cas;
-            assetEntry.ExtraData.Catalog = (ushort)catalog;
-            assetEntry.ExtraData.IsPatch = patch;
+            if (item.HasValue("cas"))
+            {
+                int cas = item.GetValue("cas", 0);
+                assetEntry.ExtraData.Cas = (ushort)cas;
+            }
+            if (item.HasValue("catalog"))
+            {
+                int catalog = item.GetValue("catalog", 0);
+                assetEntry.ExtraData.Catalog = (ushort)catalog;
+            }
+            if (item.HasValue("patch"))
+            {
+                bool patch = item.GetValue("patch", false);
+                assetEntry.ExtraData.IsPatch = patch;
+            }
             //chunkAssetEntry.ExtraData.CasPath = FileSystem.Instance.GetFilePath(catalog, cas, patch);
 
             assetEntry.Id = item.GetValue<Guid>("id", Guid.Empty);

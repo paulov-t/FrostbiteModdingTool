@@ -151,8 +151,8 @@ namespace FrostySdk.Frostbite.Compilers
             // Only load cache when required
             if (AssetManager.Instance == null)
             {
-                CacheManager buildCache = new CacheManager();
-                buildCache.LoadData(ProfileManager.ProfileName, ModExecuter.GamePath, ModExecuter.Logger, false, true);
+                CacheManager cacheManager = new CacheManager();
+                cacheManager.LoadData(ProfileManager.ProfileName, ModExecuter.GamePath, ModExecuter.Logger, false, true);
             }
 
             // ------ End of handling Legacy files ---------
@@ -269,19 +269,27 @@ namespace FrostySdk.Frostbite.Compilers
                 return false;
 
             if (assetBundle.Key.Name.Contains("_mesh"))
-                return false;
+                return true;
 
-            var originalSizePosition = origDbo.HasValue("SB_OriginalSize_Position")
-                ? origDbo.GetValue<int>("SB_OriginalSize_Position")
+            var originalSizePosition = 
+                origDbo.HasValue("SB_OriginalSize_Position") ? origDbo.GetValue<int>("SB_OriginalSize_Position")
                 : origDbo.HasValue("SBOSizePos") ? origDbo.GetValue<int>("SBOSizePos")
                 : 0;
 
+            if (originalSizePosition == 0)
+                return false;
+
             var originalSizeOfData = assetBundle.Value.Item3;
+            if(originalSizeOfData == 0)
+                return false;
+
+            if (!origDbo.HasValue("SB_Sha1_Position"))
+                return false;
 
             writer.Position = originalSizePosition;
             writer.Write((uint)originalSizeOfData, Endian.Little);
 
-            if (origDbo.HasValue("SB_Sha1_Position") && assetBundle.Value.Item4 != Sha1.Zero)
+            if (assetBundle.Value.Item4 != Sha1.Zero)
             {
                 writer.Position = origDbo.GetValue<long>("SB_Sha1_Position");
                 writer.Write(assetBundle.Value.Item4);
@@ -308,40 +316,49 @@ namespace FrostySdk.Frostbite.Compilers
             }
 #endif
 
-            //if (assetBundle.Key.Type == "MeshSet")
-            //    return;
+            if (assetBundle.Key.Type == "MeshSet")
+                return true;
 
             var resMetaPosition = origResDbo.GetValue<int>("SB_ResMeta_Position");
-            var originalSizePosition = origResDbo.HasValue("SB_OriginalSize_Position")
-                ? origResDbo.GetValue<int>("SB_OriginalSize_Position")
+            var originalSizePosition = 
+                origResDbo.HasValue("SB_OriginalSize_Position") ? origResDbo.GetValue<int>("SB_OriginalSize_Position")
                 : origResDbo.HasValue("SBOSizePos") ? origResDbo.GetValue<int>("SBOSizePos")
                 : 0;
             long? sha1Position = origResDbo.HasValue("SB_Sha1_Position") ? origResDbo.GetValue<long>("SB_Sha1_Position") : null;
 
-            if (assetBundle.Key.Type != "MeshSet")
+            if (originalSizePosition == 0)
+                return false;
+
+            var originalSizeOfData = assetBundle.Value.Item3;
+            if (originalSizeOfData == 0)
+                return false;
+
+            if (!origResDbo.HasValue("SB_Sha1_Position"))
+                return false;
+
+
+            //if (assetBundle.Key.Type != "MeshSet")
             {
                 writer.BaseStream.Position = resMetaPosition;
                 writer.WriteBytes(ModExecuter.modifiedRes[assetBundle.Key.Name].ResMeta);
             }
 
-            if (assetBundle.Key.Type != "MeshSet")
-            {
+            //if (assetBundle.Key.Type != "MeshSet")
+            //{
                 if (ModExecuter.modifiedRes[assetBundle.Key.Name].ResRid != 0)
                 {
                     writer.BaseStream.Position = origResDbo.GetValue<int>("SB_ReRid_Position");
-                    writer.Write(ModExecuter.modifiedRes[assetBundle.Key.Name].ResRid);
+                    writer.WriteULong(ModExecuter.modifiedRes[assetBundle.Key.Name].ResRid);
                 }
-            }
+            //}
 
             if (assetBundle.Key.Type != "MeshSet")
             {
-                var originalSizeOfData = assetBundle.Value.Item3;
                 writer.Position = originalSizePosition;
                 writer.Write((uint)originalSizeOfData, Endian.Little);
-
             }
 
-            if (assetBundle.Key.Type != "MeshSet")
+            //if (assetBundle.Key.Type != "MeshSet")
             { 
                 if (sha1Position.HasValue && assetBundle.Value.Item4 != Sha1.Zero)
                 {
@@ -636,7 +653,7 @@ namespace FrostySdk.Frostbite.Compilers
 
                         origSize = Convert.ToInt32(modifiedAsset.OriginalSize);
 
-                        if (origSize == 0)
+                        if (origSize == 0 || modifiedAsset is ResAssetEntry)
                         {
                             if (modifiedAsset is ChunkAssetEntry cae && cae.LogicalSize > 0)
                             {
@@ -651,6 +668,12 @@ namespace FrostySdk.Frostbite.Compilers
                                     var out_data = new CasReader(new MemoryStream(data)).Read();
                                     origSize = out_data.Length;
                                 }
+#if DEBUG
+                                if(origSize < data.Length)
+                                {
+
+                                }
+#endif
                             }
                         }
 
@@ -693,7 +716,7 @@ namespace FrostySdk.Frostbite.Compilers
                     .GroupBy(x => !string.IsNullOrEmpty(x.Key.SBFileLocation) ? x.Key.SBFileLocation : x.Key.TOCFileLocation)
                     .ToDictionary(x => x.Key, x => x.ToList());
 
-                
+
             }
 
             var groupedByTOCSBCount = groupedByTOCSB.Values.Sum(y => y.Count);
@@ -820,6 +843,12 @@ namespace FrostySdk.Frostbite.Compilers
 
                                 foreach (DbObject dbInBundle in origResBundles)
                                 {
+                                    var count = dbInBundle.List.Count(z => ((DbObject)z)["name"].ToString() == assetBundle.Key.Name);
+                                    if (count > 1)
+                                    {
+
+                                    }
+
                                     origDbo = (DbObject)dbInBundle.List.SingleOrDefault(z => ((DbObject)z)["name"].ToString() == assetBundle.Key.Name);
                                     if (origDbo != null)
                                         break;
@@ -827,7 +856,7 @@ namespace FrostySdk.Frostbite.Compilers
 
                                 if (origDbo != null)
                                 {
-                                    casPath = origDbo.GetValue<string>("ParentCASBundleLocation");
+                                    casPath = origDbo.GetValue<string>("CASFileLocation");
                                 }
                             }
 
@@ -905,19 +934,22 @@ namespace FrostySdk.Frostbite.Compilers
                     var resolvedCasPath = FileSystem.Instance.ResolvePath(abtc.Key, ModExecutor.UseModData);
                     using (var nwCas = new NativeWriter(new FileStream(resolvedCasPath, FileMode.Open)))
                     {
-                        FileLogger.WriteLine($"Writing {assetBundleToCAS.Values.Count} assets to {resolvedCasPath}");
+#if DEBUG
+                        ModExecuter.Logger.Log($"Writing {abtc.Value.Count} assets to {resolvedCasPath}");
+#endif
+                        FileLogger.WriteLine($"Writing {abtc.Value.Count} assets to {resolvedCasPath}");
                         foreach (var assetEntry in abtc.Value)
                         {
                             var assetBundle = EntriesToNewPosition.FirstOrDefault(x => x.Key.Equals(assetEntry.Item1));
                             //var assetBundles = tocGroup.Value.Where(x => x.Key.Equals(assetEntry.Item1));
                             //foreach (var assetBundle in assetBundles)
-                            {
+                            //{
                                 if(WriteChangesToSuperBundle(assetEntry.Item2, nwCas, assetBundle))
                                     EntriesToNewPosition.Remove(assetEntry.Item1);
 
                                 // Remove from EntriesToNewPosition to stop any false errors occuring 
                                 //EntriesToNewPosition.Remove(assetEntry.Item1);
-                            }
+                            //}
                         }
                     }
                 }

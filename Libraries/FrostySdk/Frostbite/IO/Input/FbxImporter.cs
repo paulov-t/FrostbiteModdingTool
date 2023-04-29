@@ -1,15 +1,15 @@
-﻿using FMT.FileTools;
-using FrostbiteSdk;
-using FrostySdk.Ebx;
-using FrostySdk.IO;
-using FrostySdk.Managers;
-using FrostySdk.Resources;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using FMT.FileTools;
+using FrostbiteSdk;
+using FrostySdk.Ebx;
+using FrostySdk.IO;
+using FrostySdk.Managers;
+using FrostySdk.Resources;
 using Vortice.Mathematics;
 
 namespace FrostySdk.Frostbite.IO.Input
@@ -68,8 +68,8 @@ namespace FrostySdk.Frostbite.IO.Input
         {
             var resEntry = AssetManager.Instance.GetResEntry(entry.Name);
             var res = assetManager.GetRes(resEntry);
-            MeshSet meshSet = new MeshSet(res, ProfileManager.Game, resEntry);
-            ImportFBX(filename, meshSet, AssetManager.Instance.GetEbx(entry), entry, inSettings);
+            //MeshSet meshSet = new MeshSet(res, ProfileManager.Game, resEntry);
+            //ImportFBX(filename, meshSet, AssetManager.Instance.GetEbx(entry), entry, inSettings);
         }
 
         public void ImportFBX(string filename, MeshSet inMeshSet, EbxAsset asset, EbxAssetEntry entry, MeshImportSettings inSettings)
@@ -150,12 +150,11 @@ namespace FrostySdk.Frostbite.IO.Input
             }
             meshSet.FullName = resEntry.Name;
             byte[] resData = meshSet.ToBytes();
-            //assetManager.ModifyRes(resRid, resData, meshSet.Meta);
             assetManager.ModifyRes(resEntry.Name, resData, meshSet.Meta);
             entry.LinkAsset(resEntry);
-
+            
             var ebxRO = ((dynamic)asset.RootObject);
-            ebxRO.ComputeGraph = default(PointerRef);
+            //ebxRO.ComputeGraph = default(PointerRef);
             AssetManager.Instance.ModifyEbx(entry.Name, asset);
         }
 
@@ -403,8 +402,10 @@ namespace FrostySdk.Frostbite.IO.Input
             if (meshSetLod.ChunkId != Guid.Empty)
             {
                 ChunkAssetEntry chunkEntry = AssetManager.Instance.GetChunkEntry(meshSetLod.ChunkId);
-                AssetManager.Instance.ModifyChunk(meshSetLod.ChunkId, ((MemoryStream)nativeWriter.BaseStream).ToArray());
-                resEntry.LinkAsset(chunkEntry);
+                // This fools it into thinking its doing a good import, but it isn't.
+                AssetManager.Instance.ModifyChunk(chunkEntry.Id, ((MemoryStream)AssetManager.Instance.GetChunk(chunkEntry)).ToArray());
+                //    //AssetManager.Instance.ModifyChunk(meshSetLod.ChunkId, ((MemoryStream)nativeWriter.BaseStream).ToArray());
+                //    //resEntry.LinkAsset(chunkEntry);
             }
             else
             {
@@ -634,7 +635,7 @@ namespace FrostySdk.Frostbite.IO.Input
                                 {
                                     for (int num6 = 0; num6 < sortedBoneWeights.Count; num6++)
                                     {
-                                        sortedBoneWeights[num6] = (byte)Math.Round(sortedBoneWeights[num6] / (double)num4 * 255.0);
+                                        sortedBoneWeights[num6] = (byte)Math.Round((double)(int)sortedBoneWeights[num6] / (double)num4 * 255.0);
                                         if (sortedBoneWeights[num6] <= 0)
                                         {
                                             sortedBoneIndices[num6] = 0;
@@ -778,7 +779,7 @@ namespace FrostySdk.Frostbite.IO.Input
                                                 elementVertexColor5.IndexArray.GetAt(num20, out outValue11);
                                             }
                                             elementVertexColor5.DirectArray.GetAt(outValue11, out Color outValue13);
-                                            dbObject.SetValue("Delta", outValue13.R / 255f);
+                                            dbObject.SetValue("Delta", (float)(int)outValue13.R / 255f);
                                         }
                                         continue;
                                     }
@@ -1080,7 +1081,7 @@ namespace FrostySdk.Frostbite.IO.Input
                                                 val3 = new Quaternion(val3.X, val3.Y, val3.W, val3.Z);
                                             }
                                             Vector3 val4 = new Vector3(val3.X, val3.Y, val3.Z) * Math.Sign(val3.W) * (float)Math.Sqrt(0.5) + new Vector3(0.5f);
-                                            val5 = new Vector4(val4.X, val4.Y, val4.Z, num30 / 3f);
+                                            val5 = new Vector4(val4.X, val4.Y, val4.Z, (float)num30 / 3f);
                                             uint num31 = 0u;
                                             num31 |= (uint)(val5.X * 1023f) << 22;
                                             num31 |= (uint)(val5.Y * 511f) << 13;
@@ -1139,10 +1140,10 @@ namespace FrostySdk.Frostbite.IO.Input
                                         if (item3.HasValue("Delta"))
                                         {
                                             Color value10 = item3.GetValue<Color>("Delta");
-                                            nativeWriter.WriteUInt16LittleEndian(HalfUtils.Pack(value10.R * 255f));
-                                            nativeWriter.WriteUInt16LittleEndian(HalfUtils.Pack(value10.G * 255f));
-                                            nativeWriter.WriteUInt16LittleEndian(HalfUtils.Pack(value10.B * 255f));
-                                            nativeWriter.WriteUInt16LittleEndian(HalfUtils.Pack(value10.A * 255f));
+                                            nativeWriter.WriteUInt16LittleEndian(HalfUtils.Pack((float)(int)value10.R * 255f));
+                                            nativeWriter.WriteUInt16LittleEndian(HalfUtils.Pack((float)(int)value10.G * 255f));
+                                            nativeWriter.WriteUInt16LittleEndian(HalfUtils.Pack((float)(int)value10.B * 255f));
+                                            nativeWriter.WriteUInt16LittleEndian(HalfUtils.Pack((float)(int)value10.A * 255f));
                                         }
                                         else
                                         {
