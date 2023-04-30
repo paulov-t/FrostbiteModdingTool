@@ -25,4 +25,10 @@
     <system:String x:Key="textTeams">Teams</system:String>
     <system:String x:Key="textDatabase">Database</system:String>
 
+
+    <system:String x:Key="textLoadGameWithMods">Load Game: Lets Play with Mods</system:String>
+    <system:String x:Key="textLoadEditor">Load Editor: Create mods for the Game</system:String>
+    <system:String x:Key="textLoadTools">Load Tools: Run a Tool</system:String>
+
+    
 </ResourceDictionary>

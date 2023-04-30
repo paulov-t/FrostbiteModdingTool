@@ -24,19 +24,19 @@
         <Button x:Name="btnLoadGameModLauncher" Click="btnLoadGameModLauncher_Click" >
             <StackPanel Orientation="Vertical">
                 <MaterialDesign:PackIcon Kind="GamepadClassic" VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" />
-                <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center">Load Game: Lets Play with Mods</TextBlock>
+                <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" Text="{DynamicResource textLoadGameWithMods}" />
             </StackPanel>
         </Button>
         <Button Grid.Column="2" x:Name="btnLoadGameEditor" Click="btnLoadGameEditor_Click"  >
             <StackPanel Orientation="Vertical">
                 <MaterialDesign:PackIcon Kind="LibraryEdit" VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" />
-                <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center">Load Editor: Create mods for the Game</TextBlock>
+                <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"  Text="{DynamicResource textLoadEditor}" />
             </StackPanel>
         </Button>
         <Button Grid.Column="4" x:Name="btnLoadGameTools" IsEnabled="False" Click="btnLoadGameTools_Click"  >
             <StackPanel Orientation="Vertical">
                 <MaterialDesign:PackIcon Kind="Tools" VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" />
-                <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center">Load Tools: Run a Tool</TextBlock>
+                <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" Text="{DynamicResource textLoadTools}" />
             </StackPanel>
         </Button>
     </Grid>

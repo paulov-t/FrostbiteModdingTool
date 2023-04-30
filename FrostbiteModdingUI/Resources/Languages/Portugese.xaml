@@ -26,4 +26,11 @@
     <system:String x:Key="textFaces">Rostos</system:String>
     <system:String x:Key="textTeams">Equipes</system:String>
     <system:String x:Key="textDatabase">Base de dados</system:String>
+
+
+    <system:String x:Key="textLoadGameWithMods">Cargar juego: vamos a jugar con mods</system:String>
+    <system:String x:Key="textLoadEditor">Editor de carga: crea mods para el juego</system:String>
+    <system:String x:Key="textLoadTools">Cargar herramientas: ejecutar una herramienta</system:String>
+
+
 </ResourceDictionary>

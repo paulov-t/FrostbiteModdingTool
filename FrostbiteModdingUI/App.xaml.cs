@@ -86,62 +86,6 @@ namespace FMT
             await new DiscordInterop().StartDiscordClient("V." + ProductVersion);
         }
 
-        //private async void StartApplicationInsights()
-        //{
-        //    try
-        //    {
-        //        // Create a TelemetryConfiguration instance.
-        //        TelemetryConfiguration config = TelemetryConfiguration.CreateDefault();
-        //        config.InstrumentationKey = "92c621ff-61c0-43a2-a2d6-e539b359f053";
-        //        //QuickPulseTelemetryProcessor quickPulseProcessor = null;
-        //        //config.DefaultTelemetrySink.TelemetryProcessorChainBuilder
-        //        //    .Use((next) =>
-        //        //    {
-        //        //        quickPulseProcessor = new QuickPulseTelemetryProcessor(next);
-        //        //        return quickPulseProcessor;
-        //        //    })
-        //        //    .Build();
-
-        //        //var quickPulseModule = new QuickPulseTelemetryModule();
-
-        //        // Secure the control channel.
-        //        // This is optional, but recommended.
-        //        //quickPulseModule.AuthenticationApiKey = "YOUR-API-KEY-HERE";
-        //        //quickPulseModule.Initialize(config);
-        //        //quickPulseModule.RegisterTelemetryProcessor(quickPulseProcessor);
-
-        //        // Create a TelemetryClient instance. It is important
-        //        // to use the same TelemetryConfiguration here as the one
-        //        // used to setup Live Metrics.
-        //        //AppInsightClient = new TelemetryClient(config);
-        //    }
-        //    catch (Exception)
-        //    {
-
-        //    }
-        //    await Task.Delay(100);
-        //}
-
-        //private async void UnblockAllDLL()
-        //{
-        //    var loc = AppContext.BaseDirectory;
-        //    var psCommmand = $"dir \"{loc}\" -Recurse|Unblock-File";
-        //    var psCommandBytes = System.Text.Encoding.Unicode.GetBytes(psCommmand);
-        //    var psCommandBase64 = Convert.ToBase64String(psCommandBytes);
-
-        //    var startInfo = new ProcessStartInfo()
-        //    {
-        //        FileName = "powershell.exe",
-        //        Arguments = $"-NoProfile -ExecutionPolicy unrestricted -WindowStyle hidden -EncodedCommand {psCommandBase64}",
-        //        UseShellExecute = true
-        //    };
-        //    startInfo.Verb = "runAs";
-        //    Process.Start(startInfo);
-
-        //    await Task.Delay(9000);
-
-        //}
-
         protected override void OnExit(ExitEventArgs e)
         {
             base.OnExit(e);
@@ -193,10 +137,20 @@ namespace FMT
 
         public static void LoadLanguageFile(string newLanguage = null)
         {
+            var englishCulture = new CultureInfo("en-US");
+
             try
             {
                 if (string.IsNullOrEmpty(newLanguage))
+                {
                     newLanguage = Thread.CurrentThread.CurrentCulture.ToString().Substring(0, 2);
+
+                    // Fix Issue: 34
+                    // Force English Culture number format of dot for floats / currancy
+                    //var testCulture = new CultureInfo("es-ES");
+                    Thread.CurrentThread.CurrentCulture = englishCulture;
+                    Thread.CurrentThread.CurrentUICulture = englishCulture;
+                }
 
                 // prefix to the relative Uri for resource (xaml file)
                 string _prefix = String.Concat(typeof(App).Namespace, ";component/");
@@ -219,12 +173,16 @@ namespace FMT
                         break;
                     case "en":
                         filename = "Resources\\Languages\\English.xaml";
+                        Thread.CurrentThread.CurrentCulture = englishCulture;
+                        Thread.CurrentThread.CurrentUICulture = englishCulture;
                         break;
                     case "es":
                         filename = "Resources\\Languages\\Spanish.xaml";
                         break;
                     default:
                         filename = "Resources\\Languages\\English.xaml";
+                        Thread.CurrentThread.CurrentCulture = englishCulture;
+                        Thread.CurrentThread.CurrentUICulture = englishCulture;
                         break;
                 }
 
@@ -235,14 +193,12 @@ namespace FMT
                  new ResourceDictionary { Source = new Uri(String.Concat(filename), UriKind.Relative) }
                 );
 
-                // Fix Issue: 34
-                // Force English Culture number format of dot for floats / currancy
-                var englishCulture = new CultureInfo("en");
-                Thread.CurrentThread.CurrentCulture.NumberFormat = englishCulture.NumberFormat;
+               
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                FileLogger.WriteLine(ex.ToString());
                 //throw ex;
             }
         }
