@@ -41,7 +41,7 @@ namespace FrostbiteSdk
             //var viewableBytes = new NativeReader(inStream).ReadToEnd();
             //inStream.Position = 0;
             var magic = ReadULong();
-            if (magic != FrostbiteMod.MagicFrosty && magic != FrostbiteMod.Magic2)
+            if (magic != FrostbiteMod.MagicFrosty && (magic != FrostbiteMod.MagicFMT && magic != FrostbiteMod.MagicFMT_Pre2323))
             {
                 IsValid = false;
                 return;
@@ -72,7 +72,8 @@ namespace FrostbiteSdk
         public FrostbiteModDetails ReadModDetails()
         {
             if (Version == FrostbiteMod.CurrentVersion
-                || Version == FrostbiteMod.HashVersions[7]
+                || Version == IFrostbiteMod.HashVersions[7]
+                || Version == IFrostbiteMod.HashVersions_Pre2323[7]
                 )
             {
                 return new FrostbiteModDetails(ReadLengthPrefixedString(), ReadLengthPrefixedString(), ReadLengthPrefixedString(), ReadLengthPrefixedString(), ReadLengthPrefixedString(), ReadInt());

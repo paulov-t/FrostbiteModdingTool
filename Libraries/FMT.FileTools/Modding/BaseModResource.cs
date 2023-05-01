@@ -138,7 +138,13 @@ namespace FMT.FileTools.Modding
 
         public string ReadString(NativeReader reader, uint modVersion)
         {
-            if (modVersion < 27 || modVersion == IFrostbiteMod.CurrentVersion || modVersion == IFrostbiteMod.HashVersions[7])
+            // should handle FrostyEditor stuff? right?
+            if(modVersion < 6)
+            {
+                return reader.ReadLengthPrefixedString();
+            }
+
+            if (modVersion < 27 || modVersion == IFrostbiteMod.CurrentVersion || modVersion == IFrostbiteMod.HashVersions[7] || modVersion == IFrostbiteMod.HashVersions_Pre2323[7])
             {
                 return reader.ReadNullTerminatedString();
             }

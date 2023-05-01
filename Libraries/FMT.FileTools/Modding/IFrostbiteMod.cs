@@ -16,8 +16,21 @@ namespace FMT.FileTools.Modding
             4,
             5,
             6,
-            (uint)Fnv1a.HashString("FBMod7")
+            (uint)Fnv1a.HashString("FBMod7"),
+            (uint)Fnv1a.HashStringByHashDepot("FBMod7")
+         };
+        public static uint[] HashVersions_Pre2323 => new uint[]
+        {
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            (uint)Fnv1a.HashStringByHashDepot("FBMod7")
         };
+
         public static uint CurrentVersion => HashVersions.Last();
 
         public EGame Game { get; set; }

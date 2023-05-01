@@ -386,7 +386,7 @@ namespace FrostySdk
 
         public virtual void WriteProject(IProject project)
         {
-            Write(FrostbiteMod.Magic2);
+            Write(FrostbiteMod.MagicFMT);
             Write(FrostbiteMod.CurrentVersion);
             Write(16045690984833335023uL);
             Write(3735928559u);
@@ -498,7 +498,7 @@ namespace FrostySdk
 
         public virtual void WriteProject()
         {
-            Write(FrostbiteMod.Magic2);
+            Write(FrostbiteMod.MagicFMT);
             Write(FrostbiteMod.CurrentVersion);
             Write(16045690984833335023uL);
             Write(3735928559u);
