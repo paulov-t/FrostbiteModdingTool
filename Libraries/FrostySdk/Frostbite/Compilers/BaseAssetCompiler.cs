@@ -414,10 +414,10 @@ namespace FrostySdk.Frostbite.Compilers
                     )
                 {
                     sbIndex++;
-                    string tocFile = sbKey;
+                    string tocFileSbKey = sbKey;
                     if (catalogInfo.SuperBundles[sbKey])
                     {
-                        tocFile = sbKey.Replace("win32", catalogInfo.Name);
+                        tocFileSbKey = sbKey.Replace("win32", catalogInfo.Name);
                     }
 
                     // Only handle Legacy stuff right now
@@ -426,30 +426,32 @@ namespace FrostySdk.Frostbite.Compilers
                     //    continue;
                     //}
 
-                    var pathToTOCFileRAW = $"{directory}/{tocFile}.toc";
+                    var pathToTOCFileRAW = $"{directory}/{tocFileSbKey}.toc";
                     //string location_toc_file = FileSystem.Instance.ResolvePath(pathToTOCFileRAW);
 
                     var pathToTOCFile = FileSystem.Instance.ResolvePath(pathToTOCFileRAW, ModExecutor.UseModData);
 
-                    using TOCFile tocFile2 = new TOCFile(pathToTOCFileRAW, false, false, true, sbIndex, true);
+                    using TOCFile tocFileObj = new TOCFile(pathToTOCFileRAW, false, false, true, sbIndex, true);
 
                     // read the changed toc file in ModData
-                    if (!tocFile2.TocChunks.Any())
+                    if (!tocFileObj.TocChunks.Any())
                         continue;
 
                     if (!ModExecuter.ModifiedChunks.Any(x =>
-                        x.Value.Bundles.Contains(tocFile2.ChunkDataBundleId)
+                        x.Value.Bundles.Contains(tocFileObj.ChunkDataBundleId)
+                        || x.Value.Bundles.Contains(tocFileObj.ChunkDataBundleId_PreFMT2323)
                         || x.Value.Bundles.Contains(Fnv1a.HashString("TocChunks"))
+                        || x.Value.Bundles.Contains(Fnv1a.HashStringByHashDepot("TocChunks"))
                         )
                         )
                         continue;
 
                     var patch = true;
-                    var catalog = tocFile2.TocChunks.Max(x => x.ExtraData.Catalog.Value);
-                    if (!tocFile2.TocChunks.Any(x => x.ExtraData.IsPatch))
+                    var catalog = tocFileObj.TocChunks.Max(x => x.ExtraData.Catalog.Value);
+                    if (!tocFileObj.TocChunks.Any(x => x.ExtraData.IsPatch))
                         patch = false;
 
-                    var cas = tocFile2.TocChunks.Where(x => x.ExtraData.Catalog == catalog).Max(x => x.ExtraData.Cas.Value);
+                    var cas = tocFileObj.TocChunks.Where(x => x.ExtraData.Catalog == catalog).Max(x => x.ExtraData.Cas.Value);
 
                     var newCas = cas;
                     //var nextCasPath = GetNextCasInCatalog(catalogInfo, cas, patch, out int newCas);
@@ -471,9 +473,9 @@ namespace FrostySdk.Frostbite.Compilers
                         {
                             foreach (var modChunk in ModExecuter.ModifiedChunks)
                             {
-                                if (tocFile2.TocChunkGuids.Contains(modChunk.Key))
+                                if (tocFileObj.TocChunkGuids.Contains(modChunk.Key))
                                 {
-                                    var chunkIndex = tocFile2.TocChunks.FindIndex(x => x.Id == modChunk.Key
+                                    var chunkIndex = tocFileObj.TocChunks.FindIndex(x => x.Id == modChunk.Key
                                         && modChunk.Value.ModifiedEntry != null
                                         //&& (modChunk.Value.ModifiedEntry.AddToTOCChunks || modChunk.Value.ModifiedEntry.AddToChunkBundle)
                                         );
@@ -487,9 +489,9 @@ namespace FrostySdk.Frostbite.Compilers
                                         if (data == null)
                                             continue;
 
-                                        var chunkGuid = tocFile2.TocChunkGuids[chunkIndex];
+                                        var chunkGuid = tocFileObj.TocChunkGuids[chunkIndex];
 
-                                        var chunk = tocFile2.TocChunks[chunkIndex];
+                                        var chunk = tocFileObj.TocChunks[chunkIndex];
                                         //DbObject dboChunk = tocFile2.TocChunkInfo[modChunk.Key];
 
                                         nw_cas.Position = nw_cas.Length;
@@ -504,7 +506,7 @@ namespace FrostySdk.Frostbite.Compilers
                                             IsPatch = patch,
                                         };
 
-                                        nw_toc.Position = tocFile2.TocChunkPatchPositions[chunkGuid];// dboChunk.GetValue<long>("patchPosition");
+                                        nw_toc.Position = tocFileObj.TocChunkPatchPositions[chunkGuid];// dboChunk.GetValue<long>("patchPosition");
                                         nw_toc.Write(Convert.ToByte(patch ? 1 : 0));
                                         nw_toc.Write(Convert.ToByte(catalog));
                                         nw_toc.Write(Convert.ToByte(newCas));

@@ -1,8 +1,10 @@
 ﻿//using FMT.FileTools;
 //using FrostySdk.IO;
+//using FrostySdk.Managers;
 //using ModdingSupport;
 //using System;
 //using System.Collections.Generic;
+//using System.IO;
 //using System.Linq;
 //using System.Text;
 //using System.Threading;
@@ -11,8 +13,7 @@
 
 //namespace FrostySdk.Frostbite.Compilers
 //{
-
-//    private class ManifestBundleAction
+//    public class ManifestBundleAction
 //    {
 //        private static readonly object resourceLock = new object();
 
@@ -82,8 +83,8 @@
 //                        for (int i = 1; i < manifestBundle.files.Count; i++)
 //                        {
 //                            ManifestFileInfo manifestFileInfo2 = manifestBundle.files[i];
-//                            int key = Fnv1a.HashString(fs.ResolvePath((manifestFileInfo2.file.IsInPatch ? "native_patch/" : "native_data/") + fs.GetCatalog(manifestFileInfo2.file) + "/cas.cat").ToLower());
-//                            Dictionary<uint, CatResourceEntry> dictionary = parent.resources[key][manifestFileInfo2.file.CasIndex];
+//                            int hashedPath = Fnv1a.HashString(fs.ResolvePath((manifestFileInfo2.file.IsInPatch ? "native_patch/" : "native_data/") + fs.GetCatalog(manifestFileInfo2.file) + "/cas.cat").ToLower());
+//                            Dictionary<uint, CatResourceEntry> dictionary = parent.Resources[hashedPath][manifestFileInfo2.file.CasIndex];
 //                            List<uint> list2 = dictionary.Keys.ToList();
 //                            uint num = 0u;
 //                            uint num2 = manifestFileInfo2.offset;
@@ -179,7 +180,7 @@
 //                                    if (handlerExtraData != null)
 //                                    {
 //                                        byte[] outData = null;
-//                                        Stream resourceData = parent.rm.GetResourceData(parent.fs.GetFilePath(manifestFileInfo5.file.CatalogIndex, manifestFileInfo5.file.CasIndex, manifestFileInfo5.file.IsInPatch), manifestFileInfo5.offset, manifestFileInfo5.size);
+//                                        Stream resourceData = AssetManager.Instance.GetResourceData(parent.fs.GetFilePath(manifestFileInfo5.file.CatalogIndex, manifestFileInfo5.file.CasIndex, manifestFileInfo5.file.IsInPatch), manifestFileInfo5.offset, manifestFileInfo5.size);
 //                                        ResAssetEntry resAssetEntry2 = (ResAssetEntry)handlerExtraData.Handler.Modify(resAssetEntry, resourceData, handlerExtraData.Data, out outData);
 //                                        if (!parent.archiveData.ContainsKey(resAssetEntry2.Sha1))
 //                                        {

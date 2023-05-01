@@ -51,6 +51,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
 
         public string ChunkDataBundleName { get { return $"{NativeFileLocation}-TOC"; } }
         public int ChunkDataBundleId { get { return Fnv1a.HashString(ChunkDataBundleName); } }
+        public int ChunkDataBundleId_PreFMT2323 { get { return Fnv1a.HashStringByHashDepot(ChunkDataBundleName); } }
 
 
         /// <summary>
