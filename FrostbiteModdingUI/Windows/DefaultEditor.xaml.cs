@@ -13,6 +13,7 @@ using FrostySdk.Ebx;
 using FrostySdk.Frostbite;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.ModsAndProjects.Projects;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using Newtonsoft.Json;
@@ -473,44 +474,77 @@ namespace FrostbiteModdingUI.Windows
             await SaveProjectWithDialog();
         }
 
-        private async Task<bool> SaveProjectWithDialog()
+        public virtual async Task<bool> SaveProjectWithDialog()
         {
-            loadingDialog.Update("Saving Project", "Sweeping up debris", 0);
+            loadingDialog.UpdateAsync("Saving Project", "Sweeping up debris", 0);
+            //borderLoading.Visibility = Visibility.Visible;
             //loadingDialog.Show();
             await Task.Delay(100);
             // ---------------------------------------------------------
             // Remove chunks and actual unmodified files before writing
-            ChunkFileManager2022.CleanUpChunks();
+            //ChunkFileManager2022.CleanUpChunks();
 
-            loadingDialog.Update("", "");
-
-
+            await loadingDialog.UpdateAsync("", "");
 
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "Project files|*.fbproject";
+            saveFileDialog.Filter = "FMTProject files|*.fmtproj|FBProject files|*.fbproject|All Files (*.*)|*.*";
             var result = saveFileDialog.ShowDialog();
-            if (result.HasValue && result.Value)
+            if (!result.HasValue || !result.Value)
+                return false;
+
+            if (string.IsNullOrEmpty(saveFileDialog.FileName))
+                return false;
+
+            await loadingDialog.UpdateAsync("Saving Project", "Saving project to file");
+
+            // FMT Project file type
+            if (saveFileDialog.FileName.EndsWith(".fmtproj", StringComparison.OrdinalIgnoreCase))
             {
-                if (!string.IsNullOrEmpty(saveFileDialog.FileName))
+                //MessageBox.Show("FMTProj file type is EXPERIMENTAL. If concerned, use fbproject instead.");
+
+                // Same file -- Simple Update
+                if (ProjectManagement.Project is FMTProject fmtProj && fmtProj.Filename.Equals(saveFileDialog.FileName, StringComparison.OrdinalIgnoreCase))
+                    fmtProj.Update();
+                // Different file -- Create new file and Update
+                else
                 {
-                    loadingDialog.Update("Saving Project", "Saving project to file", 0);
-                    //loadingDialog.Show();
-                    await ProjectManagement.Project.SaveAsync(saveFileDialog.FileName, true);
+                    var storedPreviousModSettings = ProjectManagement.Project.ModSettings.CloneJson();
 
-                    Log("Saved project successfully to " + saveFileDialog.FileName);
-
-                    UpdateWindowTitle(saveFileDialog.FileName);
-
-                    DiscordInterop.DiscordRpcClient.UpdateDetails("In Editor [" + GameInstanceSingleton.Instance.GAMEVERSION + "] - " + ProjectManagement.Project.DisplayName);
-
-
-
+                    ProjectManagement.Project = new FMTProject(saveFileDialog.FileName);
+                    ProjectManagement.Project.ModSettings.UpdateFromOtherModSettings(storedPreviousModSettings);
+                    ((FMTProject)ProjectManagement.Project).Update();
                 }
             }
-            loadingDialog.Update("", "");
+            // Legacy fbproject file type
+            else if (saveFileDialog.FileName.EndsWith(".fbproject", StringComparison.OrdinalIgnoreCase))
+            {
+                // Same file -- Simple Update
+                if (ProjectManagement.Project is FrostbiteProject fbProj)
+                    await fbProj.SaveAsync(saveFileDialog.FileName, true);
+                // Different file -- Create new file and Update
+                else
+                {
+                    ModSettings modSettings = ProjectManagement.Project.ModSettings.CloneJson();
+                    ProjectManagement.Project = new FrostbiteProject();
+                    ProjectManagement.Project.ModSettings.Author = modSettings.Author;
+                    ProjectManagement.Project.ModSettings.Description = modSettings.Description;
+                    ProjectManagement.Project.ModSettings.Title = modSettings.Title;
+                    ProjectManagement.Project.ModSettings.Version = modSettings.Version;
+                    await ProjectManagement.Project.SaveAsync(saveFileDialog.FileName, true);
+                }
+            }
+            // Unknown File
+            else
+            {
+                Log("Unknown file type detected. Project failed to save to " + saveFileDialog.FileName);
+                return false;
+            }
 
-            //loadingDialog.Close();
-            //loadingDialog = null;
+            Log("Saved project successfully to " + saveFileDialog.FileName);
+            UpdateWindowTitle(saveFileDialog.FileName);
+
+            await loadingDialog.UpdateAsync("", "");
+
             return true;
         }
 
