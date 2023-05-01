@@ -601,7 +601,7 @@ namespace FIFAModdingUI.Windows
             // FMT Project file type
             if (saveFileDialog.FileName.EndsWith(".fmtproj", StringComparison.OrdinalIgnoreCase))
             {
-                MessageBox.Show("FMTProj file type is EXPERIMENTAL. If concerned, use fbproject instead.");
+                //MessageBox.Show("FMTProj file type is EXPERIMENTAL. If concerned, use fbproject instead.");
 
                 // Same file -- Simple Update
                 if (ProjectManagement.Project is FMTProject fmtProj && fmtProj.Filename.Equals(saveFileDialog.FileName, StringComparison.OrdinalIgnoreCase))
