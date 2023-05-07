@@ -182,52 +182,49 @@ namespace StarWarsSquadronsPlugin.Cache
             chunkAssetEntry.LogicalSize = nativeReader.ReadUInt();
             chunkAssetEntry.H32 = nativeReader.ReadInt();
             chunkAssetEntry.FirstMip = nativeReader.ReadInt();
-            if (nativeReader.ReadBoolean())
-            {
-                chunkAssetEntry.ExtraData = new AssetExtraData();
-                chunkAssetEntry.ExtraData.DataOffset = nativeReader.ReadUInt();
-                //chunkAssetEntry.ExtraData.Catalog = nativeReader.ReadUShort();
-                //chunkAssetEntry.ExtraData.Cas = nativeReader.ReadUShort();
-                //chunkAssetEntry.ExtraData.IsPatch = nativeReader.ReadBoolean();
-                chunkAssetEntry.ExtraData.CasPath = nativeReader.ReadLengthPrefixedString();
-            }
-            else
-            {
-                throw new Exception("No Extra Data!");
-            }
+            //if (nativeReader.ReadBoolean())
+            //{
+            //    chunkAssetEntry.ExtraData = new AssetExtraData();
+            //    chunkAssetEntry.ExtraData.DataOffset = nativeReader.ReadUInt();
+            //    chunkAssetEntry.ExtraData.CasPath = nativeReader.ReadLengthPrefixedString();
+            //}
+            //else
+            //{
+            //    throw new Exception("No Extra Data!");
+            //}
 
-            var numTFL = nativeReader.ReadInt();
-            //chunkAssetEntry.TOCFileLocations = new HashSet<string>();
-            for (int iTFL = 0; iTFL < numTFL; iTFL++)
-            {
-                chunkAssetEntry.TOCFileLocations.Add(nativeReader.ReadLengthPrefixedString());
-            }
+            //var numTFL = nativeReader.ReadInt();
+            ////chunkAssetEntry.TOCFileLocations = new HashSet<string>();
+            //for (int iTFL = 0; iTFL < numTFL; iTFL++)
+            //{
+            //    chunkAssetEntry.TOCFileLocations.Add(nativeReader.ReadLengthPrefixedString());
+            //}
 
-            if (nativeReader.ReadBoolean())
-                chunkAssetEntry.SBFileLocation = nativeReader.ReadLengthPrefixedString();
-            if (nativeReader.ReadBoolean())
-                chunkAssetEntry.TOCFileLocation = nativeReader.ReadLengthPrefixedString();
-            if (nativeReader.ReadBoolean())
-                chunkAssetEntry.CASFileLocation = nativeReader.ReadLengthPrefixedString();
+            //if (nativeReader.ReadBoolean())
+            //    chunkAssetEntry.SBFileLocation = nativeReader.ReadLengthPrefixedString();
+            //if (nativeReader.ReadBoolean())
+            //    chunkAssetEntry.TOCFileLocation = nativeReader.ReadLengthPrefixedString();
+            //if (nativeReader.ReadBoolean())
+            //    chunkAssetEntry.CASFileLocation = nativeReader.ReadLengthPrefixedString();
 
 
-            chunkAssetEntry.SB_CAS_Offset_Position = nativeReader.ReadInt();
-            chunkAssetEntry.SB_CAS_Size_Position = nativeReader.ReadInt();
-            chunkAssetEntry.SB_Sha1_Position = nativeReader.ReadInt();
-            chunkAssetEntry.SB_OriginalSize_Position = nativeReader.ReadInt();
+            //chunkAssetEntry.SB_CAS_Offset_Position = nativeReader.ReadInt();
+            //chunkAssetEntry.SB_CAS_Size_Position = nativeReader.ReadInt();
+            //chunkAssetEntry.SB_Sha1_Position = nativeReader.ReadInt();
+            //chunkAssetEntry.SB_OriginalSize_Position = nativeReader.ReadInt();
 
-            chunkAssetEntry.SB_LogicalOffset_Position = nativeReader.ReadUInt();
-            chunkAssetEntry.SB_LogicalSize_Position = nativeReader.ReadUInt();
+            //chunkAssetEntry.SB_LogicalOffset_Position = nativeReader.ReadUInt();
+            //chunkAssetEntry.SB_LogicalSize_Position = nativeReader.ReadUInt();
 
 
-            if (nativeReader.ReadBoolean())
-                chunkAssetEntry.Bundle = nativeReader.ReadLengthPrefixedString();
+            //if (nativeReader.ReadBoolean())
+            //    chunkAssetEntry.Bundle = nativeReader.ReadLengthPrefixedString();
 
-            int num6 = nativeReader.ReadInt();
-            for (int num7 = 0; num7 < num6; num7++)
-            {
-                chunkAssetEntry.Bundles.Add(nativeReader.ReadInt());
-            }
+            //int num6 = nativeReader.ReadInt();
+            //for (int num7 = 0; num7 < num6; num7++)
+            //{
+            //    chunkAssetEntry.Bundles.Add(nativeReader.ReadInt());
+            //}
 
             return chunkAssetEntry;
         }

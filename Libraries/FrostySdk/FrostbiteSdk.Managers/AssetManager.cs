@@ -422,7 +422,9 @@ namespace FrostySdk.Managers
             get
             {
                 if (_EbxItemsWithNoType == null)
-                    _EbxItemsWithNoType = EBX.Values.Where(
+                    _EbxItemsWithNoType = EBX.Values
+                        .Where(x => x.ExtraData != null)
+                        .Where(
                         x => string.IsNullOrEmpty(x.Type)
                         || x.Type == "UnknownType"
                     ).OrderBy(x => x.ExtraData.CasPath).ToList();
@@ -797,7 +799,7 @@ namespace FrostySdk.Managers
                     entry.Bundles.Add(bundle);
 
                 // Always overwrite if the new item is a patch version
-                if (!existingChunk.ExtraData.IsPatch && entry.ExtraData.IsPatch)
+                if (existingChunk.ExtraData != null && !existingChunk.ExtraData.IsPatch && entry.ExtraData.IsPatch)
                     Chunks[entry.Id] = entry;
             }
 
@@ -817,7 +819,7 @@ namespace FrostySdk.Managers
                         entry.Bundles.Add(bundle);
 
                     // Always overwrite if the new item is a patch version
-                    if (!existingChunk.ExtraData.IsPatch && entry.ExtraData.IsPatch)
+                    if (existingChunk.ExtraData != null && !existingChunk.ExtraData.IsPatch && entry.ExtraData.IsPatch)
                         SuperBundleChunks[hashedId] = entry;
                 }
             }
