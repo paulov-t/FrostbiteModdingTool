@@ -233,12 +233,15 @@
 	  </None>
 	  <None Update="SDK\NeedForSpeedUnboundSDK.dll">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
 	  <None Update="SDK\MADDEN23SDK.dll">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
 	  <None Update="SDK\SWSSDK.dll">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
   </ItemGroup>
 
