@@ -123,6 +123,10 @@
 				{
 					"PropertyName": "dribbleAggressivenessByDistFromAttackingGoalForMinSkill",
 					"Description": "This graph represent the dribble aggressiveness for a player with the worst dribbling skills depending on the distance from the attacking goal (X coordinates wise)\r\n\r\nx axis - distance to the attacking goal weight (0 - close 1 - far)\r\ny axis - aggressiveness (0 - safe dribble 1 - tackign on defenders)\r\n"
+				},
+				{
+					"PropertyName": "dribbleAggressivenessByDistFromAttackingGoalMappingCurve",
+					"Description": "This is mapping curve between dribbleAggressivenessByDistFromAttackingGoalForMaxSkill and dribbleAggressivenessByDistFromAttackingGoalForMinSkill.\r\n\r\nx axis - dribbling attribute (0 .. 1)\r\ny axis - mapping value "
 				}
 			]
 		},
