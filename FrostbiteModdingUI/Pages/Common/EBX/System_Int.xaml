@@ -33,6 +33,9 @@
         <Grid Grid.Column="1">
             <TextBox x:Name="ValueBox" Grid.Column="1"
                      ToolTip="{Binding PropertyDescription}"
+                         IsEnabled="{Binding IsEditable}"
+                       IsReadOnly="{Binding IsReadOnly}"
+                 
                      >
                 <TextBox.Text>
                     <Binding Path="PropertyValue"

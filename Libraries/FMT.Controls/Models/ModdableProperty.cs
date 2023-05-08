@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FMT.Controls.Models;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,17 +11,11 @@ using System.Windows;
 namespace FMT.Models
 {
 
-    public class ModdableProperty : INotifyPropertyChanged
+    public class ModdableProperty : ModdableEntity, INotifyPropertyChanged
     {
-        public string PropertyName { get; set; }
-        public string PropertyType { get; set; }
-        public string PropertyParentName { get; set; }
-
         private object propValue;
 
-        public object PropertyOriginalValue { get; private set; }
-
-        public object PropertyValue
+        public override object PropertyValue
         {
             get { return propValue; }
             set
@@ -33,16 +28,6 @@ namespace FMT.Models
                     _ = Property;
                     if (Property.PropertyType.FullName.Contains("List`1") && ArrayType != null && ArrayIndex.HasValue)
                     {
-                        //IList sourceList = (IList)Property.GetValue(RootObject);
-                        //Type t = typeof(List<>).MakeGenericType(ArrayType);
-                        //IList res = (IList)Activator.CreateInstance(t);
-                        //foreach (var item in sourceList)
-                        //{
-                        //	res.Add(item);
-                        //}
-                        //res.RemoveAt(ArrayIndex.Value);
-                        //                     res.GetType().GetMethod("Insert")
-                        //	.Invoke(res, new object[2] { ArrayIndex.Value, Convert.ChangeType(value, ArrayType) });
                         if (PropertyChanged != null)
                         {
                             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(value.ToString()));
@@ -74,24 +59,12 @@ namespace FMT.Models
             }
         }
 
-        public object RootObject { get; set; }
-        public object VanillaRootObject { get; set; }
-        public PropertyInfo RootObjectPropertyInfo { get; set; }
         public PropertyInfo Property { get; set; }
-        public Type ArrayType { get; set; }
-        public int? ArrayIndex { get; set; }
+        public override bool IsInList => ArrayType != null || Property.PropertyType.IsGenericType;
 
-        public bool IsInList => ArrayType != null || Property.PropertyType.IsGenericType;
+        public override bool IsReadOnly { get => Property != null && !Property.CanWrite; }
 
-        public string PropertyDescription
-        {
-            get
-            {
-                return GetPropertyDescription();
-            }
-        }
-
-        public string GetPropertyDescription()
+        public override string GetPropertyDescription()
         {
             try
             {
@@ -115,35 +88,15 @@ namespace FMT.Models
             return null;
         }
 
-        public bool IsReadOnly
-        {
-            get { return !Property.CanWrite || Property.PropertyType.GetType().Name.Contains("CString", StringComparison.OrdinalIgnoreCase); }
-        }
-
-        public bool HasPropertyDescription
-        {
-            get
-            {
-                return !string.IsNullOrEmpty(PropertyDescription);
-            }
-        }
-
-        public Visibility HasPropertyDescriptionVisibility
-        {
-            get
-            {
-                return HasPropertyDescription ? Visibility.Visible : Visibility.Collapsed;
-            }
-        }
-
-        public ModdableProperty(string n, string t, object v)
+        public ModdableProperty(string n, string t, object v) : base(n, t, v)
         {
             PropertyName = n;
             PropertyType = t;
             propValue = v;
         }
 
-        public ModdableProperty(object rootObject, PropertyInfo property, int? arrayIndex, PropertyChangedEventHandler modpropchanged = null, object vanillaRootObject = null)
+        public ModdableProperty(object rootObject, PropertyInfo property, int? arrayIndex, PropertyChangedEventHandler modpropchanged = null, object vanillaRootObject = null) 
+            : base(property.Name, property.PropertyType.Name, property.GetValue(rootObject))
         {
             RootObject = rootObject;
             VanillaRootObject = vanillaRootObject;
@@ -189,35 +142,37 @@ namespace FMT.Models
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public override string ToString()
-        {
-            if (!string.IsNullOrEmpty(PropertyName))
-            {
-                return string.Format("{0} - {1}", PropertyName, PropertyType);
-            }
-
-            return base.ToString();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
         public static IEnumerable<ModdableProperty> GetModdableProperties(object obj, PropertyChangedEventHandler modpropchanged = null, object vanillaObj = null)
         {
             if (obj == null)
-                yield return null;
-
-            foreach (var p in obj.GetType().GetProperties().Where(x => x.CanWrite && x.SetMethod != null))
             {
-                yield return new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
+                yield break;
             }
+
+            var objType = obj.GetType();
+            var objProperties = objType.GetProperties();
+            foreach (var p in objProperties)
+            {
+                var subObj = p.GetValue(obj, BindingFlags.Public | BindingFlags.Instance, null, null, null);
+                if(subObj != null)
+                    yield return new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
+
+                //if(p.CanWrite && p.SetMethod != null)
+                //    yield return new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
+                //else
+                //{
+                //    if(p.PropertyType.GetProperties().Any(x=>x.CanWrite && x.SetMethod != null))
+                //    {
+                //        yield return new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
+                //    }
+
+                //    var subObj = p.GetValue(obj);
+                //    if(GetModdableProperties(subObj, modpropchanged, subObj).Any())
+                //        yield return new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
+                //}
+
+            }
+
         }
     }
 

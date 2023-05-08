@@ -12,6 +12,12 @@
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <TextBlock x:Name="lblPropertyName" Grid.Column="0" Text="{Binding PropertyName, Mode=OneTime}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-        <TextBox x:Name="ValueBox" Grid.Column="1" Text="{Binding PropertyValue, Mode=OneWay}" IsReadOnly="{Binding IsReadOnly, Mode=OneWay}" />
+        <TextBox x:Name="ValueBox" Grid.Column="1" Text="{Binding PropertyValue, Mode=OneWay}"
+                 
+                        IsEnabled="{Binding IsEditable}"
+                       IsReadOnly="{Binding IsReadOnly}"
+                 
+                 
+                 />
     </Grid>
 </UserControl>

@@ -1,4 +1,5 @@
-﻿using FMT.FileTools;
+﻿using FMT.Controls.Models;
+using FMT.FileTools;
 using FMT.Models;
 using FrostbiteModdingUI.Windows;
 using FrostbiteSdk;
@@ -40,30 +41,28 @@ namespace FIFAModdingUI.Pages.Common
 
         public object RootObject { get { return asset.RootObject; } }
 
-        private List<ModdableProperty> _rootObjProps;
+        private List<ModdableEntity> _rootObjProps;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        /// <summary>
-        /// Item 1: PropertyName
-        /// Item 2: PropertyType
-        /// Item 3: PropertyValue
-        /// </summary>
-        public List<ModdableProperty> RootObjectProperties
+        public List<ModdableEntity> RootObjectProperties
         {
             get
             {
                 if (_rootObjProps == null)
                 {
-                    _rootObjProps = new List<ModdableProperty>();
+                    _rootObjProps = new List<ModdableEntity>();
                     if (RootObject != null)
                     {
                         var vanillaRootObject = AssetManager.Instance.GetEbx((EbxAssetEntry)AssetEntry, false).RootObject;
 
-                        _rootObjProps = ModdableProperty.GetModdableProperties(RootObject, Modprop_PropertyChanged, vanillaRootObject).ToList();
-                        return _rootObjProps
-                            .OrderBy(x => x.PropertyName == "BaseField")
-                            .ThenBy(x => x.PropertyName == "Name")
+                        var fields = ModdableField.GetModdableFields(RootObject, Modprop_PropertyChanged, vanillaRootObject).ToList();
+                        var props = ModdableProperty.GetModdableProperties(RootObject, Modprop_PropertyChanged, vanillaRootObject).ToList();
+                        _rootObjProps.AddRange(fields);
+                        _rootObjProps.AddRange(props);
+                        _rootObjProps = _rootObjProps
+                            .OrderByDescending(x => x.PropertyName == "BaseField")
+                            .ThenByDescending(x => x.PropertyName == "Name")
                             .ThenBy(x => x.PropertyName).ToList();
                     }
                 }
@@ -173,6 +172,7 @@ namespace FIFAModdingUI.Pages.Common
 
             bool success = true;
 
+            _ = RootObjectProperties;
             await Dispatcher.InvokeAsync(() =>
             {
                 success = CreateEditor(RootObjectProperties, TreeView1).Result;
@@ -187,12 +187,25 @@ namespace FIFAModdingUI.Pages.Common
         {
         }
 
-        public Control GetMatchingTypedControl(object d)
+        public Control GetMatchingTypedControl(ModdableEntity d)
         {
-            var propertyNSearch = d.GetType().ToString().ToLower().Replace(".", "_", StringComparison.OrdinalIgnoreCase);
+            var propertyNSearch = d.PropertyType.ToLower().Replace(".", "_", StringComparison.OrdinalIgnoreCase);
+
 
             if (UsableTypes == null)
-                UsableTypes = Assembly.GetExecutingAssembly().GetTypes();
+            {
+                UsableTypes = Assembly.GetExecutingAssembly().GetTypes().ToList();
+                foreach (Assembly ass in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    foreach (Type t in ass.GetTypes())
+                    {
+                        if (t.BaseType == typeof(UserControl))
+                        {
+                            UsableTypes.Add(t);
+                        }
+                    }
+                }
+            }
 
             var ty = UsableTypes.FirstOrDefault(x => x.Name.Contains(propertyNSearch, StringComparison.OrdinalIgnoreCase));
 
@@ -208,31 +221,31 @@ namespace FIFAModdingUI.Pages.Common
             return null;
         }
 
-        public Control GetMatchingTypedControl(ModdableProperty moddableProperty)
-        {
-            var propertyNSearch = moddableProperty.PropertyType.Replace(".", "_", StringComparison.OrdinalIgnoreCase);
+        //public Control GetMatchingTypedControl(ModdableProperty moddableProperty)
+        //{
+        //    var propertyNSearch = moddableProperty.PropertyType.Replace(".", "_", StringComparison.OrdinalIgnoreCase);
 
-            if (UsableTypes == null)
-                UsableTypes = Assembly.GetExecutingAssembly().GetTypes();
+        //    if (UsableTypes == null)
+        //        UsableTypes = Assembly.GetExecutingAssembly().GetTypes();
 
-            var ty = UsableTypes.FirstOrDefault(x => x.Name.Contains(propertyNSearch, StringComparison.OrdinalIgnoreCase));
+        //    var ty = UsableTypes.FirstOrDefault(x => x.Name.Contains(propertyNSearch, StringComparison.OrdinalIgnoreCase));
 
-            if (ty != null)
-            {
-                Control control = Activator.CreateInstance(ty) as Control;
-                if (control != null)
-                {
-                    return control;
-                }
-            }
+        //    if (ty != null)
+        //    {
+        //        Control control = Activator.CreateInstance(ty) as Control;
+        //        if (control != null)
+        //        {
+        //            return control;
+        //        }
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
 
-        public static IEnumerable<Type> UsableTypes { get; private set; }
+        public static List<Type> UsableTypes { get; private set; }
 
-        public async Task<bool> CreateEditor(ModdableProperty d, TreeView treeView)
+        public async Task<bool> CreateEditor(ModdableEntity d, TreeView treeView)
         {
             Control control = GetMatchingTypedControl(d);
             if (control != null)
@@ -268,10 +281,20 @@ namespace FIFAModdingUI.Pages.Common
             return false;
         }
 
-        public bool CreateEditor(ModdableProperty d, TreeViewItem treeViewItem, TreeView treeView = null)
+
+
+        public bool CreateEditor(
+            ModdableEntity d
+            , TreeViewItem treeViewItem
+            , TreeView treeView = null
+            , bool onlyTypedControl = false
+            )
         {
-            if (treeViewItem.ToolTip == null)
-                treeViewItem.ToolTip = d.PropertyDescription;
+            //if (d.PropertyName == "Empty")
+            //    return false;
+
+            //if (treeViewItem.ToolTip == null)
+            //    treeViewItem.ToolTip = d.PropertyDescription;
 
             Control control = GetMatchingTypedControl(d);
             if (control != null)
@@ -282,33 +305,39 @@ namespace FIFAModdingUI.Pages.Common
                 return true;
             }
 
+            if (onlyTypedControl)
+                return true;
+
             if (CreateEditorByList(d, treeViewItem, treeView))
                 return true;
 
-            switch (d.PropertyType)
+            // Properties
+            var structProperties = ModdableProperty.GetModdableProperties(d.PropertyValue, (s, n) =>
             {
-                case "FrostySdk.Ebx.PointerRef":
-                    CreatePointerRefControl(d, ref treeViewItem);
-                    break;
-                // Unknown/Other Struct
-                default:
-                    var structProperties = ModdableProperty.GetModdableProperties(d.PropertyValue, (s, n) =>
-                    {
-                        _ = SaveToRootObject();
-                    }).ToList();
-                    TreeViewItem structTreeView = new TreeViewItem();
-                    structTreeView.ToolTip = d.PropertyDescription;
-                    structTreeView.Header = d.PropertyName;
-                    foreach (var property in structProperties)
-                    {
-                        _ = CreateEditor(property, structTreeView);
-                    }
-                    treeViewItem.ToolTip = d.PropertyDescription;
-                    treeViewItem.Items.Add(structTreeView);
-                    break;
+                _ = SaveToRootObject();
+            }).ToList();
+            TreeViewItem structTreeView = new TreeViewItem();
+            structTreeView.ToolTip = d.PropertyDescription;
+            structTreeView.Header = d.PropertyName;
+            foreach (var property in structProperties)
+            {
+                if (!CreateEditor(property, structTreeView))
+                    return false;
             }
-
-            return false;
+            // Fields
+            var structFields = ModdableField.GetModdableFields(d.PropertyValue, (s, n) =>
+            {
+                _ = SaveToRootObject();
+            }).ToList();
+            foreach (var property in structFields)
+            {
+                if (!CreateEditor(property, structTreeView, null, true))
+                    return false;
+            }
+            treeViewItem.ToolTip = d.GetPropertyDescription();
+            treeViewItem.Items.Add(structTreeView);
+            return true;
+           
         }
 
 
@@ -326,8 +355,12 @@ namespace FIFAModdingUI.Pages.Common
                o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(Dictionary<object, object>));
         }
 
-        public bool CreateEditorByList(ModdableProperty p, TreeViewItem propTreeViewParent, TreeView treeView = null)
+        public bool CreateEditorByList(ModdableEntity p, TreeViewItem propTreeViewParent, TreeView treeView = null)
         {
+            // TODO:! Moddable Field list not supported
+            if (p is ModdableField)
+                return false;
+
             // Is a list / array property
             if (p.PropertyType.Contains("List`1"))
             {
@@ -339,7 +372,7 @@ namespace FIFAModdingUI.Pages.Common
                 for (var i = 0; i < countOfArray; i++)
                 {
                     var itemOfArray = ((IList)p.PropertyValue)[i];
-                    CreateEditor(new ModdableProperty(rootObject: p.RootObject, property: p.Property, arrayIndex: i
+                    CreateEditor(new ModdableProperty(rootObject: p.RootObject, property: ((ModdableProperty)p).Property, arrayIndex: i
                         , async (moddableProperty, v) =>
                         {
 
@@ -376,7 +409,7 @@ namespace FIFAModdingUI.Pages.Common
             return false;
         }
 
-        public async Task<bool> CreateEditor(List<ModdableProperty> moddableProperties, TreeView treeView)
+        public async Task<bool> CreateEditor(List<ModdableEntity> moddableProperties, TreeView treeView)
         {
             bool success = true;
 
@@ -385,10 +418,8 @@ namespace FIFAModdingUI.Pages.Common
             {
                 TreeViewItem propTreeViewParent = new TreeViewItem();
 
-                //await Dispatcher.InvokeAsync(() =>
-                //{
                 propTreeViewParent.Header = p.PropertyName;
-                //});
+                propTreeViewParent.ToolTip = p.GetPropertyDescription();
 
                 bool AddToPropTreeViewParent = true;
 
@@ -407,27 +438,17 @@ namespace FIFAModdingUI.Pages.Common
                     continue;
 
                 // if unable to use prebuilt controls, use old system
-                switch (p.PropertyType)
+                var structProperties = ModdableProperty.GetModdableProperties(p.PropertyValue, (s, n) =>
                 {
-                    case "FrostySdk.Ebx.PointerRef":
-                        CreatePointerRefControl(p, ref propTreeViewParent);
-                        break;
-                    // Unknown/Other Struct
-                    default:
-                        var structProperties = ModdableProperty.GetModdableProperties(p.PropertyValue, (s, n) =>
-                        {
-                            _ = SaveToRootObject();
-                        }).ToList();
-                        propTreeViewParent.Header = p.PropertyName;
-                        foreach (var property in structProperties)
-                        {
-                            _ = CreateEditor(property, propTreeViewParent);
-                        }
-                        //treeView.Items.Add(propTreeViewParent);
-                        break;
-
-
+                    _ = SaveToRootObject();
+                }).ToList();
+                propTreeViewParent.Header = p.PropertyName;
+                propTreeViewParent.ToolTip = p.GetPropertyDescription();
+                foreach (var property in structProperties)
+                {
+                    _ = CreateEditor(property, propTreeViewParent);
                 }
+                        
 
                 if (AddToPropTreeViewParent)
                     treeView.Items.Add(propTreeViewParent);
@@ -445,102 +466,13 @@ namespace FIFAModdingUI.Pages.Common
                 var Internal = p.PropertyValue.GetPropertyValue("Internal");
                 if (Internal != null && Utilities.HasProperty(Internal, "Points"))
                 {
-                    //var props = Utilities.GetProperties(Internal);
                     var interalsMP = ModdableProperty.GetModdableProperties(Internal, Modprop_PropertyChanged).ToList();
 
-                    //propTreeViewParent.Header = p.PropertyName;
                     foreach (var property in interalsMP)
                     {
                         _ = CreateEditor(property, propTreeViewParent);
                     }
-
-                    //// Must be Float Curve if it has Points
-                    //var FloatCurve = Internal;
-                    //               // Guid
-                    //               var spGuid = new StackPanel() { Orientation = Orientation.Horizontal };
-                    //               var lblGuid = new Label() { Content = "__Guid" };
-                    //               spGuid.Children.Add(lblGuid);
-                    //               var txtGuid = new Label() { Name = p.PropertyName + "___Guid", Content = FloatCurve.GetPropertyValue("__InstanceGuid").ToString() };
-                    //               spGuid.Children.Add(txtGuid);
-                    //               propTreeViewParent.Items.Add(spGuid);
-
-
-                    //               // Min X
-                    //               var spMinX = new StackPanel() { Orientation = Orientation.Horizontal };
-                    //               var lblMinX = new Label() { Content = "MinX" };
-                    //               spMinX.Children.Add(lblMinX);
-                    //               var txtMinX = new TextBox() { Name = "MinX", Text = FloatCurve.GetPropertyValue("MinX").ToString() };
-
-                    //               spMinX.Children.Add(txtMinX);
-                    //               propTreeViewParent.Items.Add(spMinX);
-
-                    //               // Max X 
-                    //               var spMaxX = new StackPanel() { Orientation = Orientation.Horizontal };
-                    //               var lblMaxX = new Label() { Content = "MaxX" };
-                    //               spMaxX.Children.Add(lblMaxX);
-                    //               var txtMaxX = new TextBox() { Name = "MaxX", Text = FloatCurve.GetPropertyValue("MaxX").ToString() };
-                    //               spMaxX.Children.Add(txtMaxX);
-                    //               propTreeViewParent.Items.Add(spMaxX);
-
-                    //               TreeViewItem PointsTreeViewParent = new TreeViewItem();
-                    //               PointsTreeViewParent.Name = "Points";
-                    //               PointsTreeViewParent.Header = "Points";
-                    //               propTreeViewParent.Items.Add(PointsTreeViewParent);
-
-
-                    //               var numberOfPoints = (int)FloatCurve.GetPropertyValue("Points").GetPropertyValue("Count");
-                    //               // Number of Points
-                    //               var txtNumberOfPoints = new TextBox() { Name = p.PropertyName + "_NumberOfPoints", Text = numberOfPoints.ToString() };
-                    //               txtNumberOfPoints.TextChanged += (object sender, TextChangedEventArgs e) =>
-                    //               {
-                    //                   AssetHasChanged(sender as TextBox, p.PropertyName);
-                    //               };
-
-                    //               Grid gridNumberOfPoints = new Grid();
-                    //               gridNumberOfPoints.ColumnDefinitions.Add(new ColumnDefinition());
-                    //               gridNumberOfPoints.ColumnDefinitions.Add(new ColumnDefinition());
-                    //               Label lblNumberOfPoints = new Label() { Content = "Point Count: " };
-                    //               Grid.SetColumn(lblNumberOfPoints, 0);
-                    //               Grid.SetColumn(txtNumberOfPoints, 1);
-                    //               gridNumberOfPoints.Children.Add(lblNumberOfPoints);
-                    //               gridNumberOfPoints.Children.Add(txtNumberOfPoints);
-                    //               PointsTreeViewParent.Items.Add(gridNumberOfPoints);
-
-                    //               for (var i = 0; i < numberOfPoints; i++)
-                    //               {
-                    //                   var point = ((IList)FloatCurve.GetPropertyValue("Points"))[i];
-                    //                   if (point != null)
-                    //                   {
-                    //                       TreeViewItem Child1Item = new TreeViewItem();
-                    //                       Child1Item.Header = "[" + i.ToString() + "]";
-                    //                       Child1Item.IsExpanded = true;
-
-                    //                       var txtPointX = new TextBox()
-                    //                       {
-                    //                           Name = p.PropertyName + "_Points_" + i.ToString() + "_X"
-                    //                           ,
-                    //                           Text = point.GetPropertyValue("X").ToString()
-                    //                       };
-                    //                       txtPointX.LostFocus += (object sender, RoutedEventArgs e) =>
-                    //                       {
-                    //                           AssetHasChanged(sender as TextBox, p.PropertyName);
-                    //                       };
-                    //                       Child1Item.Items.Add(txtPointX);
-
-                    //                       var txtPointY = new TextBox() { Name = p.PropertyName + "_Points_" + i.ToString() + "_Y", Text = point.GetPropertyValue("Y").ToString() };
-                    //                       //txtPointY.PreviewLostKeyboardFocus += (object sender, KeyboardFocusChangedEventArgs e) =>
-                    //                       //{
-                    //                       txtPointY.LostFocus += (object sender, RoutedEventArgs e) =>
-                    //                       {
-                    //                           AssetHasChanged(sender as TextBox, p.PropertyName);
-                    //                       };
-                    //                       Child1Item.Items.Add(txtPointY);
-
-                    //                       PointsTreeViewParent.Items.Add(Child1Item);
-                    //                   }
-                    //               }
                 }
-
                 // This is external?
                 else
                 {
@@ -557,27 +489,6 @@ namespace FIFAModdingUI.Pages.Common
         public async Task SaveToRootObject(bool forceReload = false)
         {
             await AssetManager.Instance.ModifyEbxAsync(AssetEntry.Name, Asset);
-            //await Task.Run(() =>
-            //{
-            //    try
-            //    {
-            //        AssetManager.Instance.ModifyEbx(AssetEntry.Name, Asset);
-            //    }
-            //    catch (Exception)
-            //    {
-            //        //AssetManager.Instance.LogError($"Unable to modify EBX {AssetEntry.Name}");
-            //        FileLogger.WriteLine($"Unable to modify EBX {AssetEntry.Name}");
-            //    }
-            //    //FrostyProject.Save("GameplayProject.fbproject", true);
-            //});
-
-            ////await loadingDialog.UpdateAsync("Saving hotspot", "Updating browsers");
-
-            ////await Dispatcher.InvokeAsync(() =>
-            ////{
-            ////    if (EditorWindow != null)
-            ////        EditorWindow.UpdateAllBrowsers();
-            ////});
 
             await Dispatcher.InvokeAsync(() =>
             {
@@ -590,7 +501,6 @@ namespace FIFAModdingUI.Pages.Common
             {
                 await LoadEbx(AssetEntry, Asset, EditorWindow);
             }
-            //await CreateEditor(RootObjectProperties.OrderBy(x => x.PropertyName), TreeView1);
 
         }
 
