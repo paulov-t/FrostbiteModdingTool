@@ -633,6 +633,9 @@ namespace FrostySdk.Managers
             resRidList.Clear();
             Chunks.Clear();
 
+            if (!CustomAssetManagers.ContainsKey("legacy"))
+                return;
+
             var lam = GetLegacyAssetManager() as ChunkFileManager2022;
             if (lam != null)
             {
@@ -704,6 +707,9 @@ namespace FrostySdk.Managers
 
         public ICustomAssetManager GetLegacyAssetManager()
         {
+            if (!CustomAssetManagers.ContainsKey("legacy"))
+                return null;
+
             return CustomAssetManagers["legacy"];
         }
 
