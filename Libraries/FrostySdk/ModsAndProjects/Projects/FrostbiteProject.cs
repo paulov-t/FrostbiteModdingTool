@@ -1226,12 +1226,11 @@ namespace FrostySdk
 
         public ModSettings UpdateFromOtherModSettings(ModSettings otherModSettings)
         {
-            var storedPreviousModSettings = otherModSettings.CloneJson();
-            Author = storedPreviousModSettings.Author;
-            Description = storedPreviousModSettings.Description;
-            Title = storedPreviousModSettings.Title;
-            Category = storedPreviousModSettings.Category;
-            Version = storedPreviousModSettings.Version;
+            Author = otherModSettings.Author;
+            Description = otherModSettings.Description;
+            Title = otherModSettings.Title;
+            Category = otherModSettings.Category;
+            Version = otherModSettings.Version;
             return this;
         }
     }

@@ -609,7 +609,7 @@ namespace FIFAModdingUI.Windows
                 // Different file -- Create new file and Update
                 else
                 {
-                    var storedPreviousModSettings = ProjectManagement.Project.ModSettings.CloneJson();
+                    var storedPreviousModSettings = JsonConvert.DeserializeObject<ModSettings>(JsonConvert.SerializeObject(ProjectManagement.Project.ModSettings));
 
                     ProjectManagement.Project = new FMTProject(saveFileDialog.FileName);
                     ProjectManagement.Project.ModSettings.UpdateFromOtherModSettings(storedPreviousModSettings);
