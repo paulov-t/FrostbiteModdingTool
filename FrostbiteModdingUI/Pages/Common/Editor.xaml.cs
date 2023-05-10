@@ -192,17 +192,20 @@ namespace FIFAModdingUI.Pages.Common
             var propertyNSearch = d.PropertyType.ToLower().Replace(".", "_", StringComparison.OrdinalIgnoreCase);
 
 
-            if (UsableTypes == null)
+            if (UsableTypes == null || UsableTypes.Count == 0)
             {
-                UsableTypes = Assembly.GetExecutingAssembly().GetTypes().ToList();
-                foreach (Assembly ass in AppDomain.CurrentDomain.GetAssemblies())
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                //UsableTypes = Assembly.GetExecutingAssembly().GetTypes().ToList();
+                foreach (Assembly assembly in assemblies
+                    .Where(x => !x.FullName.Contains("EbxClasses", StringComparison.OrdinalIgnoreCase))
+                    .Where(x => x.GetExportedTypes().Any(y=>y.BaseType == typeof(UserControl)))
+                    )
                 {
-                    foreach (Type t in ass.GetTypes())
+                    foreach (Type t in assembly.GetExportedTypes()
+                        .Where(y => !Guid.TryParse(y.Name, out _))
+                        .Where(y => y.BaseType == typeof(UserControl)))
                     {
-                        if (t.BaseType == typeof(UserControl))
-                        {
-                            UsableTypes.Add(t);
-                        }
+                        UsableTypes.Add(t);
                     }
                 }
             }
@@ -243,7 +246,7 @@ namespace FIFAModdingUI.Pages.Common
         //}
 
 
-        public static List<Type> UsableTypes { get; private set; }
+        public static List<Type> UsableTypes { get; private set; } = new List<Type>();
 
         public async Task<bool> CreateEditor(ModdableEntity d, TreeView treeView)
         {
@@ -290,12 +293,7 @@ namespace FIFAModdingUI.Pages.Common
             , bool onlyTypedControl = false
             )
         {
-            //if (d.PropertyName == "Empty")
-            //    return false;
-
-            //if (treeViewItem.ToolTip == null)
-            //    treeViewItem.ToolTip = d.PropertyDescription;
-
+            
             Control control = GetMatchingTypedControl(d);
             if (control != null)
             {
@@ -367,39 +365,45 @@ namespace FIFAModdingUI.Pages.Common
 
                 // get count in array
                 var countOfArray = (int)p.PropertyValue.GetPropertyValue("Count");
-                // add buttons for array...
-                // get items in array
-                for (var i = 0; i < countOfArray; i++)
+                if (countOfArray == 0)
                 {
-                    var itemOfArray = ((IList)p.PropertyValue)[i];
-                    CreateEditor(new ModdableProperty(rootObject: p.RootObject, property: ((ModdableProperty)p).Property, arrayIndex: i
-                        , async (moddableProperty, v) =>
-                        {
-
-                            /// --------------------
-                            // TODO: Check to see if this is over kill. I think this can be handled by ModdableProperty
-                            var mp = (ModdableProperty)moddableProperty;
-
-                            IList sourceList = (IList)mp.Property.GetValue(mp.RootObject);
-                            Type t = typeof(List<>).MakeGenericType(mp.ArrayType);
-                            IList res = (IList)Activator.CreateInstance(t);
-                            foreach (var item in sourceList)
-                            {
-                                res.Add(item);
-                            }
-                            res.RemoveAt(mp.ArrayIndex.Value);
-                            res.GetType().GetMethod("Insert")
-                            .Invoke(res, new object[2] { mp.ArrayIndex.Value, Convert.ChangeType(v.PropertyName, mp.ArrayType) });
-
-                            mp.Property.SetValue(mp.RootObject, res);
-                            await SaveToRootObject();
-                            /// --------------------
-                        }
-                        , p.VanillaRootObject)
-                        , propTreeViewParent
-                        , treeView);
+                    propTreeViewParent.Items.Add(new TreeViewItem() { Header = "No items to display" });
                 }
+                else
+                {
+                    // add buttons for array...
+                    // get items in array
+                    for (var i = 0; i < countOfArray; i++)
+                    {
+                        var itemOfArray = ((IList)p.PropertyValue)[i];
+                        CreateEditor(new ModdableProperty(rootObject: p.RootObject, property: ((ModdableProperty)p).Property, arrayIndex: i
+                            , async (moddableProperty, v) =>
+                            {
 
+                                /// --------------------
+                                // TODO: Check to see if this is over kill. I think this can be handled by ModdableProperty
+                                var mp = (ModdableProperty)moddableProperty;
+
+                                IList sourceList = (IList)mp.Property.GetValue(mp.RootObject);
+                                Type t = typeof(List<>).MakeGenericType(mp.ArrayType);
+                                IList res = (IList)Activator.CreateInstance(t);
+                                foreach (var item in sourceList)
+                                {
+                                    res.Add(item);
+                                }
+                                res.RemoveAt(mp.ArrayIndex.Value);
+                                res.GetType().GetMethod("Insert")
+                                .Invoke(res, new object[2] { mp.ArrayIndex.Value, Convert.ChangeType(v.PropertyName, mp.ArrayType) });
+
+                                mp.Property.SetValue(mp.RootObject, res);
+                                await SaveToRootObject();
+                                /// --------------------
+                            }
+                            , p.VanillaRootObject)
+                            , propTreeViewParent
+                            , treeView);
+                    }
+                }
                 if (treeView != null)
                     treeView.Items.Add(propTreeViewParent);
 
@@ -448,7 +452,15 @@ namespace FIFAModdingUI.Pages.Common
                 {
                     _ = CreateEditor(property, propTreeViewParent);
                 }
-                        
+                var structFields = ModdableField.GetModdableFields(p.PropertyValue, (s, n) =>
+                {
+                    _ = SaveToRootObject();
+                }).ToList();
+                foreach (var property in structFields)
+                {
+                    if (!CreateEditor(property, propTreeViewParent, null, true))
+                        break;
+                }
 
                 if (AddToPropTreeViewParent)
                     treeView.Items.Add(propTreeViewParent);
