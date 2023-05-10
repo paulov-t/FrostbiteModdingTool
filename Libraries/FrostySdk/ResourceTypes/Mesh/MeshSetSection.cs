@@ -75,29 +75,118 @@ namespace FrostySdk.Resources
 
         public bool HasUnknown3 { get; }
 
+        public ushort BoneCount { get; private set; }
+
         internal MeshSetSection()
         {
         }
 
+        private void ReadBones(FileReader reader, long bonePositions)
+        {
+            long startPosition = reader.Position;
+            reader.Position = bonePositions;
+            for (int m = 0; m < BoneCount; m++)
+            {
+                BoneList.Add(reader.ReadUInt16LittleEndian());
+            }
+            reader.Position = startPosition;
+        }
+
         public MeshSetSection(FileReader reader, int index)
         {
-
-            if (ProfileManager.IsFIFA23DataVersion())
+            switch(ProfileManager.Game)
             {
-                Read23(reader, index);
-            }
-            else if (ProfileManager.IsFIFA22DataVersion()
-                || ProfileManager.IsMadden22DataVersion(ProfileManager.Game)
-                )
-            {
-                Read22(reader, index);
-            }
-            else
-            {
-                Read21(reader, index);
+                case FMT.FileTools.Modding.EGame.FIFA23:
+                    Read23(reader, index); break;
+                case FMT.FileTools.Modding.EGame.FIFA22:
+                case FMT.FileTools.Modding.EGame.MADDEN22:
+                    Read22(reader, index); break;
+                case FMT.FileTools.Modding.EGame.FIFA21:
+                    Read21(reader, index); break;
+                case FMT.FileTools.Modding.EGame.NFSUnbound:
+                    ReadNFSU(reader, index); break;
 
             }
 
+            //if (ProfileManager.IsFIFA23DataVersion())
+            //{
+            //    Read23(reader, index);
+            //}
+            //else if (ProfileManager.IsFIFA22DataVersion()
+            //    || ProfileManager.IsMadden22DataVersion(ProfileManager.Game)
+            //    )
+            //{
+            //    Read22(reader, index);
+            //}
+            //else
+            //{
+            //    Read21(reader, index);
+
+            //}
+
+        }
+
+        private void ReadNFSU(FileReader reader, int index)
+        {
+            var startPosition = reader.Position;
+
+            sectionIndex = index;
+            offset1 = reader.ReadInt64LittleEndian();
+            long namePosition = reader.ReadInt64LittleEndian();
+            var preNamePosition = reader.Position;
+            reader.Position = namePosition;
+            Name = reader.ReadNullTerminatedString();
+            reader.Position = preNamePosition;
+            long bonePositions = reader.ReadInt64LittleEndian();
+            BoneCount = reader.ReadUInt16LittleEndian(); //438
+            BonesPerVertex = (byte)reader.ReadByte();
+            MaterialId = reader.ReadUShort();
+            StartIndex = reader.ReadByte(); // 0 ? 
+            vertexStride = reader.ReadByte(); // 68
+            PrimitiveType = (PrimitiveType)reader.ReadByte(); // 3
+            PrimitiveCount = (uint)reader.ReadUInt32LittleEndian();
+            StartIndex = reader.ReadUInt32LittleEndian();
+            VertexOffset = reader.ReadUInt32LittleEndian();
+            VertexCount = (uint)reader.ReadUInt32LittleEndian(); // 3157
+            UnknownInt = reader.ReadUInt();
+            UnknownInt = reader.ReadUInt();
+            UnknownInt = reader.ReadUInt();
+
+            for (int l = 0; l < 6; l++)
+            {
+                texCoordRatios.Add(reader.ReadSingleLittleEndian());
+            }
+
+            for (int i = 0; i < DeclCount; i++)
+            {
+                GeometryDeclDesc[i].Elements = new GeometryDeclarationDesc.Element[GeometryDeclarationDesc.MaxElements];
+                GeometryDeclDesc[i].Streams = new GeometryDeclarationDesc.Stream[GeometryDeclarationDesc.MaxStreams];
+                for (int j = 0; j < GeometryDeclarationDesc.MaxElements; j++)
+                {
+                    GeometryDeclarationDesc.Element element = new GeometryDeclarationDesc.Element
+                    {
+                        Usage = (VertexElementUsage)reader.ReadByte(),
+                        Format = (VertexElementFormat)reader.ReadByte(),
+                        Offset = reader.ReadByte(),
+                        StreamIndex = reader.ReadByte()
+                    };
+                    GeometryDeclDesc[i].Elements[j] = element;
+                }
+                for (int k = 0; k < GeometryDeclarationDesc.MaxStreams; k++)
+                {
+                    GeometryDeclarationDesc.Stream stream = new GeometryDeclarationDesc.Stream
+                    {
+                        VertexStride = reader.ReadByte(),
+                        Classification = (VertexElementClassification)reader.ReadByte()
+                    };
+                    GeometryDeclDesc[i].Streams[k] = stream;
+                }
+                GeometryDeclDesc[i].ElementCount = reader.ReadByte();
+                GeometryDeclDesc[i].StreamCount = reader.ReadByte();
+                reader.ReadBytes(2);
+            }
+            unknownData = reader.ReadBytes(56);
+            ReadBones(reader, bonePositions);
         }
 
         private uint FIFA23_UnknownInt1;
@@ -111,7 +200,7 @@ namespace FrostySdk.Resources
             offset1 = reader.ReadInt64LittleEndian();
             long namePosition = reader.ReadInt64LittleEndian();
             long bonePositions = reader.ReadInt64LittleEndian();
-            ushort boneCount = reader.ReadUInt16LittleEndian(); //438
+            BoneCount = reader.ReadUInt16LittleEndian(); //438
             BonesPerVertex = (byte)reader.ReadByte();
             MaterialId = reader.ReadUShort();
             StartIndex = reader.ReadByte(); // 0 ? 
@@ -161,7 +250,7 @@ namespace FrostySdk.Resources
             unknownData = reader.ReadBytes(56);
             long position3 = reader.Position;
             reader.Position = bonePositions;
-            for (int m = 0; m < boneCount; m++)
+            for (int m = 0; m < BoneCount; m++)
             {
                 BoneList.Add(reader.ReadUInt16LittleEndian());
             }
@@ -178,7 +267,7 @@ namespace FrostySdk.Resources
             offset1 = reader.ReadInt64LittleEndian();
             long namePosition = reader.ReadInt64LittleEndian();
             long bonePositions = reader.ReadInt64LittleEndian();
-            ushort boneCount = reader.ReadUInt16LittleEndian();
+            BoneCount = reader.ReadUInt16LittleEndian();
             BonesPerVertex = (byte)reader.ReadUShort();
             MaterialId = reader.ReadUInt16LittleEndian();
             vertexStride = reader.ReadByte();
@@ -225,7 +314,7 @@ namespace FrostySdk.Resources
             unknownData = reader.ReadBytes(48);
             long position3 = reader.Position;
             reader.Position = bonePositions;
-            for (int m = 0; m < boneCount; m++)
+            for (int m = 0; m < BoneCount; m++)
             {
                 BoneList.Add(reader.ReadUInt16LittleEndian());
             }
@@ -254,7 +343,7 @@ namespace FrostySdk.Resources
             PrimitiveType = (PrimitiveType)reader.ReadByte(); // 3
             reader.ReadUInt16LittleEndian();
             bonesPerVertex = (byte)reader.ReadUInt16LittleEndian(); // 6
-            ushort boneCount = reader.ReadUInt16LittleEndian(); // 438
+            BoneCount = reader.ReadUInt16LittleEndian(); // 438
             long position2 = reader.ReadInt64LittleEndian(); // 1824
             unknownLong = reader.ReadUInt64LittleEndian(); // 13113655001588707511
             for (int i = 0; i < DeclCount; i++)
@@ -288,7 +377,7 @@ namespace FrostySdk.Resources
             unknownInt2 = reader.ReadUInt32LittleEndian();
             long position3 = reader.Position;
             reader.Position = position2;
-            for (int m = 0; m < boneCount; m++)
+            for (int m = 0; m < BoneCount; m++)
             {
                 BoneList.Add(reader.ReadUInt16LittleEndian());
             }

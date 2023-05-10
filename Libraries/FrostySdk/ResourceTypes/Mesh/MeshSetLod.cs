@@ -102,7 +102,7 @@ namespace FrostySdk.Resources
 
         public long UnknownLongAfterNameHash { get; set; }
 
-        public MeshSetLod(FileReader reader)
+        public MeshSetLod(FileReader reader, MeshSet meshSet)
         {
             Type = (MeshType)reader.ReadUInt32LittleEndian();
             maxInstances = reader.ReadUInt32LittleEndian();
@@ -141,10 +141,10 @@ namespace FrostySdk.Resources
                 adjacencyData = new byte[AdjacencyBufferSize];
             }
             if (ProfileManager.IsFIFA23DataVersion())
-            {
                 UnknownChunkPad = reader.ReadBytes(8);
-                //reader.Pad(16);
-            }
+            if (ProfileManager.Game == FMT.FileTools.Modding.EGame.NFSUnbound)
+                UnknownChunkPad = reader.ReadBytes(8);
+
             ChunkId = reader.ReadGuid();
             inlineDataOffset = reader.ReadUInt32LittleEndian();
             if (HasAdjacencyInMesh)
