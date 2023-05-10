@@ -154,6 +154,6 @@ namespace FrostySdk.IO
             return decompressedArray;
         }
 
-        public static double GetEbxLoadWaitSeconds { get; set; } = 6;
+        public static double GetEbxLoadWaitSeconds { get; set; } = 30;
     }
 }

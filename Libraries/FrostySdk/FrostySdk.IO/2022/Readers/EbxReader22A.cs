@@ -211,6 +211,9 @@ namespace FrostySdk.IO._2022.Readers
                 //base.Pad(classType.Alignment);
                 //return null;
             }
+
+            base.Position = startOffset;
+
             Type type = obj.GetType();
             var ebxClassMeta = type.GetCustomAttribute<EbxClassMetaAttribute>();
 
@@ -234,6 +237,17 @@ namespace FrostySdk.IO._2022.Readers
             {
 
             }
+
+            if (type.Name.Equals("RaceVehicleBlueprint"))
+            {
+
+            }
+
+            if (type.Name.Equals("CompositeMeshAsset"))
+            {
+
+            }
+
 #endif
 
             Dictionary<PropertyInfo, EbxFieldMetaAttribute> properties = new Dictionary<PropertyInfo, EbxFieldMetaAttribute>();
@@ -250,8 +264,19 @@ namespace FrostySdk.IO._2022.Readers
                 .Where(x => x.Key.GetCustomAttribute<IsTransientAttribute>() == null && x.Key.GetCustomAttribute<FieldIndexAttribute>() != null)
                 .OrderBy(x => x.Key.GetCustomAttribute<FieldIndexAttribute>().Index);
 
+#if DEBUG
+
+            if (type.Name.Contains("MeshMaterial"))
+            {
+
+            }
+#endif
+
             foreach (var property in orderedProps)
             {
+                base.Position = property.Value.Offset + startOffset;
+
+                var fieldMetaAttribute = property.Key.GetCustomAttribute<EbxFieldMetaAttribute>();
                 var propNameHash = property.Key.GetCustomAttribute<HashAttribute>();
                 EbxField field = default(EbxField);
                 EbxFieldType debugType = (EbxFieldType)((property.Value.Flags >> 4) & 0x1Fu);
@@ -260,13 +285,14 @@ namespace FrostySdk.IO._2022.Readers
                     field = GetEbxFieldByProperty(classType, property.Key);
                 }
 
+
                 if (debugType == EbxFieldType.Inherited)
                 {
-                    ReadClass(default(EbxClass), obj, startOffset);
+                    ReadClass(default(EbxClass), obj, base.Position);
                     continue;
                 }
 
-                base.Position = property.Value.Offset + startOffset;
+                //base.Position = property.Value.Offset + startOffset;
 
                 if (debugType == EbxFieldType.Array)
                 {
@@ -293,14 +319,34 @@ namespace FrostySdk.IO._2022.Readers
         protected void ReadArray(object obj, PropertyInfo property, EbxClass classType, EbxField field, bool isReference)
         {
             long position = base.Position;
-            int arrayOffset = Read<int>(); // base.ReadInt32LittleEndian();
-            base.Position += arrayOffset - 4;
-            base.Position -= 4L;
+            base.Position = position;
+
+            int arrayOffset = Read<int>(); 
+            var newPosition = base.Position + arrayOffset - 4;
+            if (newPosition < 0 || newPosition > base.Length)
+            {
+                base.Position = position + (arrayOffset) - 8;
+            }
+            else
+            {
+                base.Position += arrayOffset - 4;
+                base.Position -= 4L;
+            }
+
+            if (newPosition < 0 || newPosition > base.Length)
+                return;
+
+            if (base.Position < 0)
+                return;
+
             if (base.Position > base.Length)
                 return;
 
-            uint arrayCount = Read<uint>();// base.ReadUInt32LittleEndian();
-            if (arrayCount == 0)
+            uint arrayCount = Read<uint>();
+            if (arrayCount < 0)
+                return;
+
+            if (arrayCount >= 130)
                 return;
 
             for (int i = 0; i < arrayCount; i++)
@@ -314,42 +360,67 @@ namespace FrostySdk.IO._2022.Readers
                 // TODO: Somehow get this working without having to use this.ReadField. Its related to Struct, all other fields work fine
 
                 // Seems to work very well with NFS Unbound
-                if (ProfileManager.IsGameVersion(EGame.NFSUnbound))
-                {
-                    if (genArg0.Name == "PointerRef")
-                        obj2 = this.ReadField(classType, EbxFieldType.Pointer, field.ClassRef, isReference);
-                    else if (genArg0.Name == "CString")
-                        obj2 = this.ReadField(classType, EbxFieldType.CString, field.ClassRef, isReference);
-                    else
-                        obj2 = Read(genArg0);
-                }
-                // This is only a problem with meshes in FIFA, of course...
-                else
+                //if (ProfileManager.IsGameVersion(EGame.NFSUnbound))
+                //{
+                //    if (genArg0.Name == "PointerRef")
+                //        obj2 = this.ReadField(classType, EbxFieldType.Pointer, field.ClassRef, isReference);
+                //    else if (genArg0.Name == "CString")
+                //        obj2 = this.ReadField(classType, EbxFieldType.CString, field.ClassRef, isReference);
+                //    else
+                //        obj2 = Read(genArg0);
+                //}
+                //// This is only a problem with meshes in FIFA, of course...
+                //else
                 {
                     obj2 = this.ReadField(classType, field.InternalType, field.ClassRef, isReference);
                 }
                 if (property != null)
                 {
-                    try
+                    //try
+                    //{
+                    var propValue = property.GetValue(obj);
+                    if (propValue == null)
                     {
-                        property.GetValue(obj).GetType().GetMethod("Add")
-                            .Invoke(property.GetValue(obj), new object[1] { obj2 });
+
+                        var genericTypeDef = property.PropertyType.GetGenericTypeDefinition();
+                        var genericArgs = property.PropertyType.GetGenericArguments();
+                        Type constructed = genericTypeDef.MakeGenericType(genericArgs);
+                        propValue = Activator.CreateInstance(constructed);
+
+
                     }
-                    catch (Exception)
-                    {
-                    }
+
+                    var propValueType = property.PropertyType;
+                    if (propValueType == null)
+                        continue;
+
+                    var addMethod = propValueType.GetMethod("Add");
+                    if (addMethod == null)
+                        continue;
+
+                    addMethod.Invoke(propValue, new object[1] { obj2 });
+                    property.SetValue(obj, propValue);
+                    //}
+                    //catch (Exception)
+                    //{
+                    //}
                 }
                 else
                 {
 
                 }
-                EbxFieldType debugType = field.DebugType;
-                if (debugType == EbxFieldType.Pointer || debugType == EbxFieldType.CString)
-                {
-                    base.Pad(8);
-                }
+                //EbxFieldType debugType = field.DebugType;
+                //if (debugType == EbxFieldType.Pointer || debugType == EbxFieldType.CString)
+                //{
+                //    base.Pad(8);
+                //}
             }
-            base.Position = position;
+            //base.Position = position;
+
+            if(obj == null)
+            {
+
+            }
         }
 
         //      protected bool IsFieldInClassAnArray(EbxClass @class, EbxField field)

@@ -171,8 +171,7 @@ namespace FrostySdk.FrostySdk.IO
             }
             PropertyInfo[] properties = type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
             List<object> dataContainers = new List<object>();
-            PropertyInfo[] array = properties;
-            foreach (PropertyInfo propertyInfo in array)
+            foreach (PropertyInfo propertyInfo in properties)
             {
                 if (!flags.HasFlag(EbxWriteFlags.IncludeTransient) && propertyInfo.GetCustomAttribute<IsTransientAttribute>() != null)
                 {
@@ -203,11 +202,13 @@ namespace FrostySdk.FrostySdk.IO
                     }
                     Type propertyType = propertyInfo.PropertyType;
                     IList typedArrayObject = (IList)propertyInfo.GetValue(obj);
+                    if (typedArrayObject == null)
+                        continue;
+
                     int arrayCount = typedArrayObject.Count;
                     if (arrayCount <= 0)
-                    {
                         continue;
-                    }
+
                     List<PointerRef> pointerRefArray = typedArrayObject as List<PointerRef>;
                     if (pointerRefArray != null)
                     {
@@ -1064,7 +1065,7 @@ namespace FrostySdk.FrostySdk.IO
 
         protected EbxClass GetClass(Guid guid)
         {
-            if (EbxReader22B.patchStd.GetClass(guid).HasValue)
+            if (EbxReader22B.patchStd != null && EbxReader22B.patchStd.GetClass(guid).HasValue)
             {
                 return EbxReader22B.patchStd.GetClass(guid).Value;
             }
