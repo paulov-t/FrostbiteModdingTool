@@ -297,7 +297,7 @@ namespace FrostySdk.Resources
                 sliceCount = nativeReader.ReadUShort();
                 mipCount = nativeReader.ReadByte();
                 firstMip = nativeReader.ReadByte();
-                if (ProfileManager.IsFIFA23DataVersion())
+                if (ProfileManager.IsFIFA23DataVersion() || ProfileManager.Game == EGame.NFSUnbound)
                 {
                     unknown4 = nativeReader.ReadInt();
                 }
@@ -753,7 +753,7 @@ namespace FrostySdk.Resources
                 nw.Write(texture.sliceCount);
                 nw.Write(texture.mipCount);
                 nw.Write(texture.firstMip);
-                nw.Write(texture.unknownBytes[0]);
+                nw.Write(texture.unknown4);
                 nw.Write(texture.chunkId);
                 for (int i = 0; i < 15; i++)
                     nw.Write(texture.mipSizes[i]);
