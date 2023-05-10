@@ -153,10 +153,18 @@ namespace FMT.Models
             var objProperties = objType.GetProperties();
             foreach (var p in objProperties)
             {
-                var subObj = p.GetValue(obj, BindingFlags.Public | BindingFlags.Instance, null, null, null);
-                if(subObj != null)
-                    yield return new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
+                ModdableProperty moddableProperty = null;
+                //var subObj = p.GetValue(obj, BindingFlags.Public | BindingFlags.Instance, null, null, null);
+                try
+                {
+                    var subObj = p.GetValue(obj);
+                    if (subObj != null)
+                        moddableProperty = new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
+                }
+                catch { }
 
+                if(moddableProperty != null)
+                    yield return moddableProperty;
                 //if(p.CanWrite && p.SetMethod != null)
                 //    yield return new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
                 //else
