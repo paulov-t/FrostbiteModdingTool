@@ -124,26 +124,56 @@ namespace FrostbiteSdk
             });
         }
 
-        public string ReadNullTerminatedString()
+        public string ReadNullTerminatedStringAtCurPosition(int maxLength = 1000)
         {
-            long num = ReadLong();
-            long num2 = Position;
-            Position = num;
+            var index = 0;
+
             StringBuilder stringBuilder = new StringBuilder();
             while (true)
             {
+                if (index > maxLength)
+                    break;
+
+                index++;
+                
                 char c = (char)ReadByte();
-                //if (c == '\0' || Position > num2 + 100 || Position < 0)
-                if (c == '\0' || Position < 0 || Position > num2 + int.MaxValue)
+                if (c == '\0')
                 {
                     break;
                 }
                 stringBuilder.Append(c);
             }
-            Position = num2;
 
             //Debug.WriteLine(stringBuilder.ToString());
             return stringBuilder.ToString();
+        }
+
+        public string ReadNullTerminatedString(int maxLength = 1000)
+        {
+            var index = 0;
+
+            long num = ReadLong();
+            long num2 = Position;
+            Position = num;
+            string result = "";
+            while (true)
+            {
+                if (index > maxLength)
+                    break;
+
+                index++;
+
+                char c = (char)ReadByte();
+                if (c == '\0')
+                {
+                    break;
+                }
+                result += c;
+            }
+            Position = num2;
+
+            //Debug.WriteLine(stringBuilder.ToString());
+            return result;
         }
 
         public byte[] ReadBytes(int numBytes)

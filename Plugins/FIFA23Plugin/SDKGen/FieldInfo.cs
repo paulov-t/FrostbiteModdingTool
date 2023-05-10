@@ -35,16 +35,18 @@ namespace SdkGenerator.Fifa23
 
         public void Read(MemoryReader reader)
         {
-            name = reader.ReadNullTerminatedString();
-            if (string.IsNullOrEmpty(name))
+            ReadSuccessfully = true;
+            int maxLength = 999;
+            name = reader.ReadNullTerminatedString(maxLength);
+            if (string.IsNullOrEmpty(name) || name.Length == maxLength)
             {
                 name = parentTypeInfo.name + "_UnkField_" + RandomEmpty.Next().ToString();
+                ReadSuccessfully = false;
             }
             nameHash = reader.ReadUInt();
             flags = reader.ReadUShort();
             offset = reader.ReadUShort();
             typeOffset = reader.ReadLong();
-            ReadSuccessfully = true;
         }
 
 
