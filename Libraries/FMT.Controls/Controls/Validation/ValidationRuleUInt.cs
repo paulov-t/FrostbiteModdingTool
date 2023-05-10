@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
 using System.Windows.Controls;
 
-namespace FMT.Pages.Common.EBX.Validation
-{
+namespace FMT.Controls.Validation
+{ 
     internal class ValidationRuleUInt : ValidationRule
     {
         public ValidationRuleUInt()
