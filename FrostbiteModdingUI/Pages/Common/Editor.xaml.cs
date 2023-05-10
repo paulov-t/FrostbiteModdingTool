@@ -210,7 +210,7 @@ namespace FIFAModdingUI.Pages.Common
                 }
             }
 
-            var ty = UsableTypes.FirstOrDefault(x => x.Name.Contains(propertyNSearch, StringComparison.OrdinalIgnoreCase));
+            var ty = UsableTypes.FirstOrDefault(x => x.Name.Equals(propertyNSearch, StringComparison.OrdinalIgnoreCase));
 
             if (ty != null)
             {
