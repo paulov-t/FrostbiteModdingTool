@@ -279,7 +279,7 @@ namespace FMT.Pages.Common
 
 
                 }
-                else if (ebxEntry.Type == "SkinnedMeshAsset")
+                else if (ebxEntry.Type == "SkinnedMeshAsset" || ebxEntry.Type == "CompositeMeshAsset")
                 {
                     if (ebxEntry == null || ebxEntry.Type == "EncryptedAsset")
                     {
