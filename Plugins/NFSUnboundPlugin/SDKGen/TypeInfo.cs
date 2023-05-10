@@ -4,6 +4,7 @@ using FrostySdk;
 using FrostySdk.IO;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace SdkGenerator.NFSUnbound
@@ -44,6 +45,9 @@ namespace SdkGenerator.NFSUnbound
         public void Read(MemoryReader reader)
         {
             fields = new List<IFieldInfo>();
+
+            var typeInfoNamePosition = reader.Position;
+
             name = reader.ReadNullTerminatedString();
             if (name.Equals("TextureAsset", System.StringComparison.OrdinalIgnoreCase))
             {
@@ -65,7 +69,12 @@ namespace SdkGenerator.NFSUnbound
 
             }
 
-            if(name.Equals("RaceVehicleBlueprint", System.StringComparison.OrdinalIgnoreCase))
+            if (name.Equals("RaceVehicleBlueprint", System.StringComparison.OrdinalIgnoreCase))
+            {
+
+            }
+
+            if (name.Equals("ShaderDrawOrder", System.StringComparison.OrdinalIgnoreCase))
             {
 
             }
@@ -96,9 +105,14 @@ namespace SdkGenerator.NFSUnbound
 
             // Padding
             padding3 = reader.ReadUInt();
+            while (reader.Position % 8 != 0)
+            {
+                reader.Position++;
+            }
 
-            array = new long[7];
+            array = new long[32];
             for (int i = 0; i < 7; i++)
+            //for (int i = 0; i < 32; i++)
             {
                 array[i] = reader.ReadLong();
             }
@@ -106,78 +120,75 @@ namespace SdkGenerator.NFSUnbound
             nameSpace = reader.ReadNullTerminatedString();
             bool hasFields = fieldCount > 0;
 
-            reader.Position = nextTypeInfo;
-
-            parentClass = array[0];
+            if (FieldType != EbxFieldType.Enum)
+                parentClass = array[0];
+            else
+                parentClass = 0L;
 
             if (name.Equals("LinearTransform", System.StringComparison.OrdinalIgnoreCase))
             {
 
             }
 
-            if (Type == 2)
+            if (name.Equals("ShaderDrawOrder", System.StringComparison.OrdinalIgnoreCase))
             {
-                reader.Position = array[6];
+
             }
-            else if (Type == 3)
+
+            if (hasFields)
             {
-                if (array[1] > 5000000000)
-                    reader.Position = array[1];
-                //else if (array[3] > 5000000000) // Caused hang
-                //    reader.Position = array[3];
-                //else if (array[0] > 5000000000) // Caused hang
-                //    reader.Position = array[0];
-                else if (array[6] > 5000000000)
+
+                if (Type == 2)
+                {
                     reader.Position = array[6];
-                else if (array[3] > 5000000000)
-                    reader.Position = array[3];
-                else
-                    hasFields = false;
-            }
-            else if (Type == 8)
-            {
-                if (fieldCount > 0)
+                }
+                else if (Type == 3)
+                {
+                    reader.Position = array[1];
+                }
+                else if (Type == 8 || FieldType == EbxFieldType.Enum)
                 {
                     parentClass = 0L;
-                    if (array[0] > 5000000000)
-                        reader.Position = array[0];
-                    //else if (array[2] > 5000000000)  // Caused hang
-                    //    reader.Position = array[2];
-                    else if (array[4] > 5000000000)
-                        reader.Position = array[4];
-                    else
-                        hasFields = false;
+                    reader.Position = array[0];
+                    //if (name.Equals("ShaderDrawOrder", System.StringComparison.OrdinalIgnoreCase))
+                    //{
+                    //    reader.Position = 1600605792;
+                    //    var finderIt = reader.scan("53 68 61 64 65 72 44 72 61 77 4F 72 64 65 72 5F 49 6E 76 61 6C 69 64");
+                    //    reader.Position = 1600605792;
+                    //}
                 }
-            }
-            else
-            {
-                //if (fieldCount > 0)
-                //{
-                //    reader.Position = array[5];
-                //    hasFields = true;
-                //}
-
-                if (array[5] > 5000000000)
-                    reader.Position = array[5];
-                else if (array[3] > 5000000000)
-                    reader.Position = array[3];
-                else if (array[2] > 5000000000)
-                    reader.Position = array[3];
                 else
-                    hasFields = false;
-            }
+                {
+                    reader.Position = array[5];
+                }
 
-            if (hasFields && reader.Position > 5000000000)
-            {
+
                 for (int j = 0; j < fieldCount; j++)
                 {
                     FieldInfo fieldInfo = new FieldInfo(this);
+                    if (name.Equals("AppearanceSetVolumePreservationFactorScale", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        //var finderIt = reader.scan("53 68 61 64 65 72 44 72 61 77 4F 72 64 65 72 5F 49 6E 76 61 6C 69 64");
+                        //reader.Position = finderIt[0];
+                        //fieldInfo.name = reader.ReadNullTerminatedStringAtCurPosition();
+                    }
+
                     fieldInfo.Read(reader);
                     fieldInfo.index = j;
-                    if (fieldInfo.ReadSuccessfully)
+                    if (fieldInfo.name.Contains("UnkField"))
+                        fieldInfo.name = this.name + "_" + j;
+                    if (!fieldInfo.ReadSuccessfully)
+                        Debug.WriteLine($"Unable to read {FieldType}:{this.name}:{j}");
+
+                    if (FieldType == EbxFieldType.Function)
                     {
-                        fields.Add(fieldInfo);
+                        reader.Position += 8;
+                        while (reader.Position % 8 != 0)
+                            reader.Position++;
                     }
+
+                    fields.Add(fieldInfo);
+
                 }
 
 
