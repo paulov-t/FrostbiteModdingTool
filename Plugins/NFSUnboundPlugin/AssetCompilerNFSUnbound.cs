@@ -28,7 +28,7 @@ namespace NFSUnboundPlugin
             base.Compile(fs, logger, modExecuter);
 
             DateTime dtStarted = DateTime.Now;
-            if (!ProfileManager.IsFIFA23DataVersion())
+            if (!ProfileManager.IsGameVersion(FMT.FileTools.Modding.EGame.NFSUnbound))
             {
                 logger.Log("[ERROR] Wrong compiler used for Game");
                 return false;
@@ -57,8 +57,8 @@ namespace NFSUnboundPlugin
 
             logger.Log("Copying files from Data to ModData/Data");
             CopyDataFolder(FileSystem.Instance.BasePath + "\\Data\\", FileSystem.Instance.BasePath + ModDirectory + "\\Data\\", logger);
-            logger.Log("Copying files from Patch to ModData/Patch");
-            CopyDataFolder(FileSystem.Instance.BasePath + "\\Patch\\", FileSystem.Instance.BasePath + ModDirectory + "\\Patch\\", logger);
+            //logger.Log("Copying files from Patch to ModData/Patch");
+            //CopyDataFolder(FileSystem.Instance.BasePath + "\\Patch\\", FileSystem.Instance.BasePath + ModDirectory + "\\Patch\\", logger);
 
             return Run();
         }
