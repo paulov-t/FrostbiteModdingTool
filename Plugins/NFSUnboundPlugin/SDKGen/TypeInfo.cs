@@ -1,6 +1,7 @@
 using FrostbiteSdk;
 using FrostbiteSdk.SdkGenerator;
 using FrostySdk;
+using FrostySdk.IO;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -36,6 +37,8 @@ namespace SdkGenerator.NFSUnbound
 
         public int Type => (flags >> 4) & 0x1F;
 
+        private EbxFieldType FieldType => (EbxFieldType)Type;
+
         public List<IFieldInfo> fields { get; set; }
 
         public void Read(MemoryReader reader)
@@ -58,6 +61,11 @@ namespace SdkGenerator.NFSUnbound
             }
 
             if (name.Equals("LinearTransform", System.StringComparison.OrdinalIgnoreCase))
+            {
+
+            }
+
+            if(name.Equals("RaceVehicleBlueprint", System.StringComparison.OrdinalIgnoreCase))
             {
 
             }
@@ -113,26 +121,53 @@ namespace SdkGenerator.NFSUnbound
             }
             else if (Type == 3)
             {
-                reader.Position = array[1];
+                if (array[1] > 5000000000)
+                    reader.Position = array[1];
+                //else if (array[3] > 5000000000) // Caused hang
+                //    reader.Position = array[3];
+                //else if (array[0] > 5000000000) // Caused hang
+                //    reader.Position = array[0];
+                else if (array[6] > 5000000000)
+                    reader.Position = array[6];
+                else if (array[3] > 5000000000)
+                    reader.Position = array[3];
+                else
+                    hasFields = false;
             }
             else if (Type == 8)
             {
                 if (fieldCount > 0)
                 {
                     parentClass = 0L;
-                    reader.Position = array[0];
+                    if (array[0] > 5000000000)
+                        reader.Position = array[0];
+                    //else if (array[2] > 5000000000)  // Caused hang
+                    //    reader.Position = array[2];
+                    else if (array[4] > 5000000000)
+                        reader.Position = array[4];
+                    else
+                        hasFields = false;
                 }
             }
             else
             {
-                if (fieldCount > 0)
-                {
+                //if (fieldCount > 0)
+                //{
+                //    reader.Position = array[5];
+                //    hasFields = true;
+                //}
+
+                if (array[5] > 5000000000)
                     reader.Position = array[5];
-                    hasFields = true;
-                }
+                else if (array[3] > 5000000000)
+                    reader.Position = array[3];
+                else if (array[2] > 5000000000)
+                    reader.Position = array[3];
+                else
+                    hasFields = false;
             }
 
-            if (hasFields)
+            if (hasFields && reader.Position > 5000000000)
             {
                 for (int j = 0; j < fieldCount; j++)
                 {
