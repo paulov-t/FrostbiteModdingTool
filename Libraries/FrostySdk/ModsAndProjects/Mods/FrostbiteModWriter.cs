@@ -577,12 +577,15 @@ namespace FrostySdk
                     AddResource(new ChunkResource(chunkEntry, manifest));
                 }
             }
-            // Write Legacy stuff
-            foreach (LegacyFileEntry lfe in AssetManager.Instance.EnumerateCustomAssets("legacy", true))
+            if (AssetManager.Instance.CustomAssetManagers.ContainsKey("legacy"))
             {
-                if (lfe.HasModifiedData)
+                // Write Legacy stuff
+                foreach (LegacyFileEntry lfe in AssetManager.Instance.EnumerateCustomAssets("legacy", true))
                 {
-                    AddResource(new LegacyFileResource(lfe, manifest));
+                    if (lfe.HasModifiedData)
+                    {
+                        AddResource(new LegacyFileResource(lfe, manifest));
+                    }
                 }
             }
             // Write Embedded stuff
