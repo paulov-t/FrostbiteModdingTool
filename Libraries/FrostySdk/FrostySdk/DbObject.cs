@@ -97,6 +97,14 @@ namespace FrostySdk
             return new DbObject(bObject: false);
         }
 
+        public Type GetValueType(string name)
+        {
+            if (hash == null || !hash.ContainsKey(name))
+                return null;
+
+            return hash[name].GetType();
+        }
+
         public T GetValue<T>(string name, T defaultValue = default(T))
         {
             if (hash == null || !hash.ContainsKey(name))
