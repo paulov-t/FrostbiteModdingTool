@@ -56,7 +56,7 @@ namespace FrostySdk.Frostbite
         public bool Load(ReadOnlySpan<char> gameLocation, ILogger logger, bool loadSDK, bool forceDeleteOfOld)
         {
             var profileName = string.Empty;
-            if(gameLocation.EndsWith(".exe"))
+            if (gameLocation.EndsWith(".exe"))
             {
                 var FileInfoEXE = new FileInfo(gameLocation.ToString());
                 gameLocation = Directory.GetParent(FileInfoEXE.FullName).FullName;//.Replace(".exe", "");
@@ -82,7 +82,7 @@ namespace FrostySdk.Frostbite
                     logger = this;
 
                 logger.Log("Loaded Type Library SDK");
-                if(FileSystem.Instance == null)
+                if (FileSystem.Instance == null)
                     FileSystem.Instance = new FileSystem(gameLocation.ToString());
 
                 if (File.Exists(CachePath) && forceDeleteOfOld)
@@ -135,11 +135,11 @@ namespace FrostySdk.Frostbite
                 nativeReader.Position = (long)EbxDataOffset;
                 var ebxCount = nativeReader.ReadUInt();
                 var positionOfAsset = -1L;
-                for(var i = 0; i < ebxCount; i++)
+                for (var i = 0; i < ebxCount; i++)
                 {
                     var ebxName = nativeReader.ReadLengthPrefixedString();
                     var ebxPositions = nativeReader.ReadLong();
-                    if(ebxName == name)
+                    if (ebxName == name)
                     {
                         positionOfAsset = ebxPositions;
                         break;
@@ -263,7 +263,17 @@ namespace FrostySdk.Frostbite
         {
             if (!string.IsNullOrEmpty(ProfileManager.CacheWriter))
             {
-                ((ICacheWriter)AssetManager.Instance.LoadTypeFromPlugin(ProfileManager.CacheWriter)).Write();
+                //((ICacheWriter)AssetManager.Instance.LoadTypeFromPlugin(ProfileManager.CacheWriter)).Write();
+                var cacheWriter = AssetManager.Instance.LoadTypeFromPlugin(ProfileManager.CacheWriter);
+                if (cacheWriter == null)
+                    cacheWriter = AssetManager.LoadTypeByName(ProfileManager.CacheWriter);
+
+
+                if (cacheWriter != null)
+                {
+                    ((ICacheWriter)cacheWriter).Write();
+                }
+
                 return;
             }
 
