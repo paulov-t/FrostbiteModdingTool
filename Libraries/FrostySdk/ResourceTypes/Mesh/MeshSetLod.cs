@@ -102,12 +102,12 @@ namespace FrostySdk.Resources
 
         public long UnknownLongAfterNameHash { get; set; }
 
-        public MeshSetLod(FileReader reader, MeshSet meshSet)
+        public MeshSetLod(NativeReader reader, MeshSet meshSet)
         {
-            Type = (MeshType)reader.ReadUInt32LittleEndian();
-            maxInstances = reader.ReadUInt32LittleEndian();
-            uint sectionCount = reader.ReadUInt32LittleEndian();
-            var sectionOffset = reader.ReadInt64LittleEndian();
+            Type = (MeshType)reader.ReadUInt();
+            maxInstances = reader.ReadUInt();
+            uint sectionCount = reader.ReadUInt();
+            var sectionOffset = reader.ReadLong();
             long categoryOffset = reader.Position;
             reader.Position = sectionOffset;
             for (uint sectionIndex = 0u; sectionIndex < sectionCount; sectionIndex++)
@@ -463,7 +463,7 @@ namespace FrostySdk.Resources
             }
         }
 
-        public void ReadInlineData(FileReader reader)
+        public void ReadInlineData(NativeReader reader)
         {
             if (reader == null)
             {

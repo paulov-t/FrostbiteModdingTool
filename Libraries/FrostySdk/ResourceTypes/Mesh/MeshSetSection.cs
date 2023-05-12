@@ -77,11 +77,7 @@ namespace FrostySdk.Resources
 
         public ushort BoneCount { get; private set; }
 
-        internal MeshSetSection()
-        {
-        }
-
-        private void ReadBones(FileReader reader, long bonePositions)
+        private void ReadBones(NativeReader reader, long bonePositions)
         {
             long startPosition = reader.Position;
             reader.Position = bonePositions;
@@ -92,7 +88,7 @@ namespace FrostySdk.Resources
             reader.Position = startPosition;
         }
 
-        public MeshSetSection(FileReader reader, int index)
+        public MeshSetSection(NativeReader reader, int index)
         {
             switch(ProfileManager.Game)
             {
@@ -126,7 +122,7 @@ namespace FrostySdk.Resources
 
         }
 
-        private void ReadNFSU(FileReader reader, int index)
+        private void ReadNFSU(NativeReader reader, int index)
         {
             var startPosition = reader.Position;
 
@@ -192,7 +188,7 @@ namespace FrostySdk.Resources
         private uint FIFA23_UnknownInt1;
         private uint FIFA23_UnknownInt2;
 
-        public void Read23(FileReader reader, int index)
+        public void Read23(NativeReader reader, int index)
         {
             var startPosition = reader.Position;
 
@@ -259,7 +255,7 @@ namespace FrostySdk.Resources
             reader.Position = position3;
         }
 
-        public void Read22(FileReader reader, int index)
+        public void Read22(NativeReader reader, int index)
         {
             var startPosition = reader.Position;
 
@@ -323,7 +319,7 @@ namespace FrostySdk.Resources
             reader.Position = position3;
         }
 
-        public void Read21(FileReader reader, int index)
+        public void Read21(NativeReader reader, int index)
         {
             sectionIndex = index;
             offset1 = reader.ReadInt64LittleEndian();

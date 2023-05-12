@@ -1,6 +1,7 @@
 using FMT.FileTools;
 using FMT.FileTools.Modding;
 using FrostySdk;
+using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.FrostySdk.Resources;
 using FrostySdk.IO;
 using FrostySdk.Managers;
@@ -13,37 +14,35 @@ using static FrostySdk.ProfileManager;
 
 public class MeshSet
 {
-    private TangentSpaceCompressionType tangentSpaceCompressionType;
+    public TangentSpaceCompressionType tangentSpaceCompressionType;
 
-    private AxisAlignedBox boundingBox;
+    public string fullName;
 
-    private string fullName;
+    public uint nameHash { get; set; }
 
-    private uint nameHash { get; set; }
+    public uint headerSize { get; set; }
 
-    private uint headerSize { get; set; }
+    public readonly List<uint> unknownUInts = new List<uint>();
 
-    private readonly List<uint> unknownUInts = new List<uint>();
+    public ushort? unknownUShort { get; set; }
 
-    private ushort? unknownUShort { get; set; }
+    public readonly List<ushort> unknownUShorts = new List<ushort>();
 
-    private readonly List<ushort> unknownUShorts = new List<ushort>();
+    public readonly List<long> unknownOffsets = new List<long>();
 
-    private readonly List<long> unknownOffsets = new List<long>();
+    public readonly List<byte[]> unknownBytes = new List<byte[]>();
 
-    private readonly List<byte[]> unknownBytes = new List<byte[]>();
+    public ushort boneCount { get; set; }
 
-    private ushort boneCount { get; set; }
+    public ushort CullBoxCount { get; set; }
 
-    private ushort CullBoxCount { get; set; }
+    public readonly List<ushort> boneIndices = new List<ushort>();
 
-    private readonly List<ushort> boneIndices = new List<ushort>();
+    public readonly List<AxisAlignedBox> boneBoundingBoxes = new List<AxisAlignedBox>();
 
-    private readonly List<AxisAlignedBox> boneBoundingBoxes = new List<AxisAlignedBox>();
+    public readonly List<AxisAlignedBox> partBoundingBoxes = new List<AxisAlignedBox>();
 
-    private readonly List<AxisAlignedBox> partBoundingBoxes = new List<AxisAlignedBox>();
-
-    private readonly List<LinearTransform> partTransforms = new List<LinearTransform>();
+    public readonly List<LinearTransform> partTransforms = new List<LinearTransform>();
 
     public TangentSpaceCompressionType TangentSpaceCompressionType
     {
@@ -64,15 +63,15 @@ public class MeshSet
         }
     }
 
-    public AxisAlignedBox BoundingBox => boundingBox;
+    public AxisAlignedBox BoundingBox { get; set; }
 
     public List<MeshSetLod> Lods { get; } = new List<MeshSetLod>();
 
 
     public MeshType Type { get; set; }
 
-    public EMeshLayout MeshLayout { get; private set; }
-    public MeshSetLayoutFlags MeshSetLayoutFlags { get; private set; }
+    public EMeshLayout MeshLayout { get; set; }
+    public MeshSetLayoutFlags MeshSetLayoutFlags { get; set; }
 
     public string FullName
     {
@@ -90,7 +89,7 @@ public class MeshSet
         }
     }
 
-    public string Name { get; private set; }
+    public string Name { get; set; }
 
     public int HeaderSize => BitConverter.ToUInt16(Meta, 12);
 
@@ -100,22 +99,28 @@ public class MeshSet
 
     public ushort MeshCount { get; set; }
 
-    public MeshType FIFA23_Type2 { get; private set; }
-    public byte[] FIFA23_TypeUnknownBytes { get; private set; }
-    public byte[] FIFA23_SkinnedUnknownBytes { get; private set; }
+    public MeshType FIFA23_Type2 { get; set; }
+    public byte[] FIFA23_TypeUnknownBytes { get; set; }
+    public byte[] FIFA23_SkinnedUnknownBytes { get; set; }
 
-    public long SkinnedBoneCountUnkLong1 { get; private set; }
-    public long SkinnedBoneCountUnkLong2 { get; private set; }
+    public long SkinnedBoneCountUnkLong1 { get; set; }
+    public long SkinnedBoneCountUnkLong2 { get; set; }
 
-    public ShaderDrawOrder ShaderDrawOrder { get; private set; }
+    public ShaderDrawOrder ShaderDrawOrder { get; set; }
 
-    public ShaderDrawOrderUserSlot ShaderDrawOrderUserSlot { get; private set; }
+    public ShaderDrawOrderUserSlot ShaderDrawOrderUserSlot { get; set; }
 
-    public ShaderDrawOrderSubOrder ShaderDrawOrderSubOrder { get; private set; }
+    public ShaderDrawOrderSubOrder ShaderDrawOrderSubOrder { get; set; }
 
-    public long UnknownPostLODCount { get; private set; }
+    public long UnknownPostLODCount { get; set; }
 
     public List<ushort> LodFade { get; } = new List<ushort>();
+
+    // Create Empty MeshSet
+    public MeshSet()
+    {
+
+    }
 
     public MeshSet(Stream stream)
     {
@@ -131,6 +136,13 @@ public class MeshSet
         // useful for resetting when live debugging
         nativeReader.Position = 0;
 
+        var meshSetReader = AssetManager.Instance.LoadTypeFromPluginByInterface(typeof(IMeshSetReader).FullName);
+        if(meshSetReader != null)
+        {
+            ((IMeshSetReader)meshSetReader).Read(nativeReader, this);
+            return;
+        }
+
         if (ProfileManager.Game == EGame.FIFA23)
             ReadFIFA23(nativeReader);
         else if (ProfileManager.Game == EGame.NFSUnbound)
@@ -142,11 +154,11 @@ public class MeshSet
 
     public List<ushort> PositionsOfLodMeshSet { get; } = new List<ushort>();
 
-    private void ReadNFSUnbound(FileReader nativeReader)
+    private void ReadNFSUnbound(NativeReader nativeReader)
     {
         _ = nativeReader.Position;
 
-        boundingBox = nativeReader.ReadAxisAlignedBox();
+        BoundingBox = nativeReader.ReadAxisAlignedBox();
         long[] lodOffsets = new long[MaxLodCount];
         for (int i2 = 0; i2 < MaxLodCount; i2++)
         {
@@ -191,7 +203,7 @@ public class MeshSet
 
     public void ReadFIFA23(FileReader nativeReader)
     {
-        boundingBox = nativeReader.ReadAxisAlignedBox();
+        BoundingBox = nativeReader.ReadAxisAlignedBox();
         long[] array = new long[MaxLodCount];
         for (int i2 = 0; i2 < MaxLodCount; i2++)
         {
@@ -545,7 +557,7 @@ public class MeshSet
         {
             throw new ArgumentNullException("meshContainer");
         }
-        writer.WriteAxisAlignedBox(boundingBox);
+        writer.WriteAxisAlignedBox(BoundingBox);
         for (int i = 0; i < MaxLodCount; i++)
         {
             if (i < Lods.Count)

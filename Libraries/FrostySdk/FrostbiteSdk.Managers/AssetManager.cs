@@ -260,6 +260,20 @@ namespace FrostySdk.Managers
 
         public static bool CacheUpdate = false;
 
+        public object LoadTypeFromPluginByInterface(string interfaceName, params object[] args)
+        {
+            foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies()
+               .Where(x => x.FullName.Contains("Plugin", StringComparison.OrdinalIgnoreCase)))
+            {
+                var t = a.GetTypes().FirstOrDefault(x => x.GetInterface(interfaceName) != null);
+                if (t != null)
+                {
+                    return Activator.CreateInstance(t, args: args);
+                }
+            }
+            return null;
+        }
+
         public object LoadTypeFromPlugin(string className, params object[] args)
         {
             if (CachedTypes == null)
@@ -284,6 +298,8 @@ namespace FrostySdk.Managers
             }
             return null;
         }
+
+
         public static object LoadTypeFromPlugin2(string className, params object[] args)
         {
             foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies()
