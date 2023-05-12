@@ -162,31 +162,7 @@ namespace FrostySdk
             KeyManager.ReadInKeys();
             byte[] key = KeyManager.Instance.GetKey("Key1");
             return key;
-            //if (KeyManager.Instance.HasKey("Key1"))
-            //	return KeyManager.Instance.GetKey("Key1");
-
-            //if (ProfileManager.RequiresKey)
-            //{
-            //	byte[] array;
-
-            //	Debug.WriteLine($"[DEBUG] LoadDataAsync::Reading the Key");
-            //	array = NativeReader.ReadInStream(new FileStream("FrostbiteKeys/fifa20.key", FileMode.Open, FileAccess.Read));
-            //	byte[] array2 = new byte[16];
-            //	Array.Copy(array, array2, 16);
-            //	KeyManager.Instance.AddKey("Key1", array2);
-            //	if (array.Length > 16)
-            //	{
-            //		array2 = new byte[16];
-            //		Array.Copy(array, 16, array2, 0, 16);
-            //		KeyManager.Instance.AddKey("Key2", array2);
-            //		array2 = new byte[16384];
-            //		Array.Copy(array, 32, array2, 0, 16384);
-            //		KeyManager.Instance.AddKey("Key3", array2);
-            //	}
-            //	byte[] key = KeyManager.Instance.GetKey("Key1");
-            //	return key;
-            //}
-            //return null;
+            
         }
 
         /// <summary>
@@ -346,7 +322,9 @@ namespace FrostySdk
             if (filename.Contains("native_patch"))
                 resolvedPath = basePath + (checkModData ? "ModData\\" : "") + filename.Replace("native_patch", "Patch\\");
 
-            if (ProfileManager.IsBF4DataVersion() && !Directory.Exists(Directory.GetParent(resolvedPath).FullName) && filename.Contains("native_patch"))
+            if (
+                (ProfileManager.IsBF4DataVersion() || ProfileManager.IsGameVersion(EGame.FIFA17))
+                && !Directory.Exists(Directory.GetParent(resolvedPath).FullName) && filename.Contains("native_patch"))
             {
                 resolvedPath = basePath + (checkModData ? "ModData\\" : "") + filename.Replace("native_patch", "Update\\Patch\\Data\\");
             }
