@@ -15,6 +15,9 @@ namespace FIFA23Plugin.Meshes
 {
     internal class FIFA23MeshReader : IMeshSetReader
     {
+        private FIFA23SkinnedMeshReader SkinnedMeshReader { get; } = new FIFA23SkinnedMeshReader();
+        private FIFA23CompositeMeshReader CompositeMeshReader { get; } = new FIFA23CompositeMeshReader();
+
         public int MaxLodCount => (int)MeshLimits.MaxMeshLodCount;
 
         public void Read(NativeReader nativeReader, MeshSet meshSet)

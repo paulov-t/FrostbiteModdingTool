@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FIFA23Plugin.Meshes
 {
-    public class FIFA23CompositeMeshReader : IMeshSetReader
+    internal class FIFA23MeshHeaderReader : IMeshSetReader
     {
         public void Read(NativeReader nativeReader, MeshSet meshSet)
         {
