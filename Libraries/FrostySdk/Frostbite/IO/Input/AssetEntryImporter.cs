@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 //using System.Text.Json;
@@ -192,7 +193,7 @@ namespace FrostySdk.Frostbite.IO.Input
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
                 // ignore existingValue and just create a new collection
-                return JsonSerializer.CreateDefault().Deserialize(reader, objectType);
+                return JsonSerializer.Create(new JsonSerializerSettings() { MaxDepth = 20 }).Deserialize(reader, objectType);
             }
 
             public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
