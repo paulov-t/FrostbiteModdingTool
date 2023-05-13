@@ -160,7 +160,15 @@ namespace FrostySdk
                 {
                     // -------------------------------------
                     // get via ebx writer
-                    decompressedArray = EbxBaseWriter.GetEbxArrayDecompressed(entry);
+                    try
+                    {
+                        decompressedArray = EbxBaseWriter.GetEbxArrayDecompressed(entry);
+                    }
+                    catch(Exception ex) 
+                    {
+                        FileLogger.WriteLine($"Unable to Write EBX {ex.Message} to Mod:");
+                        FileLogger.WriteLine($"{ex.ToString()}");
+                    }
                     //
                     // -------------------------------------
                 }
