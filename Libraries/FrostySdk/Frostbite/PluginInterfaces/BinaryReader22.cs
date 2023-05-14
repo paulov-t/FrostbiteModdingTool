@@ -103,6 +103,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                 dbObject.AddValue("name", name);
                 //dbObject.AddValue("nameHash", Fnv1.HashString(dbObject.GetValue<string>("name")));
                 dbObject.AddValue("originalSize", originalSize);
+                dbObject.AddValue("ebx", true);
                 list.Add(dbObject);
                 reader.Position = positionBeforeStringRead;
             }
@@ -134,6 +135,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                 dbObject.AddValue("name", name);
                 dbObject.AddValue("nameHash", Fnv1.HashString(name));
                 dbObject.AddValue("originalSize", originalSize);
+                dbObject.AddValue("res", true);
+
                 resObjects.Add(dbObject);
                 reader.Position = position;
             }
@@ -181,6 +184,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                 dbObject.AddValue("logicalOffset", logicalOffset);
                 dbObject.AddValue("logicalSize", chunkLogicalSize);
                 dbObject.AddValue("originalSize", chunkOriginalSize);
+                dbObject.AddValue("chunk", true);
+
                 list.Add(dbObject);
             }
             return list;

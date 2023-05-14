@@ -268,9 +268,6 @@ namespace FrostySdk.Frostbite.Compilers
             if (!ModExecuter.modifiedEbx.ContainsKey(assetBundle.Key.Name))
                 return false;
 
-            if (assetBundle.Key.Name.Contains("_mesh"))
-                return true;
-
             var originalSizePosition = 
                 origDbo.HasValue("SB_OriginalSize_Position") ? origDbo.GetValue<int>("SB_OriginalSize_Position")
                 : origDbo.HasValue("SBOSizePos") ? origDbo.GetValue<int>("SBOSizePos")
@@ -309,16 +306,6 @@ namespace FrostySdk.Frostbite.Compilers
             if (!origResDbo.HasValue("SB_ResMeta_Position") || origResDbo.GetValue<int>("SB_ResMeta_Position") == 0)
                 return false;
 
-#if DEBUG
-            if(assetBundle.Key.Type == "MeshSet")
-            {
-
-            }
-#endif
-
-            if (assetBundle.Key.Type == "MeshSet")
-                return true;
-
             var resMetaPosition = origResDbo.GetValue<int>("SB_ResMeta_Position");
             var originalSizePosition = 
                 origResDbo.HasValue("SB_OriginalSize_Position") ? origResDbo.GetValue<int>("SB_OriginalSize_Position")
@@ -352,7 +339,7 @@ namespace FrostySdk.Frostbite.Compilers
                 }
             //}
 
-            if (assetBundle.Key.Type != "MeshSet")
+            //if (assetBundle.Key.Type != "MeshSet")
             {
                 writer.Position = originalSizePosition;
                 writer.Write((uint)originalSizeOfData, Endian.Little);
@@ -375,24 +362,22 @@ namespace FrostySdk.Frostbite.Compilers
             if (origChunkDbo == null)
                 throw new ArgumentNullException(nameof(origChunkDbo));
 
-            if (Guid.TryParse(assetBundle.Key.Name, out Guid id))
-            {
-                if (origChunkDbo != null
-                    && ModExecuter.ModifiedChunks.ContainsKey(id)
-                    )
-                {
-                    writer.BaseStream.Position = origChunkDbo.GetValue<int>("SB_LogicalOffset_Position");
-                    writer.Write(ModExecuter.ModifiedChunks[id].LogicalOffset);
-                }
-            }
+            if (!Guid.TryParse(assetBundle.Key.Name, out Guid id))
+                return false;
+
+            if (!ModExecuter.ModifiedChunks.ContainsKey(id))
+                return false;
+
+            writer.BaseStream.Position = origChunkDbo.GetValue<int>("SB_LogicalOffset_Position");
+            writer.Write(ModExecuter.ModifiedChunks[id].LogicalOffset);
 
             var originalSizeOfData = assetBundle.Value.Item3;
 
-            if (origChunkDbo.HasValue("SB_OriginalSize_Position"))
-            {
-                writer.Position = origChunkDbo.GetValue<long>("SB_OriginalSize_Position");
-                writer.Write((uint)originalSizeOfData, Endian.Little);
-            }
+            if (!origChunkDbo.HasValue("SB_OriginalSize_Position"))
+                return false;
+
+            writer.Position = origChunkDbo.GetValue<long>("SB_OriginalSize_Position");
+            writer.Write((uint)originalSizeOfData, Endian.Little);
 
             if (origChunkDbo.HasValue("SB_Sha1_Position") && assetBundle.Value.Item4 != Sha1.Zero)
             {
@@ -655,7 +640,7 @@ namespace FrostySdk.Frostbite.Compilers
 
                         origSize = Convert.ToInt32(modifiedAsset.OriginalSize);
 
-                        if (origSize == 0 || modifiedAsset is ResAssetEntry)
+                        if (origSize == 0)
                         {
                             if (modifiedAsset is ChunkAssetEntry cae && cae.LogicalSize > 0)
                             {
@@ -670,12 +655,7 @@ namespace FrostySdk.Frostbite.Compilers
                                     var out_data = new CasReader(new MemoryStream(data)).Read();
                                     origSize = out_data.Length;
                                 }
-#if DEBUG
-                                if(origSize < data.Length)
-                                {
 
-                                }
-#endif
                             }
                         }
 
@@ -722,7 +702,7 @@ namespace FrostySdk.Frostbite.Compilers
             }
 
             var groupedByTOCSBCount = groupedByTOCSB.Values.Sum(y => y.Count);
-            var doStep1b = groupedByTOCSBCount != EntriesToNewPosition.Count;
+            var doStep1b = true;// groupedByTOCSBCount != EntriesToNewPosition.Count;
 
             // ---------
             // Step 1b. Discover via Bundle Indexes
@@ -753,6 +733,9 @@ namespace FrostySdk.Frostbite.Compilers
 #endif
 
                         var hashedEntries = tocFile.BundleEntries.Select(x => Fnv1a.HashString(x.Name));
+                        if (!hashedEntries.Any())
+                            continue;
+
                         if (hashedEntries.Any(x => editedBundles.Contains(x)))
                         {
                             if (!groupedByTOCSB.ContainsKey(nativePathToTOCFile))
@@ -936,9 +919,7 @@ namespace FrostySdk.Frostbite.Compilers
                     var resolvedCasPath = FileSystem.Instance.ResolvePath(abtc.Key, ModExecutor.UseModData);
                     using (var nwCas = new NativeWriter(new FileStream(resolvedCasPath, FileMode.Open)))
                     {
-#if DEBUG
                         ModExecuter.Logger.Log($"Writing {abtc.Value.Count} assets to {resolvedCasPath}");
-#endif
                         FileLogger.WriteLine($"Writing {abtc.Value.Count} assets to {resolvedCasPath}");
                         foreach (var assetEntry in abtc.Value)
                         {
@@ -946,8 +927,10 @@ namespace FrostySdk.Frostbite.Compilers
                             //var assetBundles = tocGroup.Value.Where(x => x.Key.Equals(assetEntry.Item1));
                             //foreach (var assetBundle in assetBundles)
                             //{
-                                if(WriteChangesToSuperBundle(assetEntry.Item2, nwCas, assetBundle))
-                                    EntriesToNewPosition.Remove(assetEntry.Item1);
+                            if (WriteChangesToSuperBundle(assetEntry.Item2, nwCas, assetBundle))
+                            {
+                                EntriesToNewPosition.Remove(assetEntry.Item1);
+                            }
 
                                 // Remove from EntriesToNewPosition to stop any false errors occuring 
                                 //EntriesToNewPosition.Remove(assetEntry.Item1);

@@ -94,84 +94,124 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                             var ebxCount = binaryObject.GetValue<DbObject>("ebx").Count;
                             var resCount = binaryObject.GetValue<DbObject>("res").Count;
                             var chunkCount = binaryObject.GetValue<DbObject>("chunks").Count;
+
+                            var allObjectList = EbxObjectList.List.Union(ResObjectList.List).Union(ChunkObjectList.List).ToArray();
+                            var indexInList = 0;
+                            foreach(DbObject dbo in allObjectList)
+                            {
+                                dbo.SetValue("offset", casBundle.Offsets[indexInList]);
+                                dbo.SetValue("size", casBundle.Sizes[indexInList]);
+
+                                dbo.SetValue("TOCOffsetPosition", casBundle.TOCOffsets[indexInList]);
+                                dbo.SetValue("TOCSizePosition", casBundle.TOCSizes[indexInList]);
+
+                                dbo.SetValue("CASFileLocation", NativeFileLocation);
+
+                                dbo.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
+                                dbo.SetValue("SB_CAS_Offset_Position", casBundle.TOCOffsets[indexInList]);
+                                dbo.SetValue("SB_CAS_Size_Position", casBundle.TOCSizes[indexInList]);
+                                dbo.SetValue("ParentCASBundleLocation", NativeFileLocation);
+
+                                dbo.SetValue("cas", casBundle.TOCCas[indexInList]);
+                                dbo.SetValue("catalog", casBundle.TOCCatalog[indexInList]);
+                                dbo.SetValue("patch", casBundle.TOCPatch[indexInList]);
+
+                                dbo.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
+                                dbo.SetValue("Bundle", casBundle.BaseEntry.Name);
+
+                                indexInList++;
+                            }
+
                             //
-                            for (var i = 0; i < ebxCount; i++)
-                            {
-                                var ebxobjectinlist = EbxObjectList[i] as DbObject;
+//                            for (var i = 0; i < ebxCount; i++)
+//                            {
+//                                var ebxobjectinlist = EbxObjectList[i] as DbObject;
 
-                                ebxobjectinlist.SetValue("ebx", true);
-                                ebxobjectinlist.SetValue("offset", casBundle.Offsets[i]);
-                                ebxobjectinlist.SetValue("size", casBundle.Sizes[i]);
+//                                ebxobjectinlist.SetValue("ebx", true);
+//                                ebxobjectinlist.SetValue("offset", casBundle.Offsets[i]);
+//                                ebxobjectinlist.SetValue("size", casBundle.Sizes[i]);
 
-                                ebxobjectinlist.SetValue("TOCOffsetPosition", casBundle.TOCOffsets[i]);
-                                ebxobjectinlist.SetValue("TOCSizePosition", casBundle.TOCSizes[i]);
+//                                ebxobjectinlist.SetValue("TOCOffsetPosition", casBundle.TOCOffsets[i]);
+//                                ebxobjectinlist.SetValue("TOCSizePosition", casBundle.TOCSizes[i]);
 
-                                ebxobjectinlist.SetValue("CASFileLocation", NativeFileLocation);
+//                                ebxobjectinlist.SetValue("CASFileLocation", NativeFileLocation);
 
-                                ebxobjectinlist.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
-                                ebxobjectinlist.SetValue("SB_CAS_Offset_Position", casBundle.TOCOffsets[i]);
-                                ebxobjectinlist.SetValue("SB_CAS_Size_Position", casBundle.TOCSizes[i]);
-                                ebxobjectinlist.SetValue("ParentCASBundleLocation", NativeFileLocation);
+//                                ebxobjectinlist.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
+//                                ebxobjectinlist.SetValue("SB_CAS_Offset_Position", casBundle.TOCOffsets[i]);
+//                                ebxobjectinlist.SetValue("SB_CAS_Size_Position", casBundle.TOCSizes[i]);
+//                                ebxobjectinlist.SetValue("ParentCASBundleLocation", NativeFileLocation);
 
-                                ebxobjectinlist.SetValue("cas", casBundle.TOCCas[i]);
-                                ebxobjectinlist.SetValue("catalog", casBundle.TOCCatalog[i]);
-                                ebxobjectinlist.SetValue("patch", casBundle.TOCPatch[i]);
+//                                ebxobjectinlist.SetValue("cas", casBundle.TOCCas[i]);
+//                                ebxobjectinlist.SetValue("catalog", casBundle.TOCCatalog[i]);
+//                                ebxobjectinlist.SetValue("patch", casBundle.TOCPatch[i]);
 
-                                ebxobjectinlist.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
-                                ebxobjectinlist.SetValue("Bundle", casBundle.BaseEntry.Name);
+//                                ebxobjectinlist.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
+//                                ebxobjectinlist.SetValue("Bundle", casBundle.BaseEntry.Name);
 
-                            }
-                            for (var i = 0; i < resCount; i++)
-                            {
-                                var resobjectinlist = ResObjectList[i] as DbObject;
+//#if DEBUG
+//                                //if (ebxobjectinlist["name"].ToString().Contains("antony"))
+//                                //if (ebxobjectinlist["name"].ToString().Contains("head_255475")) // antony
+//                                //{
+//                                    // patch cas data loader
+//                                    // CAS Patch\\win32\superbundlelayout\fifa_installpackage_06\cas_02.cas
+//                                    // native_patch/win32/contentsb.toc
+//                                    // TOCOffsetPosition = 2566052
+//                                    // TOCSizePosition = 2566056
+//                                //}
+//#endif
 
-
-                                resobjectinlist.SetValue("res", true);
-                                resobjectinlist.SetValue("offset", casBundle.Offsets[ebxCount + i]);
-                                resobjectinlist.SetValue("size", casBundle.Sizes[ebxCount + i]);
-                                resobjectinlist.SetValue("TOCOffsetPosition", casBundle.TOCOffsets[i]);
-                                resobjectinlist.SetValue("TOCSizePosition", casBundle.TOCSizes[i]);
-                                resobjectinlist.SetValue("CASFileLocation", NativeFileLocation);
-
-                                resobjectinlist.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
-                                resobjectinlist.SetValue("SB_CAS_Offset_Position", casBundle.TOCOffsets[ebxCount + i]);
-                                resobjectinlist.SetValue("SB_CAS_Size_Position", casBundle.TOCSizes[ebxCount + i]);
-                                resobjectinlist.SetValue("ParentCASBundleLocation", NativeFileLocation);
-
-                                resobjectinlist.SetValue("cas", casBundle.TOCCas[ebxCount + i]);
-                                resobjectinlist.SetValue("catalog", casBundle.TOCCatalog[ebxCount + i]);
-                                resobjectinlist.SetValue("patch", casBundle.TOCPatch[ebxCount + i]);
-
-                                resobjectinlist.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
-                                resobjectinlist.SetValue("Bundle", casBundle.BaseEntry.Name);
-
-                            }
-
-                            for (var i = 0; i < chunkCount; i++)
-                            {
-                                var chunkObjectInList = ChunkObjectList[i] as DbObject;
-
-                                chunkObjectInList.SetValue("chunk", true);
-                                chunkObjectInList.SetValue("offset", casBundle.Offsets[ebxCount + resCount + i]);
-                                chunkObjectInList.SetValue("size", casBundle.Sizes[ebxCount + resCount + i]);
-
-                                chunkObjectInList.SetValue("CASFileLocation", NativeFileLocation);
+//                            }
+//                            for (var i = 0; i < resCount; i++)
+//                            {
+//                                var resobjectinlist = ResObjectList[i] as DbObject;
 
 
-                                chunkObjectInList.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
-                                chunkObjectInList.SetValue("SB_CAS_Offset_Position", casBundle.TOCOffsets[ebxCount + resCount + i]);
-                                chunkObjectInList.SetValue("SB_CAS_Size_Position", casBundle.TOCSizes[ebxCount + resCount + i]);
-                                chunkObjectInList.SetValue("ParentCASBundleLocation", NativeFileLocation);
+//                                resobjectinlist.SetValue("res", true);
+//                                resobjectinlist.SetValue("offset", casBundle.Offsets[ebxCount + i]);
+//                                resobjectinlist.SetValue("size", casBundle.Sizes[ebxCount + i]);
+//                                resobjectinlist.SetValue("TOCOffsetPosition", casBundle.TOCOffsets[ebxCount + i]);
+//                                resobjectinlist.SetValue("TOCSizePosition", casBundle.TOCSizes[ebxCount + i]);
+//                                resobjectinlist.SetValue("CASFileLocation", NativeFileLocation);
+
+//                                resobjectinlist.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
+//                                resobjectinlist.SetValue("SB_CAS_Offset_Position", casBundle.TOCOffsets[ebxCount + i]);
+//                                resobjectinlist.SetValue("SB_CAS_Size_Position", casBundle.TOCSizes[ebxCount + i]);
+//                                resobjectinlist.SetValue("ParentCASBundleLocation", NativeFileLocation);
+
+//                                resobjectinlist.SetValue("cas", casBundle.TOCCas[ebxCount + i]);
+//                                resobjectinlist.SetValue("catalog", casBundle.TOCCatalog[ebxCount + i]);
+//                                resobjectinlist.SetValue("patch", casBundle.TOCPatch[ebxCount + i]);
+
+//                                resobjectinlist.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
+//                                resobjectinlist.SetValue("Bundle", casBundle.BaseEntry.Name);
+
+//                            }
+
+//                            for (var i = 0; i < chunkCount; i++)
+//                            {
+//                                var chunkObjectInList = ChunkObjectList[i] as DbObject;
+
+//                                chunkObjectInList.SetValue("chunk", true);
+//                                chunkObjectInList.SetValue("offset", casBundle.Offsets[ebxCount + resCount + i]);
+//                                chunkObjectInList.SetValue("size", casBundle.Sizes[ebxCount + resCount + i]);
+
+//                                chunkObjectInList.SetValue("CASFileLocation", NativeFileLocation);
 
 
-                                chunkObjectInList.SetValue("cas", casBundle.TOCCas[ebxCount + resCount + i]);
-                                chunkObjectInList.SetValue("catalog", casBundle.TOCCatalog[ebxCount + resCount + i]);
-                                chunkObjectInList.SetValue("patch", casBundle.TOCPatch[ebxCount + resCount + i]);
+//                                chunkObjectInList.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
+//                                chunkObjectInList.SetValue("SB_CAS_Offset_Position", casBundle.TOCOffsets[ebxCount + resCount + i]);
+//                                chunkObjectInList.SetValue("SB_CAS_Size_Position", casBundle.TOCSizes[ebxCount + resCount + i]);
+//                                chunkObjectInList.SetValue("ParentCASBundleLocation", NativeFileLocation);
 
-                                chunkObjectInList.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
-                                chunkObjectInList.SetValue("Bundle", casBundle.BaseEntry.Name);
 
-                            }
+//                                chunkObjectInList.SetValue("cas", casBundle.TOCCas[ebxCount + resCount + i]);
+//                                chunkObjectInList.SetValue("catalog", casBundle.TOCCatalog[ebxCount + resCount + i]);
+//                                chunkObjectInList.SetValue("patch", casBundle.TOCPatch[ebxCount + resCount + i]);
+
+//                                chunkObjectInList.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
+//                                chunkObjectInList.SetValue("Bundle", casBundle.BaseEntry.Name);
+
+//                            }
 
                             dboAll.Add(binaryObject);
 

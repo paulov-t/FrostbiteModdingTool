@@ -97,7 +97,7 @@ namespace FrostbiteModdingTests
             var ebxItems = AssetManager.Instance.EnumerateEbx().ToList();
             var resItems = AssetManager.Instance.EnumerateRes().ToList();
             var chunkItems = AssetManager.Instance.EnumerateChunks().ToList();
-            var legacyItems = AssetManager.Instance.EnumerateCustomAssets("legacy").ToList();
+            //var legacyItems = AssetManager.Instance.EnumerateCustomAssets("legacy").ToList();
         }
 
         [TestMethod]
