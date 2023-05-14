@@ -1,4 +1,5 @@
-﻿using Frostbite.Textures;
+﻿using FMT;
+using Frostbite.Textures;
 using FrostySdk.Ebx;
 using FrostySdk.IO;
 using FrostySdk.Managers;
@@ -11,6 +12,7 @@ using SharpDX;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Media;
 using Matrix = SharpDX.Matrix;
 
@@ -60,7 +62,7 @@ namespace FrostbiteModdingUI.Models
         Stream textureDDSStreamColour;
         Stream textureDDSStreamNormal;
 
-        public MainViewModel(string file = "test_noSkel.obj", EbxAsset skinnedMeshAsset = null, MeshSet meshSet = null, EbxAssetEntry textureAsset = null)
+        public MainViewModel(string file = "test_noSkel.obj", EbxAsset meshAsset = null, MeshSet meshSet = null, EbxAssetEntry textureAsset = null, EbxAssetEntry ebxAssetEntry = null)
         {
             try
             {
@@ -84,6 +86,16 @@ namespace FrostbiteModdingUI.Models
                 var htImporter = new HelixToolkit.SharpDX.Core.Assimp.Importer();
                 scene = htImporter.Load(file);
 
+                EbxAssetEntry variationDbAssetEntry = null;
+
+                if (ebxAssetEntry != null)
+                {
+                    variationDbAssetEntry =
+                        AssetManager.Instance.EnumerateEbx("MeshVariationDatabase")
+                        .ToArray()
+                        .FirstOrDefault(x => x.Name.StartsWith(ebxAssetEntry.Path + "_", StringComparison.OrdinalIgnoreCase));
+                }
+
                 MeshNode firstModel = null;
                 var index = 0;
                 if (scene != null)
@@ -97,7 +109,7 @@ namespace FrostbiteModdingUI.Models
                             foreach (SceneNode item in rItem.Items)
                             {
                                 MeshNode meshNode = item as MeshNode;
-                                if (meshNode != null && skinnedMeshAsset != null)
+                                if (meshNode != null && meshAsset != null)
                                 {
                                     if (!meshNode.Name.Contains("lod0"))
                                     {
@@ -108,7 +120,7 @@ namespace FrostbiteModdingUI.Models
                                         if (firstModel == null)
                                             firstModel = meshNode;
 
-                                        textureDDSStreamColour = LoadTexture(skinnedMeshAsset, index, "colorTexture");
+                                        textureDDSStreamColour = LoadTexture(meshAsset, index, "colorTexture");
                                         PhongMaterial material = new PhongMaterial
                                         {
                                             AmbientColor = Colors.Gray.ToColor4(),
@@ -123,7 +135,7 @@ namespace FrostbiteModdingUI.Models
                                             material.SpecularColorMap = material.DiffuseMap;
                                         }
 
-                                        textureDDSStreamNormal = LoadTexture(skinnedMeshAsset, index, "normalTexture");
+                                        textureDDSStreamNormal = LoadTexture(meshAsset, index, "normalTexture");
                                         if (textureDDSStreamNormal != null)
                                         {
                                             material.NormalMap = new TextureModel(textureDDSStreamNormal);
@@ -133,7 +145,7 @@ namespace FrostbiteModdingUI.Models
                                     }
                                 }
                             }
-                            if (rItem.Items.Count > 0 && skinnedMeshAsset != null)
+                            if (rItem.Items.Count > 0 && meshAsset != null)
                                 index++;
 
                         }
@@ -155,8 +167,6 @@ namespace FrostbiteModdingUI.Models
         }
 
 
-
-
         private Stream LoadTexture(EbxAsset ebxAsset, int materialId, string textureName)
         {
             var rootObject = ((dynamic)ebxAsset.RootObject);
@@ -172,6 +182,9 @@ namespace FrostbiteModdingUI.Models
             dynamic meshMaterial = rootObject.Materials[materialId].Internal;
             dynamic shader = meshMaterial.Shader;
             dynamic desiredTextureParameter = null;
+            if (shader.TextureParameters == null)
+                return null;
+
             foreach (dynamic textureParameter2 in shader.TextureParameters)
             {
                 if (textureParameter2.ParameterName.Equals(textureName, StringComparison.OrdinalIgnoreCase))
@@ -227,6 +240,7 @@ namespace FrostbiteModdingUI.Models
             textureDDSStream.Position = 0L;
             return textureDDSStream;
         }
+
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls

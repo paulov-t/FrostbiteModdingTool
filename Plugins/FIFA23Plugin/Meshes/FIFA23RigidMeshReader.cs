@@ -1,5 +1,4 @@
 ﻿using FMT.FileTools;
-using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.FrostySdk.Resources;
 using FrostySdk.Resources;
 using System;
@@ -10,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FIFA23Plugin.Meshes
 {
-    public class FIFA23CompositeMeshReader
+    internal class FIFA23RigidMeshReader
     {
         public int MaxLodCount => (int)MeshLimits.MaxMeshLodCount;
 

@@ -279,7 +279,7 @@ namespace FMT.Pages.Common
 
 
                 }
-                else if (ebxEntry.Type == "SkinnedMeshAsset" || ebxEntry.Type == "CompositeMeshAsset")
+                else if (ebxEntry.Type == "SkinnedMeshAsset" || ebxEntry.Type == "CompositeMeshAsset" || ebxEntry.Type == "RigidMeshAsset")
                 {
                     if (ebxEntry == null || ebxEntry.Type == "EncryptedAsset")
                     {
@@ -295,7 +295,7 @@ namespace FMT.Pages.Common
                     if (ModelViewerModel != null)
                         ModelViewerModel.Dispose();
 
-                    ModelViewerModel = new MainViewModel(skinnedMeshAsset: SelectedEbxAsset, meshSet: meshSet);
+                    ModelViewerModel = new MainViewModel(meshAsset: SelectedEbxAsset, meshSet: meshSet, ebxAssetEntry: ebxEntry);
                     this.ModelViewer.DataContext = ModelViewerModel;
                     this.ModelDockingManager.Visibility = Visibility.Visible;
 
@@ -512,9 +512,7 @@ namespace FMT.Pages.Common
                             var skinnedMeshEbx = AssetManager.Instance.GetEbx(skinnedMeshEntry);
                             if (skinnedMeshEbx != null)
                             {
-                                //var resentry = AssetManager.Instance.GetResEntry(skinnedMeshEntry.Name);
-                                //var res = AssetManager.Instance.GetRes(resentry);
-                                //MeshSet meshSet = new MeshSet(res);
+                                
                                 var skeletonEntryText = "content/character/rig/skeleton/player/skeleton_player";
                                 var fifaMasterSkeleton = AssetManager.Instance.EBX.ContainsKey(skeletonEntryText);
                                 if (!fifaMasterSkeleton)
@@ -551,6 +549,61 @@ namespace FMT.Pages.Common
                                     exporter.Export(AssetManager.Instance
                                         , skinnedMeshEbx.RootObject
                                         , saveFileDialog.FileName, "FBX_2012", "Meters", true, skeletonEntryText, "*.fbx", meshSet);
+
+
+                                    MainEditorWindow.Log($"Exported {SelectedEntry.Name} to {saveFileDialog.FileName}");
+
+
+                                }
+                            }
+                        }
+                    }
+                    else if (SelectedEntry.Type == "CompositeMeshAsset" || SelectedEntry.Type == "RigidMeshAsset")
+                    {
+                        var rigidMeshEntry = (EbxAssetEntry)SelectedEntry;
+                        if (rigidMeshEntry != null)
+                        {
+
+                            var skinnedMeshEbx = AssetManager.Instance.GetEbx(rigidMeshEntry);
+                            if (skinnedMeshEbx != null)
+                            {
+
+                                var skeletonEntryText = "content/character/rig/skeleton/player/skeleton_player";
+                                var fifaMasterSkeleton = AssetManager.Instance.EBX.ContainsKey(skeletonEntryText);
+                                if (!fifaMasterSkeleton)
+                                {
+                                    MeshSkeletonSelector meshSkeletonSelector = new MeshSkeletonSelector();
+                                    var meshSelectorResult = meshSkeletonSelector.ShowDialog();
+                                    if (meshSelectorResult.HasValue && meshSelectorResult.Value)
+                                    {
+                                        if (!meshSelectorResult.Value)
+                                        {
+                                            MessageBox.Show("Cannot export without a Skeleton");
+                                            return;
+                                        }
+
+                                        skeletonEntryText = meshSkeletonSelector.AssetEntry.Name;
+
+                                    }
+                                    else
+                                    {
+                                        MessageBox.Show("Cannot export without a Skeleton");
+                                        return;
+                                    }
+                                }
+
+                                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                                var filt = "*.fbx";
+                                saveFileDialog.Filter = filt.Split('.')[1] + " files (" + filt + ")|" + filt;
+                                saveFileDialog.FileName = SelectedEntry.Filename;
+                                var dialogAnswer = saveFileDialog.ShowDialog();
+                                if (dialogAnswer.HasValue && dialogAnswer.Value)
+                                {
+                                    var exporter = new MeshSetToFbxExport();
+                                    MeshSet meshSet = exporter.LoadMeshSet(rigidMeshEntry);
+                                    exporter.Export(AssetManager.Instance
+                                        , skinnedMeshEbx.RootObject
+                                        , saveFileDialog.FileName, "FBX_2012", "Meters", true, null, "*.fbx", meshSet);
 
 
                                     MainEditorWindow.Log($"Exported {SelectedEntry.Name} to {saveFileDialog.FileName}");

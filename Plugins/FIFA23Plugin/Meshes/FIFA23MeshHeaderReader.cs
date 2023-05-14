@@ -8,11 +8,10 @@ using System.Threading.Tasks;
 
 namespace FIFA23Plugin.Meshes
 {
-    internal class FIFA23MeshHeaderReader : IMeshSetReader
+    public class FIFA23MeshHeaderReader
     {
         public void Read(NativeReader nativeReader, MeshSet meshSet)
         {
-            throw new NotImplementedException();
         }
     }
 }
