@@ -327,7 +327,7 @@ namespace SdkGenerator
                     //stringBuilder.AppendLine("[" + typeof(IsTransientAttribute).Name + "]");
                     //if (!classObj.HasValue("isData"))
                     //{
-                    //	stringBuilder.AppendLine("[" + typeof(IsHiddenAttribute).Name + "]");
+                    //    stringBuilder.AppendLine("[" + typeof(IsHiddenAttribute).Name + "]");
                     //}
                     //stringBuilder.AppendLine("[" + typeof(DisplayNameAttribute).Name + "(\"Id\")]");
                     //stringBuilder.AppendLine("[" + typeof(CategoryAttribute).Name + "(\"Annotations\")]");
@@ -351,8 +351,8 @@ namespace SdkGenerator
                     stringBuilder.AppendLine("public void SetInstanceGuid(AssetClassGuid newGuid) { __Guid = newGuid; }");
                 }
             }
-            bool flag = classObj.GetValue<string>("name").Equals("Asset");
-            bool flag2 = false;
+            bool nameIsAsset = classObj.GetValue<string>("name").Equals("Asset");
+            bool classObjHasIsData = false;
 
             if (classObj.GetValue<string>("name") == "blocking")
             {
@@ -381,7 +381,7 @@ namespace SdkGenerator
 
                 stringBuilder.Append(WriteField(item));
 
-                if (!flag && item.GetValue<string>("name").Equals("Name", StringComparison.OrdinalIgnoreCase) && ebxFieldType == EbxFieldType.Pointer && (byte)item.GetValue("type", 0) == 7)
+                if (!nameIsAsset && item.GetValue<string>("name").Equals("Name", StringComparison.OrdinalIgnoreCase) && ebxFieldType == EbxFieldType.Pointer && (byte)item.GetValue("type", 0) == 7)
                 {
                     string name = typeof(EbxClassMetaAttribute).GetProperties()[4].Name;
                     string name2 = typeof(GlobalAttributes).GetFields()[0].Name;
@@ -397,7 +397,7 @@ namespace SdkGenerator
                         //                  stringBuilder.AppendLine("if (_" + value2 + " != \"\") return _" + value2 + ".ToString();");
                         //                  stringBuilder.AppendLine("if (" + typeof(GlobalAttributes).Name + "." + name2 + ")\r\n{\r\n" + typeof(EbxClassMetaAttribute).Name + " attr = GetType().GetCustomAttribute<" + typeof(EbxClassMetaAttribute).Name + ">();\r\nif (attr != null && attr." + name + " != \"\")\r\nreturn attr." + name + " + \".\" + GetType().Name;\r\n}\r\nreturn GetType().Name;");
                         //stringBuilder.AppendLine("}");
-                        flag2 = true;
+                        classObjHasIsData = true;
                     }
                     else
                     {
@@ -410,7 +410,7 @@ namespace SdkGenerator
                     }
                 }
             }
-            if (parentClassName == "DataContainer" && !flag2)
+            if (parentClassName == "DataContainer" && !classObjHasIsData)
             {
                 //string name4 = typeof(EbxClassMetaAttribute).GetProperties()[4].Name;
                 //string name5 = typeof(GlobalAttributes).GetFields()[0].Name;
@@ -502,7 +502,7 @@ namespace SdkGenerator
                 }
             }
             string fieldType = "";
-            bool flag2 = false;
+            bool objectBased = false;
             stringBuilder.Append(WriteFieldAttributes(fieldObj));
             if (ebxFieldType == EbxFieldType.Array)
             {
@@ -512,12 +512,12 @@ namespace SdkGenerator
                     type = (EbxFieldType)dbObject.GetValue("arrayType", 0);
                 }
                 fieldType = "List<" + GetFieldType(type, baseType) + ">";
-                flag2 = true;
+                objectBased = true;
             }
             else
             {
                 fieldType = GetFieldType(ebxFieldType, baseType);
-                flag2 = (ebxFieldType == EbxFieldType.ResourceRef || ebxFieldType == EbxFieldType.BoxedValueRef || ebxFieldType == EbxFieldType.CString || ebxFieldType == EbxFieldType.FileRef || ebxFieldType == EbxFieldType.TypeRef || ebxFieldType == EbxFieldType.Struct);
+                objectBased = (ebxFieldType == EbxFieldType.ResourceRef || ebxFieldType == EbxFieldType.BoxedValueRef || ebxFieldType == EbxFieldType.CString || ebxFieldType == EbxFieldType.FileRef || ebxFieldType == EbxFieldType.TypeRef || ebxFieldType == EbxFieldType.Struct);
             }
             if (string.IsNullOrEmpty(fieldType))
                 fieldType = "PointerRef";
@@ -529,7 +529,13 @@ namespace SdkGenerator
             else
             {
                 //stringBuilder.AppendLine("public " + fieldType + " " + fieldName + " { get { return _" + fieldName + "; } set { _" + fieldName + " = value; } }");
-                stringBuilder.AppendLine("public " + fieldType + " " + fieldName + " { get; set; }");
+                stringBuilder.AppendLine(string.Empty);
+                stringBuilder.Append("public " + fieldType + " " + fieldName + " { get; set; }");
+                if(objectBased)
+                {
+                    stringBuilder.Append(" = new " + fieldType + "();");
+                }
+                stringBuilder.AppendLine(string.Empty);
             }
             //stringBuilder.AppendLine("protected " + fieldType + " _" + fieldName + (flag2 ? (" = new " + fieldType + "()") : "") + ";");
             return stringBuilder.ToString();
