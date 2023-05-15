@@ -462,7 +462,10 @@ namespace FrostySdk.IO._2022.Readers
                     }
                     if ((num & 1) == 1)
                     {
-                        //return new PointerRef(base.imports[num >> 1]);
+                        var pointerRefImportIndex = num >> 1;
+                        if (pointerRefImportIndex >= 0 && base.imports.Count > pointerRefImportIndex)
+                            return new PointerRef(base.imports[pointerRefImportIndex]);
+
                         return default(PointerRef);
                     }
                     long offset = base.Position - 4 + num - this.payloadPosition;
@@ -480,47 +483,47 @@ namespace FrostySdk.IO._2022.Readers
             }
         }
 
-        public override object ReadArray(object obj, PropertyInfo property)
-        {
-            long position = base.Position;
-            int arrayOffset = Read<int>(); // base.ReadInt32LittleEndian();
-            var newPosition = base.Position + arrayOffset - 4;
-            if (newPosition < 0)
-                return null;
-            if (newPosition > base.Length)
-                return null;
+        //public override object ReadArray(object obj, PropertyInfo property)
+        //{
+        //    long position = base.Position;
+        //    int arrayOffset = Read<int>(); // base.ReadInt32LittleEndian();
+        //    var newPosition = base.Position + arrayOffset - 4;
+        //    if (newPosition < 0)
+        //        return null;
+        //    if (newPosition > base.Length)
+        //        return null;
 
-            base.Position += arrayOffset - 4;
-            base.Position -= 4L;
-            uint arrayCount = Read<uint>();// base.ReadUInt32LittleEndian();
-            if (arrayCount == 0)
-                return obj;
+        //    base.Position += arrayOffset - 4;
+        //    base.Position -= 4L;
+        //    uint arrayCount = Read<uint>();// base.ReadUInt32LittleEndian();
+        //    if (arrayCount == 0)
+        //        return obj;
 
-            for (int i = 0; i < arrayCount; i++)
-            {
-                var genT = property.PropertyType;
-                var genArg0 = genT.GetGenericArguments()[0];
+        //    for (int i = 0; i < arrayCount; i++)
+        //    {
+        //        var genT = property.PropertyType;
+        //        var genArg0 = genT.GetGenericArguments()[0];
 
-                object obj2 = null;
+        //        object obj2 = null;
 
-                if (genArg0.Name == "PointerRef")
-                    obj2 = this.ReadField(default(EbxClass), EbxFieldType.Pointer, ushort.MaxValue, false);
-                else if (genArg0.Name == "CString")
-                    obj2 = this.ReadField(default(EbxClass), EbxFieldType.CString, ushort.MaxValue, false);
-                else
-                    obj2 = Read(genArg0);
+        //        if (genArg0.Name == "PointerRef")
+        //            obj2 = this.ReadField(default(EbxClass), EbxFieldType.Pointer, ushort.MaxValue, false);
+        //        else if (genArg0.Name == "CString")
+        //            obj2 = this.ReadField(default(EbxClass), EbxFieldType.CString, ushort.MaxValue, false);
+        //        else
+        //            obj2 = Read(genArg0);
 
-                var addMethod = genT.GetMethod("Add");
-                if (addMethod == null)
-                    continue;
+        //        var addMethod = genT.GetMethod("Add");
+        //        if (addMethod == null)
+        //            continue;
 
-                addMethod
-                    .Invoke(property.GetValue(obj), new object[1] { obj2 });
+        //        addMethod
+        //            .Invoke(property.GetValue(obj), new object[1] { obj2 });
 
-            }
-            base.Position = position;
-            return obj;
-        }
+        //    }
+        //    base.Position = position;
+        //    return obj;
+        //}
 
 
     }

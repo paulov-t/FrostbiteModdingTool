@@ -262,7 +262,9 @@ namespace FrostySdk.IO._2022.Readers
 
             var orderedProps = properties
                 .Where(x => x.Key.GetCustomAttribute<IsTransientAttribute>() == null && x.Key.GetCustomAttribute<FieldIndexAttribute>() != null)
-                .OrderBy(x => x.Key.GetCustomAttribute<FieldIndexAttribute>().Index);
+                .OrderBy(x => x.Value.Offset)
+                //.OrderBy(x => x.Key.GetCustomAttribute<FieldIndexAttribute>().Index)
+                .ToArray();
 
 #if DEBUG
 
@@ -323,6 +325,9 @@ namespace FrostySdk.IO._2022.Readers
 
             int arrayOffset = Read<int>(); 
             var newPosition = base.Position + arrayOffset - 4;
+
+            var ebxArray = arrays.Find((EbxArray a) => a.Offset == newPosition - payloadPosition);
+
             if (newPosition < 0 || newPosition > base.Length)
             {
                 base.Position = position + (arrayOffset) - 8;
@@ -346,14 +351,11 @@ namespace FrostySdk.IO._2022.Readers
             if (arrayCount < 0)
                 return;
 
-            if (arrayCount >= 130)
+            if (arrayCount >= 999)
                 return;
 
             for (int i = 0; i < arrayCount; i++)
             {
-                var genT = property.PropertyType;
-                var genArg0 = genT.GetGenericArguments()[0];
-
                 object obj2 = null;
 
                 // -------------------------------------------------------------------------------------------------------------------------
