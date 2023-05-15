@@ -220,8 +220,11 @@ namespace FrostySdk.Frostbite.IO.Output
 
                 }
 
+                if (reader == null)
+                    continue;
+
                 reader.Position = 0;
-                var debugMeshesChunkDataPath = "MeshesChunkData_" + ProfileManager.ProfileName + ".dat";
+                var debugMeshesChunkDataPath = "_MeshesChunkData_" + ProfileManager.ProfileName + ".dat";
                 if (File.Exists(debugMeshesChunkDataPath))
                     File.Delete(debugMeshesChunkDataPath);
 
@@ -417,14 +420,7 @@ namespace FrostySdk.Frostbite.IO.Output
                     if (boneWeight[l] > 0f)
                     {
                         int indIndex = boneIndicy[l];
-                        // This is a hack, just for hair caps in FIFA 23
-                        //if (boneList.Count - 1 < indIndex)
-                        //{
-                        //	// This is a hack
-                        //	//boneWeight[0] = 1f;
-                        //	//boneWeight[l] = 0f;
-                        //	continue;
-                        //}
+                        
                         indIndex = boneList[indIndex];
                         if (((uint)indIndex & 0x8000u) != 0)
                         {
