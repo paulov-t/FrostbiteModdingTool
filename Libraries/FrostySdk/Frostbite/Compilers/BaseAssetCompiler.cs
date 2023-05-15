@@ -251,17 +251,24 @@ namespace FrostySdk.Frostbite.Compilers
         protected virtual bool WriteChangesToSuperBundle(DbObject origDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
         {
             if (assetBundle.Key is EbxAssetEntry)
-                return WriteEbxChangesToSuperBundle(origDbo, writer, assetBundle);
+                return WriteChangesToSuperBundleEbx(origDbo, writer, assetBundle);
             else if (assetBundle.Key is ResAssetEntry)
-                return WriteResChangesToSuperBundle(origDbo, writer, assetBundle);
+                return WriteChangesToSuperBundleRes(origDbo, writer, assetBundle);
             else if (assetBundle.Key is ChunkAssetEntry)
-                return WriteChunkChangesToSuperBundle(origDbo, writer, assetBundle);
+                return WriteChangesToSuperBundleChunk(origDbo, writer, assetBundle);
 
             return false;
         }
 
-        protected virtual bool WriteEbxChangesToSuperBundle(DbObject origDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
+        protected virtual bool WriteChangesToSuperBundleEbx(DbObject origDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
         {
+#if DEBUG
+            if (origDbo["name"].ToString().EndsWith("head_202231_0_0_mesh"))
+            {
+
+            }
+#endif
+
             if (origDbo == null)
                 throw new ArgumentNullException(nameof(origDbo));
 
@@ -295,23 +302,31 @@ namespace FrostySdk.Frostbite.Compilers
             return true;
         }
 
-        protected virtual bool WriteResChangesToSuperBundle(DbObject origResDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
+        protected virtual bool WriteChangesToSuperBundleRes(DbObject origDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
         {
-            if (origResDbo == null)
-                throw new ArgumentNullException(nameof(origResDbo));
+#if DEBUG
+            if (origDbo["name"].ToString().EndsWith("head_202231_0_0_mesh"))
+            {
+
+            }
+#endif
+
+
+            if (origDbo == null)
+                throw new ArgumentNullException(nameof(origDbo));
 
             if (!ModExecuter.modifiedRes.ContainsKey(assetBundle.Key.Name))
                 return false;
 
-            if (!origResDbo.HasValue("SB_ResMeta_Position") || origResDbo.GetValue<int>("SB_ResMeta_Position") == 0)
+            if (!origDbo.HasValue("SB_ResMeta_Position") || origDbo.GetValue<int>("SB_ResMeta_Position") == 0)
                 return false;
 
-            var resMetaPosition = origResDbo.GetValue<int>("SB_ResMeta_Position");
+            var resMetaPosition = origDbo.GetValue<int>("SB_ResMeta_Position");
             var originalSizePosition = 
-                origResDbo.HasValue("SB_OriginalSize_Position") ? origResDbo.GetValue<int>("SB_OriginalSize_Position")
-                : origResDbo.HasValue("SBOSizePos") ? origResDbo.GetValue<int>("SBOSizePos")
+                origDbo.HasValue("SB_OriginalSize_Position") ? origDbo.GetValue<int>("SB_OriginalSize_Position")
+                : origDbo.HasValue("SBOSizePos") ? origDbo.GetValue<int>("SBOSizePos")
                 : 0;
-            long? sha1Position = origResDbo.HasValue("SB_Sha1_Position") ? origResDbo.GetValue<long>("SB_Sha1_Position") : null;
+            long? sha1Position = origDbo.HasValue("SB_Sha1_Position") ? origDbo.GetValue<long>("SB_Sha1_Position") : null;
 
             if (originalSizePosition == 0)
                 return false;
@@ -320,44 +335,45 @@ namespace FrostySdk.Frostbite.Compilers
             if (originalSizeOfData == 0)
                 return false;
 
-            if (!origResDbo.HasValue("SB_Sha1_Position"))
+            if (!origDbo.HasValue("SB_Sha1_Position"))
                 return false;
 
-
-            //if (assetBundle.Key.Type != "MeshSet")
-            {
-                writer.BaseStream.Position = resMetaPosition;
-                writer.WriteBytes(ModExecuter.modifiedRes[assetBundle.Key.Name].ResMeta);
-            }
+            var modifiedResource = ModExecuter.modifiedRes[assetBundle.Key.Name];
 
             //if (assetBundle.Key.Type != "MeshSet")
             //{
-                if (ModExecuter.modifiedRes[assetBundle.Key.Name].ResRid != 0)
+                writer.BaseStream.Position = resMetaPosition;
+                writer.WriteBytes(modifiedResource.ResMeta);
+            //}
+
+            //if (assetBundle.Key.Type != "MeshSet")
+            //{
+                if (modifiedResource.ResRid != 0)
                 {
-                    writer.BaseStream.Position = origResDbo.GetValue<int>("SB_ReRid_Position");
-                    writer.WriteULong(ModExecuter.modifiedRes[assetBundle.Key.Name].ResRid);
+                    writer.BaseStream.Position = origDbo.GetValue<int>("SB_ReRid_Position");
+                    writer.WriteULong(modifiedResource.ResRid);
                 }
             //}
 
             //if (assetBundle.Key.Type != "MeshSet")
-            {
+            //{
                 writer.Position = originalSizePosition;
                 writer.Write((uint)originalSizeOfData, Endian.Little);
-            }
+            //}
 
             //if (assetBundle.Key.Type != "MeshSet")
-            { 
-                if (sha1Position.HasValue && assetBundle.Value.Item4 != Sha1.Zero)
+            //{ 
+                if (sha1Position.HasValue && modifiedResource.Sha1 != Sha1.Zero)
                 {
                     writer.Position = sha1Position.Value;
-                    writer.Write(assetBundle.Value.Item4);
+                    writer.Write(modifiedResource.Sha1);
                 }
-            }
+            //}
 
             return true;
         }
 
-        protected virtual bool WriteChunkChangesToSuperBundle(DbObject origChunkDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
+        protected virtual bool WriteChangesToSuperBundleChunk(DbObject origChunkDbo, NativeWriter writer, KeyValuePair<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> assetBundle)
         {
             if (origChunkDbo == null)
                 throw new ArgumentNullException(nameof(origChunkDbo));
@@ -607,13 +623,7 @@ namespace FrostySdk.Frostbite.Compilers
                         }
 
                         AssetEntry modifiedAsset = null;
-
-                        var origSize = 0;
-                        var positionOfData = nwCas.Position;
-                        // write the new data to end of the file (this should be fine)
-                        nwCas.Write(data);
-                        FileLogger.WriteLine($"Written {modItem.ModType} {modItem.NamePath} to {casPath}");
-
+                        
                         switch (modItem.ModType)
                         {
                             case ModType.EBX:
@@ -627,7 +637,33 @@ namespace FrostySdk.Frostbite.Compilers
                                 break;
                         }
 
-                        if (modifiedAsset != null && modifiedAsset is ChunkAssetEntry)
+                        if (modifiedAsset == null)
+                            continue;
+
+                        //if(modItem.ModType == ModType.EBX)
+                        //{
+                        //    if (modItem.NamePath.EndsWith("_mesh"))
+                        //    {
+                        //        var ebxAsset = AssetManager.Instance.GetEbxAssetFromStream(new MemoryStream(new CasReader(new MemoryStream(data)).Read()));
+                        //        using (var w = EbxWriter.GetEbxWriter())
+                        //        {
+                        //            w.WriteAsset(ebxAsset);
+                        //            w.BaseStream.Seek(0, SeekOrigin.Begin);
+                        //            var uncompressedData = ((MemoryStream)w.BaseStream).ToArray();
+                        //            data = Utils.CompressFile(uncompressedData, null, ResourceType.Invalid);
+
+                        //        }
+                        //    }
+                        //}
+
+                        var origSize = 0;
+                        var positionOfData = nwCas.Position;
+                        // write the new data to end of the file (this should be fine)
+                        nwCas.Write(data);
+                        FileLogger.WriteLine($"Written {modItem.ModType} {modItem.NamePath} to {casPath}");
+
+
+                        if (modifiedAsset is ChunkAssetEntry)
                         {
                             var chunkModAsset = modifiedAsset as ChunkAssetEntry;
 
@@ -863,13 +899,20 @@ namespace FrostySdk.Frostbite.Compilers
 
                             if (origDbo != null && !string.IsNullOrEmpty(casPath))
                             {
+#if DEBUG
+                                if (origDbo["name"].ToString().EndsWith("head_202231_0_0_mesh"))
+                                {
+
+                                }
+#endif
+
                                 var positionOfNewData = assetBundle.Value.Item1;
                                 var sizeOfData = assetBundle.Value.Item2;
                                 var originalSizeOfData = assetBundle.Value.Item3;
                                 var sha = assetBundle.Value.Item4;
 
-                                int sb_cas_size_position = assetBundle.Key.SB_CAS_Size_Position;
-                                var sb_cas_offset_position = assetBundle.Key.SB_CAS_Offset_Position;
+                                long sb_cas_size_position = origDbo.GetValue<long>("TOCSizePosition");// assetBundle.Key.SB_CAS_Size_Position;
+                                var sb_cas_offset_position = origDbo.GetValue<long>("TOCOffsetPosition");// assetBundle.Key.SB_CAS_Offset_Position;
                                 nw_toc.BaseStream.Position = sb_cas_offset_position;
                                 nw_toc.Write((uint)positionOfNewData, Endian.Big);
                                 nw_toc.Write((uint)sizeOfData, Endian.Big);
@@ -923,7 +966,14 @@ namespace FrostySdk.Frostbite.Compilers
                         FileLogger.WriteLine($"Writing {abtc.Value.Count} assets to {resolvedCasPath}");
                         foreach (var assetEntry in abtc.Value)
                         {
-                            var assetBundle = EntriesToNewPosition.FirstOrDefault(x => x.Key.Equals(assetEntry.Item1));
+
+
+                            var assetBundles = EntriesToNewPosition.Where(x => x.Key.Equals(assetEntry.Item1)).ToArray();
+                            if(assetBundles.Count() > 1)
+                            {
+                                throw new Exception($"There are too many AssetEntries of a similar type/name!");
+                            }
+                            var assetBundle = assetBundles.Single();
                             //var assetBundles = tocGroup.Value.Where(x => x.Key.Equals(assetEntry.Item1));
                             //foreach (var assetBundle in assetBundles)
                             //{
