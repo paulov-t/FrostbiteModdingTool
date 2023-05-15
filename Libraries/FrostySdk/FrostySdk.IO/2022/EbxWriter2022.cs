@@ -406,8 +406,7 @@ namespace FrostySdk.FrostySdk.IO
             type.GetCustomAttribute<EbxClassMetaAttribute>();
             PropertyInfo[] properties = type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
             List<PropertyInfo> propertiesToInclude = new List<PropertyInfo>();
-            PropertyInfo[] array = properties;
-            foreach (PropertyInfo propertyInfo in array)
+            foreach (PropertyInfo propertyInfo in properties)
             {
                 if (propertyInfo.GetCustomAttribute<IsTransientAttribute>() == null || flags.HasFlag(EbxWriteFlags.IncludeTransient))
                 {
@@ -418,41 +417,54 @@ namespace FrostySdk.FrostySdk.IO
             {
                 classIndex = AddClass(type.Name, type);
             }
-            if (!type.IsEnum)
+            if (type.IsEnum)
+                return (ushort)classIndex;
+
+            foreach (PropertyInfo item in propertiesToInclude)
             {
-                foreach (PropertyInfo item in propertiesToInclude)
+                EbxFieldMetaAttribute ebxFieldMetaAttribute = item.GetCustomAttribute<EbxFieldMetaAttribute>();
+                switch (ebxFieldMetaAttribute.Type)
                 {
-                    EbxFieldMetaAttribute ebxFieldMetaAttribute = item.GetCustomAttribute<EbxFieldMetaAttribute>();
-                    switch (ebxFieldMetaAttribute.Type)
-                    {
-                        case EbxFieldType.Struct:
-                            ProcessClass(item.PropertyType, item.GetValue(obj), isBaseType);
-                            //ProcessClass(item.PropertyType, item.GetValue(obj), true);
-                            break;
-                        case EbxFieldType.Array:
+                    case EbxFieldType.Struct:
+                        ProcessClass(item.PropertyType, item.GetValue(obj), isBaseType);
+                        //ProcessClass(item.PropertyType, item.GetValue(obj), true);
+                        break;
+                    case EbxFieldType.Array:
+                        {
+                            Type elementType = item.PropertyType.GenericTypeArguments[0];
+
+                            var genericTypeDef = item.PropertyType.GetGenericTypeDefinition();
+                            var genericArgs = item.PropertyType.GetGenericArguments();
+                            Type constructed = genericTypeDef.MakeGenericType(genericArgs);
+
+                            if (FindExistingClass(elementType) != -1)
+                                break;
+                            
+                            if (obj == null)
+                                break;
+
+                            var arrayValue = item.GetValue(obj);
+                            
+
+                            if (arrayValue == null)
+                                arrayValue = Activator.CreateInstance(constructed);
+
+                            IList typedArray = (IList)arrayValue;
+                            if (typedArray.Count == 0)
                             {
-                                Type elementType = item.PropertyType.GenericTypeArguments[0];
-                                if (FindExistingClass(elementType) != -1)
-                                {
-                                    break;
-                                }
-                                IList typedArray = (IList)item.GetValue(obj);
-                                if (typedArray.Count == 0)
-                                {
-                                    break;
-                                }
-                                arrayTypes.Add(ebxFieldMetaAttribute);
-                                if (ebxFieldMetaAttribute.ArrayType != EbxFieldType.Struct)
-                                {
-                                    break;
-                                }
-                                foreach (object arrayItem in typedArray)
-                                {
-                                    ProcessClass(elementType, arrayItem, isBaseType);
-                                }
                                 break;
                             }
-                    }
+                            arrayTypes.Add(ebxFieldMetaAttribute);
+                            if (ebxFieldMetaAttribute.ArrayType != EbxFieldType.Struct)
+                            {
+                                break;
+                            }
+                            foreach (object arrayItem in typedArray)
+                            {
+                                ProcessClass(elementType, arrayItem, isBaseType);
+                            }
+                            break;
+                        }
                 }
             }
             return (ushort)classIndex;
