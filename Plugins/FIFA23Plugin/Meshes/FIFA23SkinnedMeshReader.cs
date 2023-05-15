@@ -1,8 +1,10 @@
 ﻿using FMT.FileTools;
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.FrostySdk.Resources;
+using FrostySdk.Managers;
 using FrostySdk.Resources;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -104,6 +106,16 @@ namespace FIFA23Plugin.Meshes
             meshSet.FullName = nativeReader.ReadNullTerminatedString();
             nativeReader.Position = offsetNameShort;
             meshSet.Name = nativeReader.ReadNullTerminatedString();
+
+            // Get MeshSet Layout Size
+            uint? meshSetLayoutSize = null;
+            uint? meshSetVertexSize = null;
+            var resEntry = AssetManager.Instance.GetResEntry(meshSet.FullName);
+            if (resEntry != null)
+            {
+                meshSetLayoutSize = BinaryPrimitives.ReadUInt32LittleEndian(resEntry.ResMeta);
+                meshSetVertexSize = BinaryPrimitives.ReadUInt32LittleEndian(resEntry.ResMeta.AsSpan(4));
+            }
             nativeReader.Pad(16);
             foreach (MeshSetLod lod in meshSet.Lods)
             {
@@ -132,11 +144,14 @@ namespace FIFA23Plugin.Meshes
                     nativeReader.Position += lod.Sections.Count * 24;
                 }
             }
-
-            nativeReader.Pad(16);
-            foreach (MeshSetLod lod in meshSet.Lods)
-            {
-                lod.ReadInlineData(nativeReader);
+            //nativeReader.Pad(16);
+            if (meshSetLayoutSize.HasValue && meshSetVertexSize.HasValue)
+            { 
+                nativeReader.Position = meshSetLayoutSize.Value;
+                foreach (MeshSetLod lod in meshSet.Lods)
+                {
+                    lod.ReadInlineData(nativeReader);
+                }
             }
         }
     }
