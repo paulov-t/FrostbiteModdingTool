@@ -10,7 +10,7 @@ using Fnv1a = FMT.FileTools.Fnv1a;
 namespace FrostySdk.Managers
 {
     [Serializable]
-    public class AssetEntry : IAssetEntry, IEqualityComparer<AssetEntry>, INotifyPropertyChanged
+    public class AssetEntry : IAssetEntry, INotifyPropertyChanged
     {
         public AssetEntry(ModifiedAssetEntry modifiedAssetEntry = null)
         {
@@ -423,24 +423,35 @@ namespace FrostySdk.Managers
         //    this.AssetModified?.Invoke(this, new EventArgs());
         //}
 
-        public bool Equals(AssetEntry x, AssetEntry y)
+        public override bool Equals(object obj)
         {
-            if (x == null)
+            if (obj == null)
                 return false;
 
-            if (y == null)
-                return false;
+            if (obj is AssetEntry other)
+            {
+                if (other.Sha1 == this.Sha1)
+                    return true;
 
-            if (x.Sha1 == y.Sha1)
-                return true;
+                if (other.FullPath == this.FullPath 
+                    && !string.IsNullOrEmpty(other.Type) && !string.IsNullOrEmpty(this.Type) && other.Type == this.Type)
+                    return true;
+            }
 
-            if (x.Name == y.Name)
-                return true;
+            //if (obj is IAssetEntry iOther)
+            //{
+            //    if (iOther.Sha1 == this.Sha1)
+            //        return true;
 
-            return false;
+            //    if (iOther.Name == this.Name)
+            //        return true;
+            //}
+
+            return base.Equals(obj);
         }
 
-        public int GetHashCode(AssetEntry obj)
+      
+        public override int GetHashCode()
         {
             return BitConverter.ToInt32(Sha1.ToByteArray());
         }
