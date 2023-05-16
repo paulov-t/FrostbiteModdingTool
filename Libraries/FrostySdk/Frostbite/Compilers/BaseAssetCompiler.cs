@@ -404,7 +404,12 @@ namespace FrostySdk.Frostbite.Compilers
             return true;
         }
 
-        public virtual void ModifyTOCChunks(string directory = "native_patch")
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="directory">native_patch or native_data?</param>
+        /// <returns>List of Modded Chunk Ids</returns>
+        public virtual IEnumerable<Guid> ModifyTOCChunks(string directory = "native_patch")
         {
             int sbIndex = -1;
             foreach (var catalogInfo in FileSystem.Instance.EnumerateCatalogInfos())
@@ -465,7 +470,7 @@ namespace FrostySdk.Frostbite.Compilers
                     if (string.IsNullOrEmpty(nextCasPath))
                     {
                         Debug.WriteLine("Error finding nextCasPath in BaseAssetCompiler.ModifyTOCChunks!");
-                        return;
+                        continue;
                     }
 
                     using (NativeWriter nw_cas = new NativeWriter(new FileStream(nextCasPath, FileMode.OpenOrCreate)))
@@ -518,6 +523,7 @@ namespace FrostySdk.Frostbite.Compilers
                                         nw_toc.Position = chunk.SB_CAS_Size_Position;
                                         nw_toc.Write((uint)data.Length, Endian.Big);
                                         FileLogger.WriteLine($"Written TOC Chunk {chunkGuid} to {nextCasPath}");
+                                        yield return chunkGuid;
                                     }
                                 }
 
@@ -581,6 +587,7 @@ namespace FrostySdk.Frostbite.Compilers
             foreach (var item in dictOfModsToCas)
             {
 
+
                 string casPath = FileSystem.Instance.ResolvePath(item.Key, ModExecutor.UseModData);
 
 
@@ -640,38 +647,21 @@ namespace FrostySdk.Frostbite.Compilers
                         if (modifiedAsset == null)
                             continue;
 
-                        //if(modItem.ModType == ModType.EBX)
-                        //{
-                        //    if (modItem.NamePath.EndsWith("_mesh"))
-                        //    {
-                        //        var ebxAsset = AssetManager.Instance.GetEbxAssetFromStream(new MemoryStream(new CasReader(new MemoryStream(data)).Read()));
-                        //        using (var w = EbxWriter.GetEbxWriter())
-                        //        {
-                        //            w.WriteAsset(ebxAsset);
-                        //            w.BaseStream.Seek(0, SeekOrigin.Begin);
-                        //            var uncompressedData = ((MemoryStream)w.BaseStream).ToArray();
-                        //            data = Utils.CompressFile(uncompressedData, null, ResourceType.Invalid);
-
-                        //        }
-                        //    }
-                        //}
-
                         var origSize = 0;
-                        var positionOfData = nwCas.Position;
-                        // write the new data to end of the file (this should be fine)
-                        nwCas.Write(data);
-                        FileLogger.WriteLine($"Written {modItem.ModType} {modItem.NamePath} to {casPath}");
-
+                       
 
                         if (modifiedAsset is ChunkAssetEntry)
                         {
                             var chunkModAsset = modifiedAsset as ChunkAssetEntry;
 
-                            if (chunkModAsset.IsTocChunk)
-                                continue;
+                            //if (chunkModAsset.IsTocChunk)
+                            //    continue;
 
                             if (chunkModAsset.ModifiedEntry != null && chunkModAsset.ModifiedEntry.IsLegacyFile)
+                            {
+                                FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as its a Legacy File");
                                 continue;
+                            }
                         }
 
                         origSize = Convert.ToInt32(modifiedAsset.OriginalSize);
@@ -698,7 +688,19 @@ namespace FrostySdk.Frostbite.Compilers
                         if (string.IsNullOrEmpty(originalEntry.TOCFileLocation))
                             continue;
 
-                        EntriesToNewPosition.Add(originalEntry, (positionOfData, data.Length, origSize, modItem.Sha1));
+                        var positionOfData = nwCas.Position;
+                        // write the new data to end of the file (this should be fine)
+                        nwCas.Write(data);
+                        FileLogger.WriteLine($"Written {modItem.ModType} {modItem.NamePath} to {casPath}");
+
+                        if (EntriesToNewPosition.ContainsKey(originalEntry))
+                        {
+                            FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as it already been processed");
+                        }
+                        else
+                        {
+                            EntriesToNewPosition.Add(originalEntry, (positionOfData, data.Length, origSize, modItem.Sha1));
+                        }
                     }
 
                 }
@@ -715,6 +717,9 @@ namespace FrostySdk.Frostbite.Compilers
                 ModExecuter.Logger.LogError($"Unable to find any entries to process");
                 return false;
             }
+
+            if (!EntriesToNewPosition.Any())
+                return true;
 
             // ------------------------------------------------------------------------------
             // Step 1. Discovery phase. Find the Edited Bundles and what TOC/SB they affect
@@ -833,7 +838,11 @@ namespace FrostySdk.Frostbite.Compilers
                     .Where(x => x.List != null && x.List.Any(y => ModExecuter.ModifiedChunks.ContainsKey(((DbObject)y).GetValue<Guid>("id"))))
                     .ToList();
 
-                    if (origEbxBundles.Count == 0 && origResBundles.Count == 0 && origChunkBundles.Count == 0)
+                    var origTocChunks = tocFile.TocChunks
+                    .Where(x => ModExecuter.ModifiedChunks.ContainsKey(x.Id))
+                    .ToList();
+
+                    if (origEbxBundles.Count == 0 && origResBundles.Count == 0 && origChunkBundles.Count == 0 && origTocChunks.Count == 0)
                         continue;
                     //return;
 
@@ -897,10 +906,23 @@ namespace FrostySdk.Frostbite.Compilers
                                 }
                             }
 
-                            if (origDbo != null && !string.IsNullOrEmpty(casPath))
+                            if (origDbo == null)
                             {
+                                if(directory == "native_data") // If hasn't been found in patch or data, we have a problem
+                                    FileLogger.WriteLine($"Unable to find Original DBO for asset {assetBundle.Key.Name} in {tocGroup.Key}");
+
+
+                                continue;
+                                //throw new Exception($"Unable to find Original DBO for asset {assetBundle.Key.Name}");
+                            }
+
+                            if (string.IsNullOrEmpty(casPath) && directory == "native_data")
+                                throw new Exception($"Unable to find Cas Path for asset {assetBundle.Key.Name} in {tocGroup.Key}");
+
+                            //if (origDbo != null && !string.IsNullOrEmpty(casPath))
+                            //{
 #if DEBUG
-                                if (origDbo["name"].ToString().EndsWith("head_202231_0_0_mesh"))
+                                if (origDbo.HasValue("name") && origDbo["name"].ToString().EndsWith("head_202231_0_0_mesh"))
                                 {
 
                                 }
@@ -921,7 +943,7 @@ namespace FrostySdk.Frostbite.Compilers
                                     assetBundleToCAS.Add(casPath, new List<(AssetEntry, DbObject)>());
 
                                 assetBundleToCAS[casPath].Add((assetBundle.Key, origDbo));
-                            }
+                            //}
                         }
 
 
