@@ -613,7 +613,7 @@ namespace FIFAModdingUI.Windows
 
                     ProjectManagement.Project = new FMTProject(saveFileDialog.FileName);
                     ProjectManagement.Project.ModSettings.UpdateFromOtherModSettings(storedPreviousModSettings);
-                    ((FMTProject)ProjectManagement.Project).Update();
+                    ProjectManagement.Project = ((FMTProject)ProjectManagement.Project).Update();
                 }
             }
             // Legacy fbproject file type
