@@ -117,7 +117,7 @@ namespace FIFA23Plugin
                 parent.DeleteLiveUpdates = true;
 
             parent.Logger.Log("Modifying TOC Chunks.");
-            ModifyTOCChunks();
+            var modifiedTocChunks = ModifyTOCChunks();
 
             var entriesToNewPosition = WriteNewDataToCasFiles(dictOfModsToCas);
             if (entriesToNewPosition == null || entriesToNewPosition.Count == 0)
