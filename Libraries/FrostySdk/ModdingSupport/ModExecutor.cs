@@ -21,6 +21,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media.Animation;
 using System.Xml;
 using v2k4FIFAModdingCL;
 using Sha1 = FMT.FileTools.Sha1;
@@ -388,11 +389,17 @@ namespace ModdingSupport
             var compatibleModExtensions = new List<string>() { ".fbmod", ".fifamod" };
             Logger.Log("Loading mods");
 
+            FileLogger.WriteLine("========================================================");
+            FileLogger.WriteLine("Loading mod Streams");
+            FileLogger.WriteLine("========================================================");
+
             foreach (var f in allModPaths.Select(x => new FileInfo(x)))
             {
+                FileLogger.WriteLine($">>> Loading {f.FullName}");
                 ReadFrostbiteMods(f.FullName, ref FrostyModsFound, ref frostyMods);
                 //ReadFrostbiteMods(rootPath + f, ref FrostyModsFound, ref frostyMods);
             }
+
 
             foreach (KeyValuePair<Stream, IFrostbiteMod> kvpMods in frostyMods)
             {
@@ -406,9 +413,11 @@ namespace ModdingSupport
                     (BaseModResource, byte[]) r
                     in
                     frostbiteMod.Resources
+                    .OrderBy(x=>x.Type == ModResourceType.Ebx)
+                    .ThenBy(x=>x.Type == ModResourceType.Res)
                     .Select(x => (x, frostbiteMod.GetResourceData(x)))
                     .Where(x => x.Item2 != null)
-                    .OrderBy(x => x.Item2.Length)
+                    //.OrderBy(x => x.Item2.Length)
                     )
                 {
                     indexCompleted++;
@@ -524,9 +533,7 @@ namespace ModdingSupport
                                     RefCount = 1
                                 });
 
-
                             archiveData[ebxEntry.Sha1].Data = resourceData;
-
 
                             break;
                         case ModResourceType.Res:
@@ -565,15 +572,7 @@ namespace ModdingSupport
                             break;
                         case ModResourceType.Chunk:
                             Guid guid = new Guid(resource.Name);
-                            if (ModifiedChunks.ContainsKey(guid))
-                            {
-                                ModifiedChunks.Remove(guid);
-                                FileLogger.WriteLine($"Replacing {resource.Type} with {kvpMods.Value.ModDetails.Title} in ModifiedChunks list");
-                            }
-                            else
-                            {
-                                FileLogger.WriteLine($"Adding {resource.Type} {resource.Name} from {kvpMods.Value.ModDetails.Title} to ModifiedChunks list");
-                            }
+                            
                             ChunkAssetEntry chunkAssetEntry = new ChunkAssetEntry();
                             resource.FillAssetEntry(chunkAssetEntry);
                             chunkAssetEntry.Size = resourceData.Length;
@@ -619,6 +618,14 @@ namespace ModdingSupport
                             }
                             else
                             {
+                                if (ModifiedChunks.ContainsKey(guid))
+                                {
+                                    ModifiedChunks.Remove(guid);
+                                    FileLogger.WriteLine($"Replacing {resource.Type} with {kvpMods.Value.ModDetails.Title} in ModifiedChunks list");
+                                }
+                                else
+                                    FileLogger.WriteLine($"Adding {resource.Type} {resource.Name} from {kvpMods.Value.ModDetails.Title} to ModifiedChunks list");
+
                                 ModifiedChunks.Add(guid, chunkAssetEntry);
                                 if (!archiveData.ContainsKey(chunkAssetEntry.Sha1))
                                 {
@@ -1017,6 +1024,8 @@ namespace ModdingSupport
             archiveData.Clear();
             GC.Collect();
 
+            RemoveDXGIAndCryptBaseDll();
+
             RunFIFA23Setup();
 
             // Delete the Live Updates
@@ -1075,7 +1084,7 @@ namespace ModdingSupport
             if (foundMods && !UseModData)
             {
                 Logger.Log("Launching game: " + fs.BasePath + ProfileManager.ProfileName + ".exe (with Frostbite Mods)");
-                ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
+                await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
             }
             else if (UseModData)
             {
@@ -1091,13 +1100,13 @@ namespace ModdingSupport
                     else
                         Logger.Log("Launching game: " + fs.BasePath + ProfileManager.ProfileName + ".exe (with Frostbite Mods in ModData)");
 
-                    ExecuteProcess(GameEXEPath, arguments);
+                    await ExecuteProcess(GameEXEPath, arguments);
                 }
             }
             else
             {
                 Logger.Log("Launching game: " + fs.BasePath + ProfileManager.ProfileName + ".exe");
-                ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
+                await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
             }
 
             if (UseACBypass && ProfileManager.IsFIFA23DataVersion())
@@ -1108,6 +1117,19 @@ namespace ModdingSupport
             GC.Collect();
             GC.WaitForPendingFinalizers();
             return true;
+        }
+
+        private void RemoveDXGIAndCryptBaseDll()
+        {
+            // --------------------------------------------------------------
+            // Unistall that crappy dxgi "fix" ------------------------------
+            if (File.Exists(FileSystem.Instance.BasePath + "\\dxgi.dll"))
+                File.Delete(FileSystem.Instance.BasePath + "\\dxgi.dll");
+
+            // --------------------------------------------------------------
+            // Cryptbase.dll no longer used ------------------------------
+            if (File.Exists(FileSystem.Instance.BasePath + "CryptBase.dll"))
+                File.Delete(FileSystem.Instance.BasePath + "CryptBase.dll");
         }
 
         private async void RunEADesktop()
@@ -1188,16 +1210,8 @@ namespace ModdingSupport
 
             }
 
-            ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
-
-            //Process p = new();
-            //p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            //p.StartInfo.FileName = "cmd.exe";
-            //p.StartInfo.Arguments = "/C start \"\" \"";
-            //p.StartInfo.Arguments += Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Electronic Arts\EA Desktop")?.GetValue("ClientPath")?.ToString(); ;
-            //p.StartInfo.Arguments += "\"";
-            //p.StartInfo.WorkingDirectory = Path.GetDirectoryName(Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Electronic Arts\EA Desktop")?.GetValue("ClientPath")?.ToString());
-            //p.Start();
+            await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
+            //ExecuteCommand("start \"" + fs.BasePath + ProfileManager.ProfileName + ".exe\"");
         }
 
         private void RunFIFA23Setup()
@@ -1366,39 +1380,55 @@ namespace ModdingSupport
         //    }
         //}
 
-        public void ExecuteProcess(string processName, string args, bool waitForExit = false, bool asAdmin = false)
+        public void ExecuteCommand(string Command)
         {
+            ProcessStartInfo ProcessInfo;
+            Process Process;
+
+            ProcessInfo = new ProcessStartInfo("cmd.exe", "/K " + Command);
+            ProcessInfo.CreateNoWindow = true;
+            ProcessInfo.UseShellExecute = true;
+
+            Process = Process.Start(ProcessInfo);
+        }
+
+        public async Task ExecuteProcess(string processName, string args, bool waitForExit = false, bool asAdmin = false)
+        {
+            FileLogger.WriteLine($"Launching {processName} {args}");
+            Logger.Log($"Launching {processName} {args}");
             //Process p = new Process();
             //p.StartInfo.FileName = "cmd.exe";
             //p.StartInfo.Arguments = $"/K \"\"{processName}\" \"{args}\"\"";
             //p.Start();
 
-            //using (Process process = new Process())
-            //{
-            //    FileInfo fileInfo = new FileInfo(processName);
-            //    process.StartInfo.FileName = processName;
-            //    process.StartInfo.WorkingDirectory = fileInfo.DirectoryName;
-            //    process.StartInfo.Arguments = args;
-            //    //process.StartInfo.UseShellExecute = false;
-            //    //if (asAdmin)
-            //    {
-            //        process.StartInfo.UseShellExecute = true;
-            //        process.StartInfo.Verb = "runas";
-            //    }
-            //    process.Start();
-            //    if (waitForExit)
-            //    {
-            //        process.WaitForExit();
-            //    }
-            //}
-            FileInfo fileInfo = new FileInfo(processName);
-            Process.Start(new ProcessStartInfo
+            using (Process process = new Process())
             {
-                FileName = fileInfo.FullName,
-                WorkingDirectory = fileInfo.DirectoryName,
-                Arguments = args,
-                UseShellExecute = false
-            });
+                FileInfo fileInfo = new FileInfo(processName);
+                process.StartInfo.FileName = processName;
+                process.StartInfo.WorkingDirectory = fileInfo.DirectoryName;
+                process.StartInfo.Arguments = args;
+                process.StartInfo.UseShellExecute = false;
+                if (asAdmin)
+                {
+                    process.StartInfo.UseShellExecute = true;
+                    process.StartInfo.Verb = "runas";
+                }
+                process.Start();
+                while(true)
+                {
+                    await Task.Delay(1000);
+                    if (Process.GetProcesses().Any(x => x.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase)))
+                        break;
+                }
+            }
+            //FileInfo fileInfo = new FileInfo(processName);
+            //Process.Start(new ProcessStartInfo
+            //{
+            //    FileName = fileInfo.FullName,
+            //    WorkingDirectory = fileInfo.DirectoryName,
+            //    Arguments = args,
+            //    UseShellExecute = false
+            //});
         }
 
         private byte[] GetResourceData(string modFilename, int archiveIndex, long offset, int size)
