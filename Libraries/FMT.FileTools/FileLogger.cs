@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace FMT.FileTools
 {
@@ -17,6 +18,15 @@ namespace FMT.FileTools
 
         public FileLogger()
         {
+            foreach(var oldFile in Directory.GetFiles(AppContext.BaseDirectory, "FMT.Log.*").Select(x=> new FileInfo(x)))
+            {
+                if (!oldFile.Exists)
+                    continue;
+
+                if (oldFile.LastWriteTime < DateTime.Now.AddDays(-3))
+                    oldFile.Delete();
+            }
+
             if (!File.Exists(GetFileLoggerPath()))
                 File.WriteAllText(GetFileLoggerPath(), "");
         }
