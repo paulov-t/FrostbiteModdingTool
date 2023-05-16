@@ -33,7 +33,37 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         public FileInfo projectFileInfo { get { return new FileInfo(projectFilePath); } }
 
-        public override bool IsDirty => true;
+        public override bool IsDirty 
+        { 
+            get 
+            {
+
+                foreach (var ebx in AssetManager.Instance.EnumerateEbx(modifiedOnly: true))
+                {
+                    if (ebx.IsDirty)
+                        return true;
+                }
+
+                foreach (var res in AssetManager.Instance.EnumerateRes(modifiedOnly: true))
+                {
+                    if (res.IsDirty)
+                        return true;
+                }
+
+                foreach (var chunk in AssetManager.Instance.EnumerateChunks(modifiedOnly: true))
+                {
+                    if (chunk.IsDirty)
+                        return true;
+                }
+
+                return false;
+
+            }
+            set
+            {
+                // Not used
+            }
+        }
 
         public override string Filename => projectFilePath;
 
@@ -230,6 +260,15 @@ namespace FrostySdk.ModsAndProjects.Projects
                 //new System.IO.Compression.ZLibStream(ms, System.IO.Compression.CompressionLevel.Optimal).CopyTo(msComp);
                 File.WriteAllBytes(projectFilePath, ms.ToArray());
             }
+
+            foreach(var ebx in AssetManager.Instance.EnumerateEbx(modifiedOnly: true))
+                ebx.IsDirty = false;
+
+            foreach (var res in AssetManager.Instance.EnumerateRes(modifiedOnly: true))
+                res.IsDirty = false;
+
+            foreach (var chunk in AssetManager.Instance.EnumerateChunks(modifiedOnly: true))
+                chunk.IsDirty = false;
 
             return this;
         }
