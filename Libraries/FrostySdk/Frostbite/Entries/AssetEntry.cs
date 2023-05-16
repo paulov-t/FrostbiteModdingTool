@@ -428,6 +428,15 @@ namespace FrostySdk.Managers
             if (obj == null)
                 return false;
 
+            if (obj is ChunkAssetEntry chunkAssetEntry && this is ChunkAssetEntry)
+            {
+                if (chunkAssetEntry.FullPath == this.FullPath
+                    && !string.IsNullOrEmpty(chunkAssetEntry.Type) && !string.IsNullOrEmpty(this.Type) && chunkAssetEntry.Type == this.Type
+                    && chunkAssetEntry.IsTocChunk == ((ChunkAssetEntry)this).IsTocChunk
+                    )
+                    return true;
+            }
+
             if (obj is AssetEntry other)
             {
                 if (other.Sha1 == this.Sha1)
