@@ -87,6 +87,9 @@
     <None Include="..\..\Plugins\NFSUnboundPlugin\bin\Debug\net7.0-windows\NeedForSpeedUnboundPlugin.dll" Link="Plugins\NeedForSpeedUnboundPlugin.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="..\..\Plugins\PGATourPlugin\bin\Debug\net7.0-windows\PGATourPlugin.dll" Link="Plugins\PGATourPlugin.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
 	  <None Include="..\..\Plugins\StarWarsSquadronsPlugin\bin\Debug\net7.0-windows\StarWarsSquadronsPlugin.dll" Link="Plugins\StarWarsSquadronsPlugin.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

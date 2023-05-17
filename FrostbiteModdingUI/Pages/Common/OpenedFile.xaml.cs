@@ -147,7 +147,10 @@ namespace FMT.Pages.Common
                             "CSV",
                             "TG", // some custom XML / JS / LUA file that is used in FIFA
 							"JLT", // some custom XML / LUA file that is used in FIFA
-							"PLS" // some custom XML / LUA file that is used in FIFA
+							"PLS", // some custom XML / LUA file that is used in FIFA
+                            "JS", // JavaScript file
+                            "HTML", // HTML file
+                            "LESS" // LESS file
 						};
 
                     List<string> imageViewers = new List<string>()

@@ -320,23 +320,35 @@ namespace FrostySdk.IO._2022.Readers
 
         protected void ReadArray(object obj, PropertyInfo property, EbxClass classType, EbxField field, bool isReference)
         {
+            var hashAttribute = property.GetCustomAttribute<HashAttribute>();
+            var ebxFieldMetaAttribute = property.GetCustomAttribute<EbxFieldMetaAttribute>();
+
             long position = base.Position;
             base.Position = position;
 
             int arrayOffset = Read<int>(); 
             var newPosition = base.Position + arrayOffset - 4;
 
-            var ebxArray = arrays.Find((EbxArray a) => a.Offset == newPosition - payloadPosition);
 
-            if (newPosition < 0 || newPosition > base.Length)
-            {
-                base.Position = position + (arrayOffset) - 8;
-            }
-            else
-            {
-                base.Position += arrayOffset - 4;
-                base.Position -= 4L;
-            }
+            var ebxArray = arrays.Find((EbxArray a) => a.Offset == newPosition - payloadPosition);
+            
+            // EbxArray Offset & Payload Position (Payload seems to be always Header = 32)
+            base.Position = ebxArray.Offset + payloadPosition;
+            // Minus 4 to get the Count from the Ebx Bytes
+            base.Position -= 4;
+
+
+            var position2 = payloadPosition + ebxFieldMetaAttribute.Offset + ebxArray.Offset;
+
+            //if (newPosition < 0 || newPosition > base.Length)
+            //{
+            //    base.Position = position + (arrayOffset) - 8;
+            //}
+            //else
+            //{
+            //    base.Position += arrayOffset - 4;
+            //    base.Position -= 4L;
+            //}
 
             if (newPosition < 0 || newPosition > base.Length)
                 return;
@@ -643,13 +655,15 @@ namespace FrostySdk.IO._2022.Readers
                 case EbxFieldType.Pointer:
                     {
                         int num = base.ReadInt32LittleEndian();
+                        var mutatedNum = (num & 1);
+                        var mutatedNum2 = num >> 1;
                         if (num == 0)
                         {
                             return default(PointerRef);
                         }
-                        if ((num & 1) == 1)
+                        if (mutatedNum == 1 && mutatedNum2 > -1 && mutatedNum2 < base.imports.Count - 1)
                         {
-                            return new PointerRef(base.imports[num >> 1]);
+                            return new PointerRef(base.imports[mutatedNum2]);
                         }
                         long offset = base.Position - 4 + num - this.payloadPosition;
 

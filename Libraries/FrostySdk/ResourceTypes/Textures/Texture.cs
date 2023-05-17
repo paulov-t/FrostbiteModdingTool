@@ -425,6 +425,11 @@ namespace FrostySdk.Resources
 
         private void ReadInStream(NativeReader nativeReader)
         {
+            if (ProfileManager.IsGameVersion(EGame.PGATour))
+            {
+                ReadInStreamFIFA23(nativeReader);
+                return;
+            }
             if (ProfileManager.IsGameVersion(EGame.FIFA23))
             {
                 ReadInStreamFIFA23(nativeReader);

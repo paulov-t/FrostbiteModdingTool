@@ -1,0 +1,89 @@
+{
+  "Name": "PGATour",
+  "DisplayName": "PGA Tour",
+  "DataVersion": 20230407,
+  "CacheName": "pgatour",
+  "Deobfuscator": "NullDeobfuscator",
+  "AssetLoader": "AssetLoaderPGATour",
+  "AssetCompiler": "FrostbiteNullCompiler",
+  "EditorScreen": "DefaultEditor",
+  // Texture Importer (Overriding the base Importer)
+  "TextureImporter": "PGATourTextureImporter",
+  // Texture Exporter (Overriding the base Exporter)
+  "TextureExporter": "TextureExporter",
+  // EBX Reader (Overriding the base Reader)
+  "EBXReader": "EbxReader22B",
+  // EBX Writer (Overriding the base Writer)
+  "EBXWriter": "EbxWriter2023",
+  // EBX Importer (Overriding the base Importer)
+  "EBXImporter": null,
+  // EBX Exporter (Overriding the base Exporter)
+  "EBXExporter": null,
+
+  "ProjectEbxWriter": "EbxWriter2023",
+  "ProjectEbxReader": "EbxReader22B",
+
+
+  "Sources": [
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+
+  // --------------------------------------------------------
+  // SDK Generating Info
+  //
+  "SDKFilename": "PGATourSDK",
+  "SDKAOBScan": "48 39 1D ?? ?? ?? ?? ?? ?? 48 8b 43 10",
+  "SDKClassesFile": "FIFA23.Classes.txt",
+  "SDKGeneratorClassInfoType": "SdkGenerator.PGATour.ClassInfo",
+  "EBXTypeDescriptor": "EBXSharedTypeDescriptorV2",
+
+  // Supported Launcher Filetypes
+  "SupportedLauncherFileTypes": [ "fbmod" ],
+  // Will the Launcher support this Game?
+  "CanLaunchMods": false,
+  // Can this Application Edit this Game?
+  "CanEdit": false,
+
+  // Custom .cache file Writer - Write these exclusively (example - Madden22CacheWriter)
+  "CacheWriter": "PGATourCacheWriter",
+  // Custom .cache file Reader - Write these exclusively (example - Madden22CacheReader)
+  "CacheReader": "PGATourCacheReader",
+
+  "Banner": "",
+  "EbxVersion": 4,
+  "RequiresKey": true,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "SharedBundles": {},
+  "IgnoredResTypes": [],
+  "CanImportMeshes": false,
+  "CanExportMeshes": true,
+  // GeometryDeclarationDesc stream count
+  "GDDMaxStreams": 16,
+  "CompressedFormatEBX": "Oodle", 
+  "CompressedFormatRES": "Oodle",
+  "CompressedFormatChunk": "Oodle",
+  "CompressedFormatLegacy": "Oodle",
+  "LegacyFileManager": "ChunkFileManager2022",
+  "CanUseModData": true,
+  "ForceUseModData": true,
+  "SupportLowMemoryFootprint": true,
+  "GameIdentifier": 16115019,
+  "UseACBypass": false,
+  "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0005143",
+  "SteamId": "1677350",
+  "HasAntiCheat": false,
+  "Tools": {
+    "Internal": [
+      {
+        "Name": "BuildSDKAndCache",
+        "Window": "BuildSDKAndCache"
+      }
+    ],
+    "External": []
+  }
+
+}
