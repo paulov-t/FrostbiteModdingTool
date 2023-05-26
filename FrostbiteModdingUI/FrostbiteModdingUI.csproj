@@ -192,6 +192,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	</None>
+    <None Update="Resources\images\PGATourCover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</None>
     <None Update="Resources\images\StarWarsSquadronsCover.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -285,7 +289,7 @@
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
-	  <None Include="..\Plugins\PGATourPlugin\bin\Debug\net7.0-windows\PGATourPlugin.dll" Link="Plugins\PGATourPlugin.dll" >
+	  <None Include="..\Plugins\PGATourPlugin\bin\Debug\net7.0-windows\PGATourPlugin.dll" Link="Plugins\PGATourPlugin.dll">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>

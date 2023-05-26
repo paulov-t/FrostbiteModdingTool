@@ -485,6 +485,15 @@
 					"Description": "Sprint time which causes some injuries when a player is sprinting for a long time.\r\n0 - min time [ticks]\r\n1 - max time [ticks]\r\nInterpolate probability/chance between min and max"
 				}
 			]
+		},
+		{
+			"TypeName": "AttribSchema_gp_evaluation_pr_categorizedscore_weight",
+			"Properties": [
+				{
+					"PropertyName": "weight",
+					"Description": "Weight for categorized scores to summarize final rating.\r\n0:dribble, 1:pass, 2:shot, 3:defense, 4:contribution, 5:flair, 6:offense posisitioning, 7:defense positioning.\r\nTotal has to be 1.0"
+				}
+			]
 		}
 	]
 }
