@@ -30,9 +30,10 @@ namespace FIFA23Plugin.Meshes
             long offsetNameLong = nativeReader.ReadLong();
             long offsetNameShort = nativeReader.ReadLong();
             meshSet.nameHash = nativeReader.ReadUInt();
-            meshSet.Type = (MeshType)nativeReader.ReadByte();
-            meshSet.FIFA23_Type2 = (MeshType)nativeReader.ReadByte();
-            meshSet.FIFA23_TypeUnknownBytes = nativeReader.ReadBytes(18);
+            meshSet.Type = (MeshType)nativeReader.ReadUInt();
+            //meshSet.Type = (MeshType)nativeReader.ReadByte();
+            //meshSet.FIFA23_Type2 = (MeshType)nativeReader.ReadByte();
+            //meshSet.FIFA23_TypeUnknownBytes = nativeReader.ReadBytes(18);
 
             for (int n = 0; n < MaxLodCount * 2; n++)
             {
@@ -40,11 +41,8 @@ namespace FIFA23Plugin.Meshes
             }
             meshSet.MeshLayout = (EMeshLayout)nativeReader.ReadByte();
             nativeReader.Position -= 1;
-            var meshLayoutFlags = (MeshSetLayoutFlags)nativeReader.ReadByte();
-            meshSet.unknownUInts.Add(nativeReader.ReadUInt());
-            meshSet.unknownUInts.Add(nativeReader.ReadUInt());
-            nativeReader.Position -= 1;
             meshSet.ShaderDrawOrder = (ShaderDrawOrder)nativeReader.ReadByte();
+            var meshLayoutFlags = (MeshSetLayoutFlags)nativeReader.ReadInt();
             meshSet.ShaderDrawOrderUserSlot = (ShaderDrawOrderUserSlot)nativeReader.ReadByte();
             meshSet.ShaderDrawOrderSubOrder = (ShaderDrawOrderSubOrder)nativeReader.ReadUShort();
             ushort lodsCount = 0;
@@ -58,11 +56,12 @@ namespace FIFA23Plugin.Meshes
             if (meshSet.Type == MeshType.MeshType_Skinned)
             {
 
-                meshSet.FIFA23_SkinnedUnknownBytes = nativeReader.ReadBytes(12);
+                meshSet.unknownBytes.Add(nativeReader.ReadBytes(14));
                 meshSet.boneCount = nativeReader.ReadUInt16LittleEndian();
                 meshSet.CullBoxCount = nativeReader.ReadUInt16LittleEndian();
                 if (meshSet.CullBoxCount != 0)
                 {
+                    nativeReader.ReadUShort();
                     long cullBoxBoneIndicesOffset = nativeReader.ReadInt64LittleEndian();
                     long cullBoxBoundingBoxOffset = nativeReader.ReadInt64LittleEndian();
                     long position = nativeReader.Position;

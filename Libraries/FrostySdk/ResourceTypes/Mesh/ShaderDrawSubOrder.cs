@@ -1,16 +1,16 @@
 ﻿namespace FrostySdk.FrostySdk.Resources
 {
-    public enum ShaderDrawOrderSubOrder : ushort
+    public enum ShaderDrawOrderSubOrder : short
     {
-        ShaderDrawOrderSubOrder_UnkField_454607653 = 0,
-        ShaderDrawOrderSubOrder_UnkField_1991152784 = 0,
-        ShaderDrawOrderSubOrder_UnkField_1681666421 = 1,
-        ShaderDrawOrderSubOrder_UnkField_2058202613 = 2,
-        ShaderDrawOrderSubOrder_UnkField_37488949 = 3,
-        ShaderDrawOrderSubOrder_UnkField_965678418 = 6,
-        ShaderDrawOrderSubOrder_UnkField_1708399400 = 7,
-        ShaderDrawOrderSubOrder_UnkField_1228977660 = 8,
-        ShaderDrawOrderSubOrder_UnkField_47460470 = 9,
-        ShaderDrawOrderSubOrder_UnkField_261661730 = 10
+        ShaderDrawOrderSubOrder_Invalid = -1,
+        ShaderDrawOrderSubOrder_Default = 0,
+        ShaderDrawOrderSubOrder_Low = 1,
+        ShaderDrawOrderSubOrder_Med = 2,
+        ShaderDrawOrderSubOrder_High = 3,
+        ShaderDrawOrderSubOrder_Player_Accessory = 6,
+        ShaderDrawOrderSubOrder_Player_Clothes = 7,
+        ShaderDrawOrderSubOrder_Player_Body = 8,
+        ShaderDrawOrderSubOrder_Player_Haircap = 9,
+        ShaderDrawOrderSubOrder_Player_Hair = 10
     }
 }

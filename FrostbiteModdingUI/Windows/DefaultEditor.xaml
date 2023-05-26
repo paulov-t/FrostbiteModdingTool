@@ -197,6 +197,15 @@
                                     </mah:MetroTabItem.Header>
                                     <localControls:Browser x:Name="textureBrowser"></localControls:Browser>
                                 </mah:MetroTabItem>
+                                <mah:MetroTabItem x:Name="TabMeshBrowser" Visibility="Visible"  VerticalContentAlignment="Stretch" VerticalAlignment="Stretch">
+                                    <mah:MetroTabItem.Header>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                            <MaterialDesign:PackIcon Kind="Rotate3d" VerticalAlignment="Center" />
+                                            <Label Content="Meshes"></Label>
+                                        </StackPanel>
+                                    </mah:MetroTabItem.Header>
+                                    <localControls:Browser x:Name="meshBrowser"></localControls:Browser>
+                                </mah:MetroTabItem>
                             </mah:MetroAnimatedTabControl>
                         </LayoutDocument>
                     </LayoutDocumentPane>

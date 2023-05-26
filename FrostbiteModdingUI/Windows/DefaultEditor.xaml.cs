@@ -988,11 +988,21 @@ namespace FrostbiteModdingUI.Windows
             List<IAssetEntry> textureAssets = ProjectManagement.Project.AssetManager
                                 .EnumerateEbx("TextureAsset").OrderBy(x => x.Path).Select(x => (IAssetEntry)x).ToList();
 
+            List<IAssetEntry> meshAssets = AssetManager.Instance
+                             .EnumerateEbx("SkinnedMeshAsset")
+                             .Union(AssetManager.Instance.EnumerateEbx("CompositeMeshAsset"))
+                             .Union(AssetManager.Instance.EnumerateEbx("RigidMeshAsset"))
+                             .OrderBy(x => x.Path).Select(x => (IAssetEntry)x)
+                             .ToList();
+
+
             await Dispatcher.InvokeAsync(() =>
             {
                 dataBrowser.AllAssetEntries = dataBrowserData;
 
                 textureBrowser.AllAssetEntries = textureAssets;
+
+                meshBrowser.AllAssetEntries = meshAssets;
             });
 
             UpdateAllBrowsers();

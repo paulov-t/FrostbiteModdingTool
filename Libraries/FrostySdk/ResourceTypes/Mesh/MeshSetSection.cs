@@ -1,4 +1,5 @@
 using FMT.FileTools;
+using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
@@ -11,21 +12,21 @@ namespace FrostySdk.Resources
     {
         public TangentSpaceCompressionType TangentSpaceCompressionType;
 
-        private long offset1;
+        public long Offset1 { get; set; }
 
-        private uint unknownInt2;
+        public uint UnknownInt2 { get; set; }
 
-        private ulong unknownLong;
+        public ulong UnknownLong { get; set; }
 
-        private byte vertexStride;
+        public byte VertexStride { get; set; }
 
-        private byte bonesPerVertex;
+        public byte BonesPerVertex { get; set; }
 
-        private List<float> texCoordRatios = new List<float>();
+        public List<float> TextureCoordinateRatios { get; } = new List<float>();
 
-        private byte[] unknownData;
+        public byte[] UnknownData { get; set; }
 
-        private int sectionIndex;
+        public int SectionIndex { get; set; }
 
         public string Name { get; set; }
 
@@ -47,25 +48,23 @@ namespace FrostySdk.Resources
         public List<ushort> BoneList { get; set; } = new List<ushort>();
 
 
-        public uint VertexStride => vertexStride;
-
         public PrimitiveType PrimitiveType { get; set; }
 
-        public byte BonesPerVertex
-        {
-            get
-            {
-                return bonesPerVertex;
-            }
-            set
-            {
-                bonesPerVertex = value;
-                if (bonesPerVertex > 8)
-                {
-                    bonesPerVertex = 8;
-                }
-            }
-        }
+        //public byte BonesPerVertex
+        //{
+        //    get
+        //    {
+        //        return BonesPerVertex;
+        //    }
+        //    set
+        //    {
+        //        BonesPerVertex = value;
+        //        if (BonesPerVertex > 8)
+        //        {
+        //            BonesPerVertex = 8;
+        //        }
+        //    }
+        //}
 
         public int DeclCount => 1;
 
@@ -75,7 +74,7 @@ namespace FrostySdk.Resources
 
         public bool HasUnknown3 { get; }
 
-        public ushort BoneCount { get; private set; }
+        public ushort BoneCount { get; set; }
 
         private void ReadBones(NativeReader reader, long bonePositions)
         {
@@ -101,33 +100,36 @@ namespace FrostySdk.Resources
                     Read21(reader, index); break;
                 case FMT.FileTools.Modding.EGame.NFSUnbound:
                     ReadNFSU(reader, index); break;
+                //case FMT.FileTools.Modding.EGame.PGATour:
+                //    ReadPGATour(reader, index); break;
+                default:
+                    {
+                        var meshSetSectionReader = AssetManager.Instance.LoadTypeFromPluginByInterface(typeof(IMeshSetSectionReader).FullName);
+                        if (meshSetSectionReader != null)
+                        {
+                            ((IMeshSetSectionReader)meshSetSectionReader).Read(reader, this, index);
+                            return;
+                        }
+
+
+                        throw new NotImplementedException("This game does not support Mesh exporting");
+                    }
 
             }
 
-            //if (ProfileManager.IsFIFA23DataVersion())
-            //{
-            //    Read23(reader, index);
-            //}
-            //else if (ProfileManager.IsFIFA22DataVersion()
-            //    || ProfileManager.IsMadden22DataVersion(ProfileManager.Game)
-            //    )
-            //{
-            //    Read22(reader, index);
-            //}
-            //else
-            //{
-            //    Read21(reader, index);
+        }
 
-            //}
-
+        private void ReadPGATour(NativeReader reader, int index)
+        {
+            throw new NotImplementedException();
         }
 
         private void ReadNFSU(NativeReader reader, int index)
         {
             var startPosition = reader.Position;
 
-            sectionIndex = index;
-            offset1 = reader.ReadInt64LittleEndian();
+            SectionIndex = index;
+            Offset1 = reader.ReadInt64LittleEndian();
             long namePosition = reader.ReadInt64LittleEndian();
             var preNamePosition = reader.Position;
             reader.Position = namePosition;
@@ -138,7 +140,7 @@ namespace FrostySdk.Resources
             BonesPerVertex = (byte)reader.ReadByte();
             MaterialId = reader.ReadUShort();
             StartIndex = reader.ReadByte(); // 0 ? 
-            vertexStride = reader.ReadByte(); // 68
+            VertexStride = reader.ReadByte(); // 68
             PrimitiveType = (PrimitiveType)reader.ReadByte(); // 3
             PrimitiveCount = (uint)reader.ReadUInt32LittleEndian();
             StartIndex = reader.ReadUInt32LittleEndian();
@@ -150,7 +152,7 @@ namespace FrostySdk.Resources
 
             for (int l = 0; l < 6; l++)
             {
-                texCoordRatios.Add(reader.ReadSingleLittleEndian());
+                TextureCoordinateRatios.Add(reader.ReadSingleLittleEndian());
             }
 
             for (int i = 0; i < DeclCount; i++)
@@ -181,7 +183,7 @@ namespace FrostySdk.Resources
                 GeometryDeclDesc[i].StreamCount = reader.ReadByte();
                 reader.ReadBytes(2);
             }
-            unknownData = reader.ReadBytes(56);
+            UnknownData = reader.ReadBytes(56);
             ReadBones(reader, bonePositions);
         }
 
@@ -192,15 +194,15 @@ namespace FrostySdk.Resources
         {
             var startPosition = reader.Position;
 
-            sectionIndex = index;
-            offset1 = reader.ReadInt64LittleEndian();
+            SectionIndex = index;
+            Offset1 = reader.ReadInt64LittleEndian();
             long namePosition = reader.ReadInt64LittleEndian();
             long bonePositions = reader.ReadInt64LittleEndian();
             BoneCount = reader.ReadUInt16LittleEndian(); //438
             BonesPerVertex = (byte)reader.ReadByte();
             MaterialId = reader.ReadUShort();
             StartIndex = reader.ReadByte(); // 0 ? 
-            vertexStride = reader.ReadByte(); // 68
+            VertexStride = reader.ReadByte(); // 68
             PrimitiveType = (PrimitiveType)reader.ReadByte(); // 3
             PrimitiveCount = (uint)reader.ReadUInt32LittleEndian();
             StartIndex = reader.ReadUInt32LittleEndian();
@@ -211,7 +213,7 @@ namespace FrostySdk.Resources
             FIFA23_UnknownInt2 = reader.ReadUInt(); // hmmm more unknownness
             for (int l = 0; l < 6; l++)
             {
-                texCoordRatios.Add(reader.ReadSingleLittleEndian());
+                TextureCoordinateRatios.Add(reader.ReadSingleLittleEndian());
             }
 
             for (int i = 0; i < DeclCount; i++)
@@ -243,7 +245,7 @@ namespace FrostySdk.Resources
                 reader.ReadBytes(2);
             }
             //unknownInt2 = reader.ReadUInt32LittleEndian();
-            unknownData = reader.ReadBytes(56);
+            UnknownData = reader.ReadBytes(56);
             long position3 = reader.Position;
             reader.Position = bonePositions;
             for (int m = 0; m < BoneCount; m++)
@@ -259,14 +261,14 @@ namespace FrostySdk.Resources
         {
             var startPosition = reader.Position;
 
-            sectionIndex = index;
-            offset1 = reader.ReadInt64LittleEndian();
+            SectionIndex = index;
+            Offset1 = reader.ReadInt64LittleEndian();
             long namePosition = reader.ReadInt64LittleEndian();
             long bonePositions = reader.ReadInt64LittleEndian();
             BoneCount = reader.ReadUInt16LittleEndian();
             BonesPerVertex = (byte)reader.ReadUShort();
             MaterialId = reader.ReadUInt16LittleEndian();
-            vertexStride = reader.ReadByte();
+            VertexStride = reader.ReadByte();
             PrimitiveType = (PrimitiveType)reader.ReadByte();
             PrimitiveCount = (uint)reader.ReadUInt32LittleEndian();
             StartIndex = reader.ReadUInt32LittleEndian();
@@ -275,7 +277,7 @@ namespace FrostySdk.Resources
             UnknownInt = reader.ReadUInt();
             for (int l = 0; l < 6; l++)
             {
-                texCoordRatios.Add(reader.ReadSingleLittleEndian());
+                TextureCoordinateRatios.Add(reader.ReadSingleLittleEndian());
             }
 
             for (int i = 0; i < DeclCount; i++)
@@ -307,7 +309,7 @@ namespace FrostySdk.Resources
                 reader.ReadBytes(2);
             }
             //unknownInt2 = reader.ReadUInt32LittleEndian();
-            unknownData = reader.ReadBytes(48);
+            UnknownData = reader.ReadBytes(48);
             long position3 = reader.Position;
             reader.Position = bonePositions;
             for (int m = 0; m < BoneCount; m++)
@@ -321,27 +323,27 @@ namespace FrostySdk.Resources
 
         public void Read21(NativeReader reader, int index)
         {
-            sectionIndex = index;
-            offset1 = reader.ReadInt64LittleEndian();
+            SectionIndex = index;
+            Offset1 = reader.ReadInt64LittleEndian();
             long position = reader.ReadInt64LittleEndian();
             MaterialId = reader.ReadInt32LittleEndian();
             UnknownInt = reader.ReadUInt32LittleEndian();
             for (int l = 0; l < 6; l++)
             {
-                texCoordRatios.Add(reader.ReadSingleLittleEndian());
+                TextureCoordinateRatios.Add(reader.ReadSingleLittleEndian());
             }
             PrimitiveCount = reader.ReadUInt32LittleEndian();  //6014
             StartIndex = reader.ReadUInt32LittleEndian(); // 0
             VertexOffset = reader.ReadUInt32LittleEndian(); // 0
             VertexCount = reader.ReadUInt32LittleEndian(); // 3157
-            unknownData = reader.ReadBytes(32);
-            vertexStride = reader.ReadByte(); // 68
+            UnknownData = reader.ReadBytes(32);
+            VertexStride = reader.ReadByte(); // 68
             PrimitiveType = (PrimitiveType)reader.ReadByte(); // 3
             reader.ReadUInt16LittleEndian();
-            bonesPerVertex = (byte)reader.ReadUInt16LittleEndian(); // 6
+            BonesPerVertex = (byte)reader.ReadUInt16LittleEndian(); // 6
             BoneCount = reader.ReadUInt16LittleEndian(); // 438
             long position2 = reader.ReadInt64LittleEndian(); // 1824
-            unknownLong = reader.ReadUInt64LittleEndian(); // 13113655001588707511
+            UnknownLong = reader.ReadUInt64LittleEndian(); // 13113655001588707511
             for (int i = 0; i < DeclCount; i++)
             {
                 GeometryDeclDesc[i].Elements = new GeometryDeclarationDesc.Element[GeometryDeclarationDesc.MaxElements];
@@ -370,7 +372,7 @@ namespace FrostySdk.Resources
                 GeometryDeclDesc[i].StreamCount = reader.ReadByte();
                 reader.ReadBytes(2);
             }
-            unknownInt2 = reader.ReadUInt32LittleEndian();
+            UnknownInt2 = reader.ReadUInt32LittleEndian();
             long position3 = reader.Position;
             reader.Position = position2;
             for (int m = 0; m < BoneCount; m++)
@@ -401,7 +403,7 @@ namespace FrostySdk.Resources
             {
                 throw new ArgumentNullException("meshContainer");
             }
-            meshContainer.AddString(sectionIndex + ":" + Name, Name);
+            meshContainer.AddString(SectionIndex + ":" + Name, Name);
             if (BoneList.Count > 0)
             {
                 meshContainer.AddRelocPtr("BONELIST", BoneList);
@@ -415,23 +417,23 @@ namespace FrostySdk.Resources
                 Process23(writer, meshContainer);
                 return;
             }
-            writer.WriteInt64LittleEndian(offset1);
-            meshContainer.WriteRelocPtr("STR", sectionIndex + ":" + Name, writer);
+            writer.WriteInt64LittleEndian(Offset1);
+            meshContainer.WriteRelocPtr("STR", SectionIndex + ":" + Name, writer);
             writer.WriteInt32LittleEndian(MaterialId);
             writer.WriteUInt32LittleEndian(UnknownInt);
             for (int l = 0; l < 6; l++)
             {
-                writer.WriteSingleLittleEndian(texCoordRatios[l]);
+                writer.WriteSingleLittleEndian(TextureCoordinateRatios[l]);
             }
             writer.WriteUInt32LittleEndian(PrimitiveCount);
             writer.WriteUInt32LittleEndian(StartIndex);
             writer.WriteUInt32LittleEndian(VertexOffset);
             writer.WriteUInt32LittleEndian(VertexCount);
-            writer.WriteBytes(unknownData);
-            writer.Write(vertexStride);
+            writer.WriteBytes(UnknownData);
+            writer.Write(VertexStride);
             writer.Write((byte)PrimitiveType);
             writer.WriteUInt16LittleEndian(0);
-            writer.WriteUInt16LittleEndian(bonesPerVertex);
+            writer.WriteUInt16LittleEndian(BonesPerVertex);
             writer.WriteUInt16LittleEndian((ushort)BoneList.Count);
             if (BoneList.Count > 0)
             {
@@ -441,7 +443,7 @@ namespace FrostySdk.Resources
             {
                 writer.WriteUInt64LittleEndian(0uL);
             }
-            writer.WriteUInt64LittleEndian(unknownLong);
+            writer.WriteUInt64LittleEndian(UnknownLong);
             for (int i = 0; i < DeclCount; i++)
             {
                 for (int j = 0; j < GeometryDeclDesc[i].Elements.Length; j++)
@@ -460,7 +462,7 @@ namespace FrostySdk.Resources
                 writer.Write(GeometryDeclDesc[i].StreamCount);
                 writer.WriteUInt16LittleEndian(0);
             }
-            writer.WriteUInt32LittleEndian(unknownInt2);
+            writer.WriteUInt32LittleEndian(UnknownInt2);
         }
 
 
@@ -489,8 +491,8 @@ namespace FrostySdk.Resources
             }
 
 			 */
-            writer.WriteInt64LittleEndian(offset1);
-            meshContainer.WriteRelocPtr("STR", sectionIndex + ":" + Name, writer);
+            writer.WriteInt64LittleEndian(Offset1);
+            meshContainer.WriteRelocPtr("STR", SectionIndex + ":" + Name, writer);
             if (BoneList.Count > 0)
             {
                 meshContainer.WriteRelocPtr("BONELIST", BoneList, writer);
@@ -500,10 +502,10 @@ namespace FrostySdk.Resources
                 writer.WriteUInt64LittleEndian(0uL);
             }
             writer.WriteUInt16LittleEndian((ushort)BoneList.Count);
-            writer.Write((byte)bonesPerVertex);
+            writer.Write((byte)BonesPerVertex);
             writer.WriteUInt16LittleEndian((ushort)MaterialId);
             writer.Write((byte)0);
-            writer.Write((byte)vertexStride);
+            writer.Write((byte)VertexStride);
             writer.Write((byte)PrimitiveType);
             writer.WriteUInt32LittleEndian(PrimitiveCount);
             writer.WriteUInt32LittleEndian(StartIndex);
@@ -514,7 +516,7 @@ namespace FrostySdk.Resources
             writer.WriteUInt32LittleEndian(FIFA23_UnknownInt2);
             for (int l = 0; l < 6; l++)
             {
-                writer.WriteSingleLittleEndian(texCoordRatios[l]);
+                writer.WriteSingleLittleEndian(TextureCoordinateRatios[l]);
             }
             for (int i = 0; i < DeclCount; i++)
             {
@@ -534,7 +536,7 @@ namespace FrostySdk.Resources
                 writer.Write(GeometryDeclDesc[i].StreamCount);
                 writer.WriteUInt16LittleEndian(0);
             }
-            writer.Write(unknownData);
+            writer.Write(UnknownData);
 
         }
     }
