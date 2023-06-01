@@ -21,6 +21,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Windows.Media.Animation;
 using System.Xml;
 using v2k4FIFAModdingCL;
@@ -1084,7 +1085,7 @@ namespace ModdingSupport
             if (foundMods && !UseModData)
             {
                 Logger.Log("Launching game: " + fs.BasePath + ProfileManager.ProfileName + ".exe (with Frostbite Mods)");
-                await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
+                ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
             }
             else if (UseModData)
             {
@@ -1100,13 +1101,13 @@ namespace ModdingSupport
                     else
                         Logger.Log("Launching game: " + fs.BasePath + ProfileManager.ProfileName + ".exe (with Frostbite Mods in ModData)");
 
-                    await ExecuteProcess(GameEXEPath, arguments);
+                    ExecuteProcess(GameEXEPath, arguments);
                 }
             }
             else
             {
                 Logger.Log("Launching game: " + fs.BasePath + ProfileManager.ProfileName + ".exe");
-                await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
+                ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
             }
 
             if (UseACBypass && ProfileManager.IsFIFA23DataVersion())
@@ -1132,7 +1133,7 @@ namespace ModdingSupport
                 File.Delete(FileSystem.Instance.BasePath + "CryptBase.dll");
         }
 
-        private async void RunEADesktop()
+        private async Task RunEADesktop()
         {
             FileLogger.WriteLine("ModExecutor:RunEADesktop");
 
@@ -1167,37 +1168,39 @@ namespace ModdingSupport
                 throw new FileNotFoundException("Unable to find user *.ini to apply -dataPath=ModData. Please ensure EADesktop is properly installed and run at least once!");
             }
 
+            KillEADesktopProcess();
+
+
             var desiredCommandLineSetting = ProfileManager.LoadedProfile.EADesktopCommandLineSetting + "=-dataPath ModData";
             foreach (var userIniPath in userIniPaths)
             {
+                bool desiredSettingAlreadyExists = false;
+                // get all text
                 var allTextOfUserIni = await File.ReadAllTextAsync(userIniPath);
+                // find index of command line setting
+                var indexOfCommandLineSetting = allTextOfUserIni.IndexOf(ProfileManager.LoadedProfile.EADesktopCommandLineSetting);
+                if (indexOfCommandLineSetting != -1) {
+                    var commandLineSubstring = allTextOfUserIni.Substring(indexOfCommandLineSetting);
+                    var indexOfNewLineAfterSetting = commandLineSubstring
+                        .IndexOf("\r");
+                    var readCurrentLine = allTextOfUserIni.Substring(indexOfCommandLineSetting, indexOfNewLineAfterSetting);
+                    desiredSettingAlreadyExists = readCurrentLine == desiredCommandLineSetting;
+                    //if (!desiredSettingAlreadyExists)
+                    {
+                        StringBuilder sbWithoutSetting = new StringBuilder();
+                        sbWithoutSetting.Append(allTextOfUserIni.Substring(0, indexOfCommandLineSetting));
+                        sbWithoutSetting.Append(allTextOfUserIni.Substring(indexOfCommandLineSetting + indexOfNewLineAfterSetting));
+                        var finalUserIniText = sbWithoutSetting.ToString();
+                        await File.WriteAllTextAsync(userIniPath, finalUserIniText);
+                    }
+                }
+                allTextOfUserIni = await File.ReadAllTextAsync(userIniPath);
                 StringBuilder sb = new StringBuilder(allTextOfUserIni);
                 if (!allTextOfUserIni.Contains(ProfileManager.LoadedProfile.EADesktopCommandLineSetting)
                     || !allTextOfUserIni.Contains(desiredCommandLineSetting)
                     )
                 {
                     FileLogger.WriteLine("ModExecutor:RunEADesktop: -dataPath=ModData does not exist for this game. Setting it up.");
-
-                    // ----------------------------------------------------------------------------------
-                    // If we have to make the change. Find opened EA Desktop process and close it
-                    try
-                    {
-                        var eaDesktopProcesses = Process.GetProcessesByName("EADesktop");
-                        if (eaDesktopProcesses != null)
-                        {
-                            foreach (var proc in eaDesktopProcesses)
-                            {
-                                FileLogger.WriteLine($"ModExecutor:RunEADesktop: Killing {proc.ProcessName} to apply changes");
-                                Logger.Log("Killing EADesktop process to apply changes");
-                                proc.Kill();
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        FileLogger.WriteLine("ModExecutor:RunEADesktop: Unable to Kill EA Process. You may need to do this manually before running the game.");
-                        FileLogger.WriteLine(ex.ToString());
-                    }
 
                     sb.AppendLine(string.Empty);
                     sb.Append(desiredCommandLineSetting);
@@ -1210,8 +1213,32 @@ namespace ModdingSupport
 
             }
 
-            await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
+            ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
             //ExecuteCommand("start \"" + fs.BasePath + ProfileManager.ProfileName + ".exe\"");
+        }
+
+        private void KillEADesktopProcess()
+        {
+            // ----------------------------------------------------------------------------------
+            // If we have to make the change. Find opened EA Desktop process and close it
+            try
+            {
+                var eaDesktopProcesses = Process.GetProcessesByName("EADesktop");
+                if (eaDesktopProcesses != null)
+                {
+                    foreach (var proc in eaDesktopProcesses)
+                    {
+                        FileLogger.WriteLine($"ModExecutor:RunEADesktop: Killing {proc.ProcessName} to apply changes");
+                        Logger.Log("Killing EADesktop process to apply changes");
+                        proc.Kill();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                FileLogger.WriteLine("ModExecutor:RunEADesktop: Unable to Kill EA Process. You may need to do this manually before running the game.");
+                FileLogger.WriteLine(ex.ToString());
+            }
         }
 
         private void RunFIFA23Setup()
@@ -1392,35 +1419,52 @@ namespace ModdingSupport
             Process = Process.Start(ProcessInfo);
         }
 
-        public async Task ExecuteProcess(string processName, string args, bool waitForExit = false, bool asAdmin = false)
+        public void ExecuteProcess(string processName, string args, bool waitForExit = false, bool asAdmin = false)
         {
             FileLogger.WriteLine($"Launching {processName} {args}");
             Logger.Log($"Launching {processName} {args}");
-            //Process p = new Process();
-            //p.StartInfo.FileName = "cmd.exe";
-            //p.StartInfo.Arguments = $"/K \"\"{processName}\" \"{args}\"\"";
-            //p.Start();
+            Process p = new Process();
+            p.StartInfo.FileName = "cmd.exe";
+            p.StartInfo.Arguments = $"/K \"\"{processName}\" \"{args}\"\"";
+            p.Start();
 
-            using (Process process = new Process())
-            {
-                FileInfo fileInfo = new FileInfo(processName);
-                process.StartInfo.FileName = processName;
-                process.StartInfo.WorkingDirectory = fileInfo.DirectoryName;
-                process.StartInfo.Arguments = args;
-                process.StartInfo.UseShellExecute = false;
-                if (asAdmin)
-                {
-                    process.StartInfo.UseShellExecute = true;
-                    process.StartInfo.Verb = "runas";
-                }
-                process.Start();
-                while(true)
-                {
-                    await Task.Delay(1000);
-                    if (Process.GetProcesses().Any(x => x.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase)))
-                        break;
-                }
-            }
+            //var result = await Task.FromResult(async() =>
+            //{
+
+            //    using (Process process = new ())
+            //    //Process process = new();
+            //    {
+            //        FileInfo fileInfo = new FileInfo(processName);
+            //        process.StartInfo.FileName = processName;
+            //        process.StartInfo.WorkingDirectory = fileInfo.DirectoryName;
+            //        process.StartInfo.Arguments = args;
+            //        process.StartInfo.UseShellExecute = true;
+            //        if (asAdmin)
+            //        {
+            //            process.StartInfo.UseShellExecute = true;
+            //            process.StartInfo.Verb = "runas";
+            //        }
+            //        try
+            //        {
+            //            if (!process.Start())
+            //            {
+            //                throw new Exception($"Unable to start {processName}");
+            //            }
+            //            while (true)
+            //            {
+            //                await Task.Delay(1000);
+            //                if (Process.GetProcesses().Any(x => x.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase)))
+            //                    break;
+            //            }
+            //        }
+            //        catch(Exception e)
+            //        {
+            //            //throw e;
+            //        }
+            //        //return true;
+            //    }
+            //}
+            //);
             //FileInfo fileInfo = new FileInfo(processName);
             //Process.Start(new ProcessStartInfo
             //{
