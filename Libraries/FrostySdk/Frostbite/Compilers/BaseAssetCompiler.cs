@@ -409,8 +409,10 @@ namespace FrostySdk.Frostbite.Compilers
         /// </summary>
         /// <param name="directory">native_patch or native_data?</param>
         /// <returns>List of Modded Chunk Ids</returns>
-        public virtual IEnumerable<Guid> ModifyTOCChunks(string directory = "native_patch")
+        public List<Guid> ModifyTOCChunks(string directory = "native_patch")
         {
+            List<Guid> result = new List<Guid>();
+
             int sbIndex = -1;
             foreach (var catalogInfo in FileSystem.Instance.EnumerateCatalogInfos())
             {
@@ -523,7 +525,7 @@ namespace FrostySdk.Frostbite.Compilers
                                         nw_toc.Position = chunk.SB_CAS_Size_Position;
                                         nw_toc.Write((uint)data.Length, Endian.Big);
                                         FileLogger.WriteLine($"Written TOC Chunk {chunkGuid} to {nextCasPath}");
-                                        yield return chunkGuid;
+                                        result.Add(chunkGuid);
                                     }
                                 }
 
@@ -557,7 +559,9 @@ namespace FrostySdk.Frostbite.Compilers
             }
 
             if (directory == "native_patch")
-                ModifyTOCChunks("native_data");
+                result.AddRange(ModifyTOCChunks("native_data"));
+
+            return result;
         }
 
 
