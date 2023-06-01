@@ -566,7 +566,7 @@ namespace FrostySdk
             }
             foreach (EbxAssetEntry ebxAsset in AssetManager.Instance.EnumerateEbx("", modifiedOnly: true))
             {
-                if (!ebxAsset.ModifiedEntry.IsTransientModified && ebxAsset.HasModifiedData)
+                if (ebxAsset.ModifiedEntry != null && !ebxAsset.ModifiedEntry.IsTransientModified && ebxAsset.HasModifiedData)
                 {
                     AddResource(new EbxResource(ebxAsset, manifest));
                 }
