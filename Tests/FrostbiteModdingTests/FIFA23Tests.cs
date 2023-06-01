@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime;
 using System.Text;
+using System.Windows.Forms;
 using v2k4FIFAModding.Frosty;
 using v2k4FIFAModdingCL;
 
@@ -464,20 +465,11 @@ namespace FrostbiteModdingTests
         {
             GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
             ProjectManagement projectManagement = new ProjectManagement(GamePathEXE);
-            projectManagement.Project.Load(@"G:\Work\FIFA Modding\Career Mod\FIFA-23-Career-Mod\V Career Mod - Alpha 6.fbproject");
-
-            projectManagement.Project.WriteToMod("test.fbmod", new FrostySdk.ModSettings());
-
+            projectManagement.Project = FMTProject.Read(@"G:\Work\FIFA Modding\Career Mod\FIFA-23-Career-Mod\V Career Mod - Version 2a4.fmtproj");
+            projectManagement.Project.WriteToMod("test.fbmod", projectManagement.Project.ModSettings);
             ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
             frostyModExecutor.ForceRebuildOfMods = true;
-            //frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, "",
-            //    new System.Collections.Generic.List<string>() {
-            //        "test.fbmod"
-            //    }.ToArray()).Wait();
-
-            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
-
-            var allLegacy = AssetManager.Instance.EnumerateCustomAssets("legacy").ToList();
+            var r = frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Result;
         }
 
         [TestMethod]
@@ -502,16 +494,16 @@ namespace FrostbiteModdingTests
         [TestMethod]
         public void TestGPMod()
         {
-            var modPath = @"G:\Work\FIFA Modding\Gameplay mod\FIFA 23\V5\V Gameplay Mod - v5a4.fbmod";
+            var modPath = @"G:\Work\FIFA Modding\Gameplay mod\FIFA 23\V5\V Gameplay Mod - v5 final.fbmod";
             //GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
             GameInstanceSingleton.InitializeSingleton(GamePathEXE, logger: this);
 
             ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
             frostyModExecutor.ForceRebuildOfMods = true;
-            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, 
+            var r = frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath,
                 new System.Collections.Generic.List<string>() {
                     modPath
-                }.ToArray()).Wait();
+                }.ToArray()).Result;
             //frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
 
         }
