@@ -91,34 +91,34 @@ namespace FrostbiteSdk
         public BaseModResource[] ReadResources()
         {
             int num = ReadInt();
-            BaseModResource[] array = new BaseModResource[num];
+            BaseModResource[] modResources = new BaseModResource[num];
             for (int i = 0; i < num; i++)
             {
                 switch ((ModResourceType)ReadByte())
                 {
                     case ModResourceType.Embedded:
-                        array[i] = new EmbeddedResource();
+                        modResources[i] = new EmbeddedResource();
                         break;
                     case ModResourceType.Ebx:
-                        array[i] = new EbxResource();
+                        modResources[i] = new EbxResource();
                         break;
                     case ModResourceType.Res:
-                        array[i] = new ResResource();
+                        modResources[i] = new ResResource();
                         break;
                     case ModResourceType.Chunk:
-                        array[i] = new ChunkResource();
+                        modResources[i] = new ChunkResource();
                         break;
                     case ModResourceType.Legacy:
-                        array[i] = new LegacyFileResource();
+                        modResources[i] = new LegacyFileResource();
                         break;
                     case ModResourceType.EmbeddedFile:
-                        array[i] = new EmbeddedFileResource();
+                        modResources[i] = new EmbeddedFileResource();
                         break;
                 }
-                if (array[i] != null)
-                    array[i].Read(this, Version);
+                if (modResources[i] != null)
+                    modResources[i].Read(this, Version);
             }
-            return array;
+            return modResources;
         }
 
         public byte[] GetResourceData(BaseModResource resource)
