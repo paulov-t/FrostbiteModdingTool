@@ -208,22 +208,6 @@ namespace ModdingSupport
             }
         }
 
-        //public struct SymLinkStruct
-        //{
-        //    public string dest;
-
-        //    public string src;
-
-        //    public bool isFolder;
-
-        //    public SymLinkStruct(string inDst, string inSrc, bool inFolder)
-        //    {
-        //        dest = inDst;
-        //        src = inSrc;
-        //        isFolder = inFolder;
-        //    }
-        //}
-        
         public FileSystem fs;
 
         private ILogger logger { get; set; }
@@ -272,9 +256,8 @@ namespace ModdingSupport
 
         public int numTasks;
 
-        public CasDataInfo casData = new CasDataInfo();
 
-        public static int chunksBundleHash = Fnv1.HashString("chunks");
+        public static int chunksBundleHash { get; } = Fnv1.HashString("chunks");
 
         //public Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>> resources = new Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>>();
 
@@ -312,6 +295,7 @@ namespace ModdingSupport
                 return Process.GetProcessesByName("EADesktop.exe").Any();
             }
         }
+
         public bool LaunchedViaEADesktop { get; set; } = false;
 
         public static bool UseACBypass { get; set; }
@@ -321,6 +305,8 @@ namespace ModdingSupport
         //public bool UseACBypass { get; set; } = false;
 
         public bool UseSymbolicLinks = false;
+
+        public bool UseVerboseLogging { get; set; } = true;
 
         [DllImport("kernel32.dll")]
         protected static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, int dwFlags);
@@ -351,10 +337,6 @@ namespace ModdingSupport
             }
         }
         string modDirName = "ModData";
-
-        public bool UseLegacyLauncher = false;
-
-        List<Assembly> PluginAssemblies = new List<Assembly>();
 
         private bool FileIsSymbolic(string path)
         {
@@ -409,16 +391,16 @@ namespace ModdingSupport
 
                 int indexCompleted = -1;
                 var frostbiteMod = kvpMods.Value;
+                var orderedAssets = frostbiteMod.Resources
+                    .OrderBy(x => x.Type == ModResourceType.Ebx)
+                    .ThenBy(x => x.Type == ModResourceType.Res)
+                    .Select(x => (x, frostbiteMod.GetResourceData(x)))
+                    .Where(x => x.Item2 != null);
                 //Parallel.ForEach(frostbiteMod.Resources, (BaseModResource resource) =>
                 foreach (
                     (BaseModResource, byte[]) r
                     in
-                    frostbiteMod.Resources
-                    .OrderBy(x=>x.Type == ModResourceType.Ebx)
-                    .ThenBy(x=>x.Type == ModResourceType.Res)
-                    .Select(x => (x, frostbiteMod.GetResourceData(x)))
-                    .Where(x => x.Item2 != null)
-                    //.OrderBy(x => x.Item2.Length)
+                    orderedAssets
                     )
                 {
                     indexCompleted++;
@@ -448,7 +430,8 @@ namespace ModdingSupport
                             File.Move(exportedFilePath, exportedFileBackupPath);
 
                         await File.WriteAllBytesAsync(exportedFilePath, resourceData);
-                        FileLogger.WriteLine($"Written {kvpMods.Value.ModDetails.Title} Embedded File Resource to {exportedFilePath}");
+                        if(UseVerboseLogging)
+                            FileLogger.WriteLine($"Written {kvpMods.Value.ModDetails.Title} Embedded File Resource to {exportedFilePath}");
                     }
                     //
                     // ------------------------------------------------------------------
@@ -517,10 +500,12 @@ namespace ModdingSupport
                                 if (archiveData.ContainsKey(resource.Sha1))
                                     archiveData.Remove(resource.Sha1, out ArchiveInfo _);
 
+                        if(UseVerboseLogging)
                                 FileLogger.WriteLine($"Replacing Ebx {resource.Name} with {kvpMods.Value.ModDetails.Title} in ModifiedEbx list");
                             }
                             else
                             {
+                        if(UseVerboseLogging)
                                 FileLogger.WriteLine($"Adding Ebx {resource.Name} from {kvpMods.Value.ModDetails.Title} to ModifiedEbx list");
                             }
                             EbxAssetEntry ebxEntry = new EbxAssetEntry();
@@ -544,10 +529,12 @@ namespace ModdingSupport
                                 if (archiveData.ContainsKey(resource.Sha1))
                                     archiveData.Remove(resource.Sha1, out ArchiveInfo _);
 
+                        if(UseVerboseLogging)
                                 FileLogger.WriteLine($"Replacing {resource.Type} with {kvpMods.Value.ModDetails.Title} in ModifiedRes list");
                             }
                             else
                             {
+                        if(UseVerboseLogging)
                                 FileLogger.WriteLine($"Adding {resource.Type} {resource.Name} from {kvpMods.Value.ModDetails.Title} to ModifiedRes list");
                             }
                             ResAssetEntry resEntry = new ResAssetEntry();
@@ -556,6 +543,7 @@ namespace ModdingSupport
                             modifiedRes.Add(resEntry.Name, resEntry);
                             if (archiveData.ContainsKey(resEntry.Sha1))
                             {
+                        if(UseVerboseLogging)
                                 FileLogger.WriteLine($"Replacing {resEntry.Sha1} ArchiveData with {kvpMods.Value.ModDetails.Title} in ModifiedRes list");
                                 archiveData[resEntry.Sha1].Data = resourceData;
                             }
@@ -622,11 +610,14 @@ namespace ModdingSupport
                                 if (ModifiedChunks.ContainsKey(guid))
                                 {
                                     ModifiedChunks.Remove(guid);
-                                    FileLogger.WriteLine($"Replacing {resource.Type} with {kvpMods.Value.ModDetails.Title} in ModifiedChunks list");
+                                    if (UseVerboseLogging)
+                                        FileLogger.WriteLine($"Replacing {resource.Type} with {kvpMods.Value.ModDetails.Title} in ModifiedChunks list");
                                 }
                                 else
-                                    FileLogger.WriteLine($"Adding {resource.Type} {resource.Name} from {kvpMods.Value.ModDetails.Title} to ModifiedChunks list");
-
+                                {
+                                    if (UseVerboseLogging)
+                                        FileLogger.WriteLine($"Adding {resource.Type} {resource.Name} from {kvpMods.Value.ModDetails.Title} to ModifiedChunks list");
+                                }
                                 ModifiedChunks.Add(guid, chunkAssetEntry);
                                 if (!archiveData.ContainsKey(chunkAssetEntry.Sha1))
                                 {
@@ -1407,26 +1398,29 @@ namespace ModdingSupport
         //    }
         //}
 
-        public void ExecuteCommand(string Command)
-        {
-            ProcessStartInfo ProcessInfo;
-            Process Process;
+        //public void ExecuteCommand(string Command)
+        //{
+        //    ProcessStartInfo ProcessInfo;
+        //    Process Process;
 
-            ProcessInfo = new ProcessStartInfo("cmd.exe", "/K " + Command);
-            ProcessInfo.CreateNoWindow = true;
-            ProcessInfo.UseShellExecute = true;
+        //    ProcessInfo = new ProcessStartInfo("cmd.exe", "/K " + Command);
+        //    ProcessInfo.CreateNoWindow = true;
+        //    ProcessInfo.UseShellExecute = true;
 
-            Process = Process.Start(ProcessInfo);
-        }
+        //    Process = Process.Start(ProcessInfo);
+        //}
 
-        public void ExecuteProcess(string processName, string args, bool waitForExit = false, bool asAdmin = false)
+        public async void ExecuteProcess(string processName, string args, bool waitForExit = false, bool asAdmin = false)
         {
             FileLogger.WriteLine($"Launching {processName} {args}");
             Logger.Log($"Launching {processName} {args}");
-            Process p = new Process();
+            using Process p = new Process();
             p.StartInfo.FileName = "cmd.exe";
-            p.StartInfo.Arguments = $"/K \"\"{processName}\" \"{args}\"\"";
+            p.StartInfo.Arguments = $"/K \"\"{processName}\" \"{args}\"\" && exit";
             p.Start();
+            await Task.Delay(10000);
+            p.Kill();
+            //Task.Run(async() => { await Task.Delay(10000); if (p != null) p.Kill(); });
 
             //var result = await Task.FromResult(async() =>
             //{

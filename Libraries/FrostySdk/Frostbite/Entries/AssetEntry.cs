@@ -437,9 +437,15 @@ namespace FrostySdk.Managers
                     return true;
             }
 
-            if (obj is AssetEntry other)
+            else if (this is ResAssetEntry && obj is ResAssetEntry resAssetEntry)
             {
-                if (other.Sha1 == this.Sha1)
+                if (resAssetEntry.ToString() == this.ToString())
+                    return true;
+            }
+
+            else if (this.GetType() == obj.GetType() && obj is AssetEntry other)
+            {
+                if (other.Sha1 == this.Sha1 && other.ToString() == this.ToString())
                     return true;
 
                 if (other.FullPath == this.FullPath 

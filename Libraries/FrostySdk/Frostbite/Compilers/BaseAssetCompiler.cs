@@ -257,6 +257,16 @@ namespace FrostySdk.Frostbite.Compilers
             else if (assetBundle.Key is ChunkAssetEntry)
                 return WriteChangesToSuperBundleChunk(origDbo, writer, assetBundle);
 
+            //switch(assetBundle.Key.GetType().Name)
+            //{
+            //    case "EbxAssetEntry":
+            //        return WriteChangesToSuperBundleEbx(origDbo, writer, assetBundle);
+            //    case "ResAssetEntry":
+            //        return WriteChangesToSuperBundleRes(origDbo, writer, assetBundle);
+            //    case "ChunkAssetEntry":
+            //        return WriteChangesToSuperBundleChunk(origDbo, writer, assetBundle);
+            //}
+
             return false;
         }
 
@@ -280,7 +290,7 @@ namespace FrostySdk.Frostbite.Compilers
                 : origDbo.HasValue("SBOSizePos") ? origDbo.GetValue<int>("SBOSizePos")
                 : 0;
 
-            if (originalSizePosition == 0)
+            if (originalSizePosition <= 0 || originalSizePosition > writer.Length)
                 return false;
 
             var originalSizeOfData = assetBundle.Value.Item3;
@@ -296,6 +306,10 @@ namespace FrostySdk.Frostbite.Compilers
             if (assetBundle.Value.Item4 != Sha1.Zero)
             {
                 writer.Position = origDbo.GetValue<long>("SB_Sha1_Position");
+
+                if (writer.Position < 0 || writer.Position > writer.Length)
+                    return false;
+
                 writer.Write(assetBundle.Value.Item4);
             }
 
@@ -328,11 +342,11 @@ namespace FrostySdk.Frostbite.Compilers
                 : 0;
             long? sha1Position = origDbo.HasValue("SB_Sha1_Position") ? origDbo.GetValue<long>("SB_Sha1_Position") : null;
 
-            if (originalSizePosition == 0)
+            if (originalSizePosition <= 0)
                 return false;
 
             var originalSizeOfData = assetBundle.Value.Item3;
-            if (originalSizeOfData == 0)
+            if (originalSizeOfData <= 0)
                 return false;
 
             if (!origDbo.HasValue("SB_Sha1_Position"))
@@ -404,6 +418,9 @@ namespace FrostySdk.Frostbite.Compilers
             return true;
         }
 
+
+        private List<Guid> ProcessedChunks = new();
+
         /// <summary>
         /// 
         /// </summary>
@@ -418,7 +435,7 @@ namespace FrostySdk.Frostbite.Compilers
             {
                 foreach (
                     string sbKey in catalogInfo.SuperBundles.Keys
-                    .Where(x => x.Contains("globals", StringComparison.OrdinalIgnoreCase))
+                    //.Where(x => x.Contains("globals", StringComparison.OrdinalIgnoreCase))
                     )
                 {
                     sbIndex++;
@@ -485,7 +502,6 @@ namespace FrostySdk.Frostbite.Compilers
                                 {
                                     var chunkIndex = tocFileObj.TocChunks.FindIndex(x => x.Id == modChunk.Key
                                         && modChunk.Value.ModifiedEntry != null
-                                        //&& (modChunk.Value.ModifiedEntry.AddToTOCChunks || modChunk.Value.ModifiedEntry.AddToChunkBundle)
                                         );
                                     if (chunkIndex != -1)
                                     {
@@ -494,13 +510,17 @@ namespace FrostySdk.Frostbite.Compilers
                                         if (ModExecuter.archiveData.ContainsKey(modChunk.Value.ModifiedEntry.Sha1))
                                             data = ModExecuter.archiveData[modChunk.Value.ModifiedEntry.Sha1].Data;
 
+                                        if (modChunk.Value.ModifiedEntry != null && modChunk.Value.ModifiedEntry.Data != null)
+                                            data = modChunk.Value.ModifiedEntry.Data;
+
                                         if (data == null)
                                             continue;
 
                                         var chunkGuid = tocFileObj.TocChunkGuids[chunkIndex];
+                                        if (ProcessedChunks.Contains(chunkGuid))
+                                            continue;
 
                                         var chunk = tocFileObj.TocChunks[chunkIndex];
-                                        //DbObject dboChunk = tocFile2.TocChunkInfo[modChunk.Key];
 
                                         nw_cas.Position = nw_cas.Length;
                                         var newPosition = nw_cas.Position;
@@ -514,7 +534,7 @@ namespace FrostySdk.Frostbite.Compilers
                                             IsPatch = patch,
                                         };
 
-                                        nw_toc.Position = tocFileObj.TocChunkPatchPositions[chunkGuid];// dboChunk.GetValue<long>("patchPosition");
+                                        nw_toc.Position = tocFileObj.TocChunkPatchPositions[chunkGuid];
                                         nw_toc.Write(Convert.ToByte(patch ? 1 : 0));
                                         nw_toc.Write(Convert.ToByte(catalog));
                                         nw_toc.Write(Convert.ToByte(newCas));
@@ -526,6 +546,7 @@ namespace FrostySdk.Frostbite.Compilers
                                         nw_toc.Write((uint)data.Length, Endian.Big);
                                         FileLogger.WriteLine($"Written TOC Chunk {chunkGuid} to {nextCasPath}");
                                         result.Add(chunkGuid);
+                                        ProcessedChunks.Add(chunkGuid);
                                     }
                                 }
 
@@ -550,10 +571,6 @@ namespace FrostySdk.Frostbite.Compilers
                         }
                     }
 
-                    //using (var fsToc = new FileStream(pathToTOCFile, FileMode.Open))
-                    //{
-                    //    tocSb.TOCFile.Write(fsToc);
-                    //}
                     TOCFile.RebuildTOCSignatureOnly(pathToTOCFile);
                 }
             }
@@ -604,6 +621,9 @@ namespace FrostySdk.Frostbite.Compilers
                 {
                     casPath = casPath.Replace("ModData\\", "", StringComparison.OrdinalIgnoreCase);
                 }
+
+                if (ModExecuter.UseVerboseLogging)
+                    FileLogger.WriteLine($"Modifying CAS file - {casPath}");
 
                 Debug.WriteLine($"Modifying CAS file - {casPath}");
 
@@ -695,7 +715,9 @@ namespace FrostySdk.Frostbite.Compilers
                         var positionOfData = nwCas.Position;
                         // write the new data to end of the file (this should be fine)
                         nwCas.Write(data);
-                        FileLogger.WriteLine($"Written {modItem.ModType} {modItem.NamePath} to {casPath}");
+
+                        if (ModExecuter.UseVerboseLogging)
+                            FileLogger.WriteLine($"Written {modItem.ModType} {modItem.NamePath} to {casPath}");
 
                         if (EntriesToNewPosition.ContainsKey(originalEntry))
                         {
@@ -982,39 +1004,46 @@ namespace FrostySdk.Frostbite.Compilers
             // Step 3. Apply bundle changes to CAS Files
             //
             //foreach (var tocGroup in groupedByTOCSB)
+            //{
+            foreach (var abtc in assetBundleToCAS)
             {
-                foreach (var abtc in assetBundleToCAS)
+                var resolvedCasPath = FileSystem.Instance.ResolvePath(abtc.Key, ModExecutor.UseModData);
+                using (var nwCas = new NativeWriter(new FileStream(resolvedCasPath, FileMode.Open)))
                 {
-                    var resolvedCasPath = FileSystem.Instance.ResolvePath(abtc.Key, ModExecutor.UseModData);
-                    using (var nwCas = new NativeWriter(new FileStream(resolvedCasPath, FileMode.Open)))
+                    //ModExecuter.Logger.Log($"Writing {abtc.Value.Count} assets to {resolvedCasPath}");
+                    FileLogger.WriteLine($"Writing {abtc.Value.Count} assets to {resolvedCasPath}");
+                    Stopwatch swSuperBundleWriting = Stopwatch.StartNew();
+#if DEBUG
+                    if(abtc.Value.Count > 1000)
                     {
-                        ModExecuter.Logger.Log($"Writing {abtc.Value.Count} assets to {resolvedCasPath}");
-                        FileLogger.WriteLine($"Writing {abtc.Value.Count} assets to {resolvedCasPath}");
-                        foreach (var assetEntry in abtc.Value)
+
+                    }
+#endif 
+
+                    foreach (var assetEntry in abtc.Value)
+                    {
+
+
+                        var assetBundles = EntriesToNewPosition.Where(x => x.Key.Equals(assetEntry.Item1)).ToArray();
+                        if (assetBundles.Count() > 1)
                         {
+                            ModExecuter.Logger.Log($"There are too many AssetEntries of a similar type/name {assetEntry.Item1}. Ignoring.");
 
-
-                            var assetBundles = EntriesToNewPosition.Where(x => x.Key.Equals(assetEntry.Item1)).ToArray();
-                            if(assetBundles.Count() > 1)
-                            {
-                                throw new Exception($"There are too many AssetEntries of a similar type/name!");
-                            }
-                            var assetBundle = assetBundles.Single();
-                            //var assetBundles = tocGroup.Value.Where(x => x.Key.Equals(assetEntry.Item1));
-                            //foreach (var assetBundle in assetBundles)
-                            //{
-                            if (WriteChangesToSuperBundle(assetEntry.Item2, nwCas, assetBundle))
-                            {
-                                EntriesToNewPosition.Remove(assetEntry.Item1);
-                            }
-
-                                // Remove from EntriesToNewPosition to stop any false errors occuring 
-                                //EntriesToNewPosition.Remove(assetEntry.Item1);
-                            //}
+                            FileLogger.WriteLine($"There are too many AssetEntries of a similar type/name {assetEntry.Item1}. Ignoring.");
+                            continue;
+                        }
+                        var assetBundle = assetBundles.Single();
+                        if (WriteChangesToSuperBundle(assetEntry.Item2, nwCas, assetBundle))
+                        {
+                            EntriesToNewPosition.Remove(assetEntry.Item1);
                         }
                     }
+
+                    FileLogger.WriteLine($"Written {abtc.Value.Count} assets to {resolvedCasPath} in {swSuperBundleWriting.Elapsed}");
+
                 }
             }
+            //}
 
             return true;
         }

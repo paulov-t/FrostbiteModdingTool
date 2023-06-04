@@ -575,9 +575,11 @@ namespace Frostbite.FileManagers
             {
                 legacyFileEntry = LegacyEntries[key];
             }
-            else if (Guid.TryParse(key, out Guid keyGuid) && LegacyEntries.Any(x => x.Value.ChunkId == Guid.Parse(key)))
+            else if (Guid.TryParse(key, out Guid keyGuid))
+            // extremely slow in performance diagnostic!
+            //else if (Guid.TryParse(key, out Guid keyGuid) && LegacyEntries.Any(x => x.Value.ChunkId == Guid.Parse(key)))
             {
-                legacyFileEntry = LegacyEntries.First(x => x.Value.ChunkId == keyGuid).Value;
+                legacyFileEntry = LegacyEntries.FirstOrDefault(x => x.Value.ChunkId == keyGuid).Value;
             }
             return legacyFileEntry;
         }
@@ -643,7 +645,9 @@ namespace Frostbite.FileManagers
 
             CompressionType compressionType = ProfileManager.GetCompressionType(ProfileManager.CompTypeArea.Legacy);
 
-            var edited = replaceFileEntries.GroupBy(x => x.ChunkId).ToDictionary(x => x.Key, x => x.ToList());
+            var editedGroups = replaceFileEntries
+                .GroupBy(x => x.ChunkId)
+                .ToDictionary(x => x.Key, x => x.ToList());
             List<LegacyFileEntry> editedLegacyFilesByProcess = new List<LegacyFileEntry>();
 
             // get the chunk batch (the main batch with offsets etc)
@@ -652,205 +656,196 @@ namespace Frostbite.FileManagers
             if (chunkBatch == null)
                 return null;
 
+            foreach (var editedGroupItem in editedGroups)
             {
-
-                //var edited = replaceFileEntries.GroupBy(x => x.ChunkId).ToDictionary(x => x.Key, x => x.Select(y=>y.Clone<LegacyFileEntry>()).ToList());
-
-                //var edited2 = chunkBatch.BatchLegacyFiles.Where(x => x.ModifiedEntry != null).GroupBy(x => x.ChunkId).ToDictionary(x => x.Key, x => x.ToList());
-                foreach (var gItem in edited)
+#if DEBUG
+                if (editedGroupItem.Value.Count > 1)
                 {
 
-                    // Easily handle Singular Chunk
-                    if (gItem.Value.Count == 1
-                        && !ModifiedChunks.Any(y => y.Id == gItem.Key)
-                        && chunkBatch.ChunkGroupsInBatch[gItem.Value.First().ChunkId].Count == 1
-                        )
+                }
+#endif
+                // Easily handle Singular Chunk
+                if (editedGroupItem.Value.Count == 1
+                    && !ModifiedChunks.Any(y => y.Id == editedGroupItem.Key)
+                    && chunkBatch.ChunkGroupsInBatch[editedGroupItem.Value.First().ChunkId].Count == 1
+                    )
+                {
+                    var chunkEntryClone = AssetManager.Instance.GetChunkEntry(editedGroupItem.Key).Clone<ChunkAssetEntry>();
+                    var legacyItem = editedGroupItem.Value.First();
+                    legacyItem.ModifiedEntry.NewOffset = 0;
+                    legacyItem.ModifiedEntry.Size = legacyItem.ModifiedEntry.Data.Length;
+
+                    AssetManager.Instance.ModifyChunk(chunkEntryClone, legacyItem.ModifiedEntry.Data, null, compressionType);
+
+                    legacyItem.ModifiedEntry.CompressedOffset = 0;
+                    legacyItem.ModifiedEntry.CompressedOffsetEnd = 0;// chunkEntryClone.ModifiedEntry.Size;
+
+                    chunkEntryClone.ModifiedEntry.Sha1 = AssetManager.Instance.GenerateSha1(Encoding.UTF8.GetBytes(legacyItem.Name));
+                    ModifiedChunks.Add(chunkEntryClone);
+
+                    editedLegacyFilesByProcess.Add(legacyItem);
+                }
+                // Otherwise handle Chunk Batch
+                else
+                {
+                    var batchGuid = editedGroupItem.Key;
+                    var groupOfLegacyFilesWithOnlyOne = chunkBatch.ChunkGroupsInBatch
+                            .Where(x => !ModifiedChunks.Any(y => y.Id == x.Key))
+                            .Where(x => x.Value.Count == 1)
+                            .First();
+                    foreach (var gItem2 in editedGroupItem.Value)
                     {
-                        var chunkEntryClone = AssetManager.Instance.GetChunkEntry(gItem.Key).Clone<ChunkAssetEntry>();
-                        var legacyItem = gItem.Value.First();
-                        legacyItem.ModifiedEntry.NewOffset = 0;
-                        legacyItem.ModifiedEntry.Size = legacyItem.ModifiedEntry.Data.Length;
+                        // This is vital in this current implementation. It will batch into separate existing files.
+                        groupOfLegacyFilesWithOnlyOne = chunkBatch.ChunkGroupsInBatch
+                            .Where(x => !ModifiedChunks.Any(y => y.Id == x.Key))
+                            .Where(x => x.Value.Count == 1)
+                            .First();
+                        batchGuid = groupOfLegacyFilesWithOnlyOne.Key;
+                        gItem2.ModifiedEntry.ChunkId = batchGuid;
 
-                        AssetManager.Instance.ModifyChunk(chunkEntryClone, legacyItem.ModifiedEntry.Data, null, compressionType);
 
-                        legacyItem.ModifiedEntry.CompressedOffset = 0;
-                        legacyItem.ModifiedEntry.CompressedOffsetEnd = chunkEntryClone.ModifiedEntry.Size;
+                        var groupOfLegacyFiles = chunkBatch.ChunkGroupsInBatch.First(x => x.Key == groupOfLegacyFilesWithOnlyOne.Key).Value;
+                        //groupOfLegacyFiles.AddRange(gItem.Value);
+                        groupOfLegacyFiles.Add(gItem2);
+                        // standard way of doing it
+                        //var groupChunkEntryClone = AssetManager.Instance.GetChunkEntry(gItem.Key).Clone<ChunkAssetEntry>();
+                        var groupChunkEntryClone = AssetManager.Instance.GetChunkEntry(batchGuid).Clone<ChunkAssetEntry>();
 
-                        chunkEntryClone.ModifiedEntry.Sha1 = AssetManager.Instance.GenerateSha1(Encoding.UTF8.GetBytes(legacyItem.Name));
-                        //chunkEntryClone.ModifiedEntry.AddToChunkBundle = true;
-                        //chunkEntryClone.ModifiedEntry.AddToTOCChunks = true;
-                        ModifiedChunks.Add(chunkEntryClone);
+                        var groupChunk = AssetManager.Instance.GetChunk(groupChunkEntryClone);
 
-                        editedLegacyFilesByProcess.Add(legacyItem);
-                        //AssetManager.Instance.RevertAsset(chunkEntry);
-                        //AssetManager.Instance.ModifyChunk(gItem.Key, legacyItem.ModifiedEntry.Data, null, compressionType);
-
-                    }
-                    // Otherwise handle Chunk Batch
-                    else
-                    {
-                        var batchGuid = gItem.Key;
-                        var groupOfLegacyFilesWithOnlyOne = chunkBatch.ChunkGroupsInBatch
-                                .Where(x => !ModifiedChunks.Any(y => y.Id == x.Key))
-                                .Where(x => x.Value.Count == 1)
-                                .First();
-                        foreach (var gItem2 in gItem.Value)
+                        var ms_newChunkGroup = new MemoryStream();
+                        using (var nw_newChunkGroup = new NativeWriter(ms_newChunkGroup, leaveOpen: true))
                         {
-                            // This is vital in this current implementation. It will batch into separate existing files.
-                            groupOfLegacyFilesWithOnlyOne = chunkBatch.ChunkGroupsInBatch
-                                .Where(x => !ModifiedChunks.Any(y => y.Id == x.Key))
-                                .Where(x => x.Value.Count == 1)
-                                .First();
-                            batchGuid = groupOfLegacyFilesWithOnlyOne.Key;
-                            gItem2.ModifiedEntry.ChunkId = batchGuid;
-
-
-                            var groupOfLegacyFiles = chunkBatch.ChunkGroupsInBatch.First(x => x.Key == groupOfLegacyFilesWithOnlyOne.Key).Value;
-                            //groupOfLegacyFiles.AddRange(gItem.Value);
-                            groupOfLegacyFiles.Add(gItem2);
-                            // standard way of doing it
-                            //var groupChunkEntryClone = AssetManager.Instance.GetChunkEntry(gItem.Key).Clone<ChunkAssetEntry>();
-                            var groupChunkEntryClone = AssetManager.Instance.GetChunkEntry(batchGuid).Clone<ChunkAssetEntry>();
-
-                            var groupChunk = AssetManager.Instance.GetChunk(groupChunkEntryClone);
-
-                            var ms_newChunkGroup = new MemoryStream();
-                            using (var nw_newChunkGroup = new NativeWriter(ms_newChunkGroup, leaveOpen: true))
+                            using (var nr_GroupChunk = new NativeReader(groupChunk))
                             {
-                                using (var nr_GroupChunk = new NativeReader(groupChunk))
+                                long lastOffset = 0;
+                                foreach (var itemInChunkGroup in groupOfLegacyFiles)
                                 {
-                                    long lastOffset = 0;
-                                    foreach (var itemInChunkGroup in groupOfLegacyFiles)
+                                    byte[] d = null;
+
+                                    if (itemInChunkGroup.HasModifiedData)
                                     {
-                                        byte[] d = null;
-
-                                        if (itemInChunkGroup.HasModifiedData)
-                                        {
-                                            itemInChunkGroup.ModifiedEntry.Size = itemInChunkGroup.ModifiedEntry.Data.Length;
-                                            d = itemInChunkGroup.ModifiedEntry.Data;
-                                            itemInChunkGroup.ModifiedEntry.ChunkId = batchGuid;
-                                        }
-                                        else
-                                        {
-                                            nr_GroupChunk.Position = itemInChunkGroup.ExtraData.DataOffset;
-                                            d = nr_GroupChunk.ReadBytes((int)itemInChunkGroup.Size);
-                                            itemInChunkGroup.ModifiedEntry = new FrostySdk.FrostbiteSdk.Managers.ModifiedLegacyAssetEntry();
-                                        }
-                                        itemInChunkGroup.ModifiedEntry.NewOffset = lastOffset;
-                                        itemInChunkGroup.ModifiedEntry.Size = d.Length;
-                                        lastOffset += d.Length;
-
-                                        itemInChunkGroup.ModifiedEntry.CompressedOffset = 0;
-                                        nw_newChunkGroup.Write(d);
-                                        itemInChunkGroup.ModifiedEntry.CompressedOffsetEnd = d.Length;
-                                        editedLegacyFilesByProcess.Add(itemInChunkGroup);
+                                        itemInChunkGroup.ModifiedEntry.Size = itemInChunkGroup.ModifiedEntry.Data.Length;
+                                        d = itemInChunkGroup.ModifiedEntry.Data;
+                                        itemInChunkGroup.ModifiedEntry.ChunkId = batchGuid;
                                     }
+                                    else
+                                    {
+                                        nr_GroupChunk.Position = itemInChunkGroup.ExtraData.DataOffset;
+                                        d = nr_GroupChunk.ReadBytes((int)itemInChunkGroup.Size);
+                                        itemInChunkGroup.ModifiedEntry = new FrostySdk.FrostbiteSdk.Managers.ModifiedLegacyAssetEntry();
+                                    }
+                                    itemInChunkGroup.ModifiedEntry.NewOffset = lastOffset;
+                                    itemInChunkGroup.ModifiedEntry.Size = d.Length;
+                                    lastOffset += d.Length;
 
+                                    itemInChunkGroup.ModifiedEntry.CompressedOffset = 0;
+                                    nw_newChunkGroup.Write(d);
+                                    itemInChunkGroup.ModifiedEntry.CompressedOffsetEnd = d.Length;
+                                    editedLegacyFilesByProcess.Add(itemInChunkGroup);
                                 }
+
                             }
-                            // Modify the Chunk
-                            ms_newChunkGroup.Position = 0;
-                            byte[] newChunkGroupData = new NativeReader(ms_newChunkGroup).ReadToEnd();
-
-                            var newChunkAlreadyCompressed = CompressChunkGroup(ms_newChunkGroup, groupOfLegacyFiles, compressionType);
-                            groupChunkEntryClone.ModifiedEntry = new ModifiedAssetEntry()
-                            {
-                                Data = newChunkAlreadyCompressed.newChunk,
-                                Size = newChunkAlreadyCompressed.newChunk.Length,
-                                LogicalSize = (uint)newChunkAlreadyCompressed.newChunk.Length,
-                                OriginalSize = ms_newChunkGroup.Length,
-                                //Sha1 = AssetManager.Instance.GenerateSha1(newChunkAlreadyCompressed.newChunk),
-                                Sha1 = groupChunkEntryClone.Sha1,
-                                //                        AddToChunkBundle = true,
-                                //AddToTOCChunks = true
-                            };
-                            ModifiedChunks.Add(groupChunkEntryClone);
                         }
+                        // Modify the Chunk
+                        ms_newChunkGroup.Position = 0;
+                        byte[] newChunkGroupData = new NativeReader(ms_newChunkGroup).ReadToEnd();
 
-
+                        var newChunkAlreadyCompressed = CompressChunkGroup(ms_newChunkGroup, groupOfLegacyFiles, compressionType);
+                        groupChunkEntryClone.ModifiedEntry = new ModifiedAssetEntry()
+                        {
+                            Data = newChunkAlreadyCompressed.newChunk,
+                            Size = newChunkAlreadyCompressed.newChunk.Length,
+                            LogicalSize = (uint)newChunkAlreadyCompressed.newChunk.Length,
+                            OriginalSize = ms_newChunkGroup.Length,
+                            //Sha1 = AssetManager.Instance.GenerateSha1(newChunkAlreadyCompressed.newChunk),
+                            Sha1 = groupChunkEntryClone.Sha1,
+                            //                        AddToChunkBundle = true,
+                            //AddToTOCChunks = true
+                        };
+                        ModifiedChunks.Add(groupChunkEntryClone);
                     }
 
-                }
-
-
-
-
-                byte[] oldBatchData;
-                using (var nrOldBatch = new NativeReader(AssetManager.Instance.GetChunk(chunkBatch.ChunkAssetEntry)))
-                {
-                    oldBatchData = nrOldBatch.ReadToEnd();
-                }
-
-                var msNewBatch = new MemoryStream();
-                using (var nwNewBatch = new NativeWriter(msNewBatch, leaveOpen: true))
-                {
-                    nwNewBatch.Write(oldBatchData);
-                    var changedBatchLegacy = chunkBatch.BatchLegacyFiles.ToList().Union(editedLegacyFilesByProcess);
-                    //.Where(x => x.ModifiedEntry != null);
-                    foreach (var lfe in changedBatchLegacy)
-                    {
-                        nwNewBatch.Position = lfe.ActualOffsetPosition;
-                        if (lfe.ModifiedEntry != null && lfe.ModifiedEntry.NewOffset.HasValue)
-                            nwNewBatch.Write(lfe.ModifiedEntry.NewOffset.Value);
-                        else
-                            nwNewBatch.Write((long)lfe.ExtraData.DataOffset);
-
-                        nwNewBatch.Position = lfe.ActualSizePosition;
-                        if (lfe.ModifiedEntry != null && lfe.ModifiedEntry.Data != null)
-                            nwNewBatch.Write((long)lfe.ModifiedEntry.Data.Length);
-                        else
-                            nwNewBatch.Write(lfe.Size);
-
-                        // Compressed Offset
-                        nwNewBatch.Position = lfe.CompressedOffsetPosition;
-                        if (lfe.ModifiedEntry != null && lfe.ModifiedEntry.CompressedOffset != null)
-                            nwNewBatch.Write((long)lfe.ModifiedEntry.CompressedOffset);
-                        else
-                            nwNewBatch.Write(lfe.CompressedOffset);
-
-                        // Compressed Size
-                        nwNewBatch.Position = lfe.CompressedSizePosition;
-                        if (lfe.ModifiedEntry != null && lfe.ModifiedEntry.CompressedOffsetEnd != null)
-                            nwNewBatch.Write((long)lfe.ModifiedEntry.CompressedOffsetEnd);
-                        else
-                            nwNewBatch.Write(lfe.CompressedOffsetEnd);
-
-                        nwNewBatch.Position = lfe.ChunkIdPosition;
-                        if (lfe.ModifiedEntry != null && lfe.ModifiedEntry.ChunkId.HasValue)
-                            nwNewBatch.Write(lfe.ModifiedEntry.ChunkId.Value);
-                        else
-                            nwNewBatch.Write(lfe.ChunkId);
-
-                    }
 
                 }
-                msNewBatch.Position = 0;
 
-                var newBatchData = new NativeReader(msNewBatch).ReadToEnd();
-                //byte[] newBatchData = msNewBatch.ToArray();
-                msNewBatch.Close();
-                msNewBatch.Dispose();
-
-
-                var cE = AssetManager.Instance.GetChunkEntry(chunkBatch.ChunkAssetEntry.Id).Clone<ChunkAssetEntry>();
-                AssetManager.Instance.ModifyChunk(cE, newBatchData, compressionOverride: compressionType);
-                //cE.ModifiedEntry.OriginalSize = msNewBatch.Length;
-                //cE.ModifiedEntry.LogicalSize = Convert.ToUInt32(Utils.CompressFile(newBatchData, null, ResourceType.Invalid, compressionType).Length);
-                //cE.ModifiedEntry.Size = cE.ModifiedEntry.LogicalSize;
-                //cE.ModifiedEntry.AddToChunkBundle = true;
-                //cE.ModifiedEntry.AddToTOCChunks = true;
-                ModifiedChunks.Add(cE);
-
-
-                var allFiles = new List<LegacyFileEntry>();
-                if (replaceFileEntries != null)
-                    allFiles.AddRange(replaceFileEntries);
-                if (newFileEntries != null)
-                    allFiles.AddRange(newFileEntries);
-                return allFiles;
             }
 
-            //return null;
+
+            byte[] oldBatchData;
+            using (var nrOldBatch = new NativeReader(AssetManager.Instance.GetChunk(chunkBatch.ChunkAssetEntry)))
+            {
+                oldBatchData = nrOldBatch.ReadToEnd();
+            }
+
+            var msNewBatch = new MemoryStream();
+            using (var nwNewBatch = new NativeWriter(msNewBatch, leaveOpen: true))
+            {
+                nwNewBatch.Write(oldBatchData);
+                //var changedBatchLegacy = chunkBatch.BatchLegacyFiles.ToList().Union(editedLegacyFilesByProcess);
+                var changedBatchLegacy = editedLegacyFilesByProcess;
+
+                foreach (var lfe in changedBatchLegacy)
+                {
+                    nwNewBatch.Position = lfe.ActualOffsetPosition;
+                    if (lfe.ModifiedEntry != null && lfe.ModifiedEntry.NewOffset.HasValue)
+                        nwNewBatch.Write(lfe.ModifiedEntry.NewOffset.Value);
+                    else
+                        nwNewBatch.Write((long)lfe.ExtraData.DataOffset);
+
+                    nwNewBatch.Position = lfe.ActualSizePosition;
+                    if (lfe.ModifiedEntry != null && lfe.ModifiedEntry.Data != null)
+                        nwNewBatch.Write((long)lfe.ModifiedEntry.Data.Length);
+                    else
+                        nwNewBatch.Write(lfe.Size);
+
+                    // Compressed Offset
+                    nwNewBatch.Position = lfe.CompressedOffsetPosition;
+                    if (lfe.ModifiedEntry != null && lfe.ModifiedEntry.CompressedOffset != null)
+                        nwNewBatch.Write((long)lfe.ModifiedEntry.CompressedOffset);
+                    else
+                        nwNewBatch.Write(lfe.CompressedOffset);
+
+                    // Compressed Size
+                    nwNewBatch.Position = lfe.CompressedSizePosition;
+                    if (lfe.ModifiedEntry != null && lfe.ModifiedEntry.CompressedOffsetEnd != null)
+                        nwNewBatch.Write((long)lfe.ModifiedEntry.CompressedOffsetEnd);
+                    else
+                        nwNewBatch.Write(lfe.CompressedOffsetEnd);
+
+                    nwNewBatch.Position = lfe.ChunkIdPosition;
+                    if (lfe.ModifiedEntry != null && lfe.ModifiedEntry.ChunkId.HasValue)
+                        nwNewBatch.Write(lfe.ModifiedEntry.ChunkId.Value);
+                    else
+                        nwNewBatch.Write(lfe.ChunkId);
+
+                }
+
+            }
+            msNewBatch.Position = 0;
+
+            var newBatchData = new NativeReader(msNewBatch).ReadToEnd();
+            //byte[] newBatchData = msNewBatch.ToArray();
+            msNewBatch.Close();
+            msNewBatch.Dispose();
+
+
+            var cE = AssetManager.Instance.GetChunkEntry(chunkBatch.ChunkAssetEntry.Id).Clone<ChunkAssetEntry>();
+            AssetManager.Instance.ModifyChunk(cE, newBatchData, compressionOverride: compressionType);
+            //cE.ModifiedEntry.OriginalSize = msNewBatch.Length;
+            //cE.ModifiedEntry.LogicalSize = Convert.ToUInt32(Utils.CompressFile(newBatchData, null, ResourceType.Invalid, compressionType).Length);
+            //cE.ModifiedEntry.Size = cE.ModifiedEntry.LogicalSize;
+            //cE.ModifiedEntry.AddToChunkBundle = true;
+            //cE.ModifiedEntry.AddToTOCChunks = true;
+            ModifiedChunks.Add(cE);
+
+
+            var allFiles = new List<LegacyFileEntry>();
+            if (replaceFileEntries != null)
+                allFiles.AddRange(replaceFileEntries);
+            if (newFileEntries != null)
+                allFiles.AddRange(newFileEntries);
+            return allFiles;
         }
 
 
@@ -932,32 +927,11 @@ namespace Frostbite.FileManagers
                     filesEdited.AddRange(RebuildEntireChunk(grpFile.Key, grpFile.Value));
                 }
 
-                //WriteAllLegacy();
-
-                //ChunkBatches.Clear();
-                //ChunkBatches.AddRange(VanillaChunkBatches);
             }
 
 
             return filesEdited;
         }
-
-        ///// <summary>
-        ///// Modifies multiple assets and expects the entries to already has a ModifiedEntry object instance
-        ///// </summary>
-        ///// <param name="entries"></param>
-        //public IEnumerable<ChunkAssetEntry> ModifyAssets(List<LegacyFileEntry> entries)
-        //{
-        //	var groupedAssets = entries.GroupBy(x => x.ParentGuid).ToDictionary(x => x.Key, x => x.ToList());
-        //	foreach (var group in groupedAssets)
-        //	{
-        //		foreach (var lfe in group.Value)
-        //		{
-        //			ModifyAsset(lfe.Name, lfe.ModifiedEntry.Data);
-        //		}
-        //		yield return RebuildEntireChunk(group.Key, group.Value);
-        //	}
-        //}
 
         /// <summary>
         /// Modifies multiple assets and expects the entries to already has a ModifiedEntry object instance

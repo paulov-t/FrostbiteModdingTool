@@ -511,9 +511,8 @@ namespace FrostbiteModdingTests
         [TestMethod]
         public void TestCombinationMod()
         {
-            var modPath1 = @"G:\Work\FIFA Modding\Gameplay mod\FIFA 23\V Gameplay Mod - v0.11.fbmod";
-            var modPath2 = @"G:\Work\FIFA Modding\GraphicMod\FIFA 23\V FIFA 23 Licensing Mod.fbmod";
-            var modPath3 = @"G:\Work\FIFA Modding\Career Mod\FIFA-23-Career-Mod\V Career Mod - Alpha 4.fbmod";
+            var modPath2 = @"G:\Work\FIFA Modding\GraphicMod\FIFA 23\V FIFA 23 Licensing Mod v0.2.fbmod";
+            var modPath3 = @"G:\Work\FIFA Modding\Career Mod\FIFA-23-Career-Mod\V Career Mod - Version 2a4.fbmod";
             GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
 
             ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
@@ -522,9 +521,23 @@ namespace FrostbiteModdingTests
             //    new System.Collections.Generic.List<string>() {
             //        modPath1, modPath2, modPath3
             //    }.ToArray()).Wait();
-            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
+            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { modPath2, modPath3 }.ToArray()).Wait();
 
         }
+
+        [TestMethod]
+        public void TestLargeLegacyMod_FIFAMod()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
+            ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+            frostyModExecutor.ForceRebuildOfMods = true;
+            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath
+                , new List<string>() { "G:\\Work\\FIFA Modding\\GraphicMod\\FIFA 23\\EEP23_MainMod_1_0_2_TU13\\EEP_MainMod_1_0_2_TU13.fifamod"
+
+                }.ToArray()).Wait();
+
+        }
+
 
         [TestMethod]
         public void TestLargeLegacyModProject()

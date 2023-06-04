@@ -33,13 +33,20 @@ namespace FMT.FileTools
 
         public static void WriteLine(string text, bool prefixDateTime = true)
         {
-            using (var nw = new NativeWriter(new FileStream(GetFileLoggerPath(), FileMode.Open)))
+            try
             {
-                nw.Position = nw.Length;
-                if (prefixDateTime)
-                    nw.WriteLine($"[{DateTime.Now.ToString()}]: {text}");
-                else
-                    nw.WriteLine(text);
+                using (var nw = new NativeWriter(new FileStream(GetFileLoggerPath(), FileMode.Open)))
+                {
+                    nw.Position = nw.Length;
+                    if (prefixDateTime)
+                        nw.WriteLine($"[{DateTime.Now.ToString()}]: {text}");
+                    else
+                        nw.WriteLine(text);
+                }
+            }
+            catch
+            {
+
             }
         }
     }
