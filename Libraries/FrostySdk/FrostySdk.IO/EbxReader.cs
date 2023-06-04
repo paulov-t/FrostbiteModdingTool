@@ -238,6 +238,8 @@ namespace FrostySdk.IO
 
         public virtual EbxAsset ReadAsset()
         {
+            if (GetType() == typeof(EbxReader) && !isValid)
+                InitialRead(this.BaseStream, false);
             EbxAsset ebxAsset = new EbxAsset();
             InternalReadObjects();
             ebxAsset.fileGuid = fileGuid;

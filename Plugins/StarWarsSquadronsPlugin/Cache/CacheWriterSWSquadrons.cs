@@ -212,56 +212,6 @@ namespace StarWarsSquadronsPlugin.Cache
             nativeWriter.Write(chunkEntry.LogicalSize);
             nativeWriter.Write(chunkEntry.H32);
             nativeWriter.Write(chunkEntry.FirstMip);
-            nativeWriter.Write(chunkEntry.ExtraData != null);
-            var extraDataExists = chunkEntry.ExtraData != null
-               && chunkEntry.ExtraData.DataOffset > 0
-               && !string.IsNullOrEmpty(chunkEntry.ExtraData.CasPath);
-            //nativeWriter.Write(extraDataExists);
-            //if (extraDataExists)
-            //{
-            //    nativeWriter.Write(chunkEntry.ExtraData.DataOffset);
-            //    nativeWriter.WriteLengthPrefixedString(chunkEntry.ExtraData.CasPath);
-            //}
-
-            //nativeWriter.Write(chunkEntry.TOCFileLocations != null ? chunkEntry.TOCFileLocations.Count : 0);
-            //if (chunkEntry.TOCFileLocations != null)
-            //{
-            //    foreach (var tfl in chunkEntry.TOCFileLocations)
-            //    {
-            //        nativeWriter.WriteLengthPrefixedString(tfl);
-            //    }
-            //}
-
-
-            //nativeWriter.Write(!string.IsNullOrEmpty(chunkEntry.SBFileLocation));
-            //if (!string.IsNullOrEmpty(chunkEntry.SBFileLocation))
-            //    nativeWriter.WriteLengthPrefixedString(chunkEntry.SBFileLocation);
-            //nativeWriter.Write(!string.IsNullOrEmpty(chunkEntry.TOCFileLocation));
-            //if (!string.IsNullOrEmpty(chunkEntry.TOCFileLocation))
-            //    nativeWriter.WriteLengthPrefixedString(chunkEntry.TOCFileLocation);
-
-
-            //nativeWriter.Write(!string.IsNullOrEmpty(chunkEntry.CASFileLocation));
-            //if (!string.IsNullOrEmpty(chunkEntry.CASFileLocation))
-            //    nativeWriter.WriteLengthPrefixedString(chunkEntry.CASFileLocation);
-
-            //nativeWriter.Write(chunkEntry.SB_CAS_Offset_Position);
-            //nativeWriter.Write(chunkEntry.SB_CAS_Size_Position);
-            //nativeWriter.Write(chunkEntry.SB_Sha1_Position);
-            //nativeWriter.Write(chunkEntry.SB_OriginalSize_Position);
-
-            //nativeWriter.Write(chunkEntry.SB_LogicalOffset_Position);
-            //nativeWriter.Write(chunkEntry.SB_LogicalSize_Position);
-
-            //nativeWriter.Write((!string.IsNullOrEmpty(chunkEntry.Bundle)));
-            //if (!string.IsNullOrEmpty(chunkEntry.Bundle))
-            //    nativeWriter.WriteLengthPrefixedString(chunkEntry.Bundle);
-
-            //nativeWriter.Write(chunkEntry.Bundles.Count);
-            //foreach (int bundleId in chunkEntry.Bundles)
-            //{
-            //    nativeWriter.Write(bundleId);
-            //}
         }
     }
 }

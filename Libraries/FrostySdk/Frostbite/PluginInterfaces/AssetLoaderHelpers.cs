@@ -18,9 +18,13 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             assetEntry.BaseSha1 = AssetManager.Instance.GetBaseSha1(assetEntry.Sha1);
             assetEntry.Size = item.GetValue("size", 0L);
             assetEntry.OriginalSize = item.GetValue("originalSize", 0L);
-            assetEntry.Location = AssetDataLocation.CasNonIndexed;
-            assetEntry.ExtraData = new AssetExtraData();
-            assetEntry.ExtraData.DataOffset = (uint)item.GetValue("offset", 0L);
+
+            if (item.HasValue("offset"))
+            {
+                assetEntry.Location = AssetDataLocation.CasNonIndexed;
+                assetEntry.ExtraData = new AssetExtraData();
+                assetEntry.ExtraData.DataOffset = (uint)item.GetValue("offset", 0L);
+            }
 
             if (item.HasValue("cas"))
             {

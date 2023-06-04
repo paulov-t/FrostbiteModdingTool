@@ -124,7 +124,7 @@ namespace FrostbiteModdingTests
         {
             var buildCache = new CacheManager();
             buildCache.LoadData("StarWarsSquadrons", GamePath, this, false, true);
-            var entryName = "ui/textures/bootflow/excaliburloadingscreen";
+            var entryName = "game/ui/loadingscreen/splashscreenloading";
             var ebxEntrySplash = AssetManager.Instance.GetEbxEntry(entryName);
             Assert.IsNotNull(ebxEntrySplash);
             var ebxSplash = AssetManager.Instance.GetEbx(ebxEntrySplash);

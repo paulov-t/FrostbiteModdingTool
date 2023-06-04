@@ -269,8 +269,13 @@ namespace FMT.Pages.Common
 
                             BuildTextureViewerFromAssetEntry(res);
                         }
-                        else
+                        else 
                         {
+                            res = AssetManager.Instance.GetResEntry(((dynamic)SelectedEbxAsset.RootObject).Resource.ResourceId);
+                            if (res != null)
+                            {
+                                BuildTextureViewerFromAssetEntry(res);
+                            }
                             throw new Exception("Unable to find RES Entry for " + ebxEntry.Name);
                         }
                     }

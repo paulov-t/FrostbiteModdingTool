@@ -337,7 +337,8 @@ namespace FrostySdk.Managers
             if(assembly == null)
                 throw exc;
 
-            var t = assembly.GetTypes().FirstOrDefault(x => x.FullName.Contains(className, StringComparison.OrdinalIgnoreCase));
+            var t = assembly.GetTypes().FirstOrDefault(x => x.FullName.EndsWith(className, StringComparison.OrdinalIgnoreCase));
+            //var t = assembly.GetTypes().FirstOrDefault(x => x.FullName.Contains(className, StringComparison.OrdinalIgnoreCase));
             if (t != null)
             {
                 if (!CachedTypes.ContainsKey(className))
@@ -438,12 +439,23 @@ namespace FrostySdk.Managers
             get
             {
                 if (_EbxItemsWithNoType == null)
+                {
                     _EbxItemsWithNoType = EBX.Values
                         .Where(x => x.ExtraData != null)
                         .Where(
                         x => string.IsNullOrEmpty(x.Type)
                         || x.Type == "UnknownType"
                     ).OrderBy(x => x.ExtraData.CasPath).ToList();
+
+                    if(_EbxItemsWithNoType.Count == 0)
+                    {
+                        _EbxItemsWithNoType = EBX.Values
+                            .Where(
+                            x => string.IsNullOrEmpty(x.Type)
+                            || x.Type == "UnknownType"
+                        ).ToList();
+                    }
+                }
 
                 return _EbxItemsWithNoType;
             }
@@ -481,6 +493,8 @@ namespace FrostySdk.Managers
                             var readerInst = (EbxReader)LoadTypeByName(ProfileManager.EBXReader, ebxStream, true);
                             try
                             {
+                                if (readerInst.GetType() == typeof(EbxReader) && !readerInst.IsValid)
+                                    readerInst.InitialRead(ebxStream, false);
                                 //EbxReaderInstance.InitialRead(ebxStream, false);
                                 EBX[ebx.Name].Type = readerInst.RootType;
                                 if (EBX[ebx.Name].Type != "NewWaveAsset")
@@ -758,7 +772,7 @@ namespace FrostySdk.Managers
                     entry.Bundles.Add(bundle);
 
                 // Always overwrite if the new item is a patch version
-                if (!existingEbxEntry.ExtraData.IsPatch && entry.ExtraData.IsPatch)
+                if (entry.ExtraData != null && !existingEbxEntry.ExtraData.IsPatch && entry.ExtraData.IsPatch)
                     EBX[entry.Name] = entry;
 
                 //if (ProfileManager.IsGameVersion(ProfileManager.EGame.FIFA22) 
@@ -1712,7 +1726,8 @@ namespace FrostySdk.Managers
             }
             bool inPatched = false;
             if (
-                entry.ExtraData.CasPath.StartsWith("native_patch"))
+                entry.ExtraData != null 
+                && entry.ExtraData.CasPath.StartsWith("native_patch"))
             {
                 inPatched = true;
             }
