@@ -1076,13 +1076,13 @@ namespace ModdingSupport
             if (foundMods && !UseModData)
             {
                 Logger.Log("Launching game: " + fs.BasePath + ProfileManager.ProfileName + ".exe (with Frostbite Mods)");
-                ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
+                await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
             }
             else if (UseModData)
             {
                 if (EADesktopIsInstalled)
                 {
-                    RunEADesktop();
+                    await RunEADesktop();
                     LaunchedViaEADesktop = true;
                 }
                 else
@@ -1092,13 +1092,13 @@ namespace ModdingSupport
                     else
                         Logger.Log("Launching game: " + fs.BasePath + ProfileManager.ProfileName + ".exe (with Frostbite Mods in ModData)");
 
-                    ExecuteProcess(GameEXEPath, arguments);
+                    await ExecuteProcess(GameEXEPath, arguments);
                 }
             }
             else
             {
                 Logger.Log("Launching game: " + fs.BasePath + ProfileManager.ProfileName + ".exe");
-                ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
+                await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
             }
 
             if (UseACBypass && ProfileManager.IsFIFA23DataVersion())
@@ -1204,7 +1204,7 @@ namespace ModdingSupport
 
             }
 
-            ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
+            await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
             //ExecuteCommand("start \"" + fs.BasePath + ProfileManager.ProfileName + ".exe\"");
         }
 
@@ -1410,63 +1410,57 @@ namespace ModdingSupport
         //    Process = Process.Start(ProcessInfo);
         //}
 
-        public async void ExecuteProcess(string processName, string args, bool waitForExit = false, bool asAdmin = false)
+        public async Task ExecuteProcess(string processName, string args, bool waitForExit = false, bool asAdmin = false)
         {
             FileLogger.WriteLine($"Launching {processName} {args}");
             Logger.Log($"Launching {processName} {args}");
-            using Process p = new Process();
-            p.StartInfo.FileName = "cmd.exe";
-            p.StartInfo.Arguments = $"/K \"\"{processName}\" \"{args}\"\" && exit";
-            p.Start();
-            await Task.Delay(10000);
-            p.Kill();
-            //Task.Run(async() => { await Task.Delay(10000); if (p != null) p.Kill(); });
+            //using Process p = new Process();
+            //p.StartInfo.FileName = "cmd.exe";
+            //p.StartInfo.Arguments = $"/K \"\"{processName}\" \"{args}\"\" && exit";
+            //p.Start();
+            //await Task.Delay(20000);
+            //p.Kill();
 
-            //var result = await Task.FromResult(async() =>
-            //{
+            if (Process.GetProcessesByName(processName).Length > 0)
+                return;
 
-            //    using (Process process = new ())
-            //    //Process process = new();
-            //    {
-            //        FileInfo fileInfo = new FileInfo(processName);
-            //        process.StartInfo.FileName = processName;
-            //        process.StartInfo.WorkingDirectory = fileInfo.DirectoryName;
-            //        process.StartInfo.Arguments = args;
-            //        process.StartInfo.UseShellExecute = true;
-            //        if (asAdmin)
-            //        {
-            //            process.StartInfo.UseShellExecute = true;
-            //            process.StartInfo.Verb = "runas";
-            //        }
-            //        try
-            //        {
-            //            if (!process.Start())
-            //            {
-            //                throw new Exception($"Unable to start {processName}");
-            //            }
-            //            while (true)
-            //            {
-            //                await Task.Delay(1000);
-            //                if (Process.GetProcesses().Any(x => x.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase)))
-            //                    break;
-            //            }
-            //        }
-            //        catch(Exception e)
-            //        {
-            //            //throw e;
-            //        }
-            //        //return true;
-            //    }
-            //}
-            //);
-            //FileInfo fileInfo = new FileInfo(processName);
-            //Process.Start(new ProcessStartInfo
-            //{
-            //    FileName = fileInfo.FullName,
-            //    WorkingDirectory = fileInfo.DirectoryName,
-            //    Arguments = args,
-            //    UseShellExecute = false
-            //});
+            using (Process process = new())
+            {
+                FileInfo fileInfo = new FileInfo(processName);
+                process.StartInfo.FileName = processName;
+                process.StartInfo.WorkingDirectory = fileInfo.DirectoryName;
+                process.StartInfo.Arguments = args;
+                process.StartInfo.UseShellExecute = false;
+                if (asAdmin)
+                {
+                    process.StartInfo.UseShellExecute = true;
+                    process.StartInfo.Verb = "runas";
+                }
+                //try
+                //{
+                    if (!process.Start())
+                    {
+                        throw new Exception($"Unable to start {processName}");
+                    }
+                    //int waitedTime = 0;
+                    //while (true)
+                    //{
+                    //    await Task.Delay(1000);
+                    //    if (Process.GetProcesses().Any(x => x.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase)))
+                    //        break;
+
+                    //    if(++waitedTime > 60)
+                    //    {
+                    //        throw new Exception("Process did not start. If your EA Desktop is setup correctly. You can still start the game manually now!");
+                    //    }
+                    //}
+                //}
+                //catch (Exception e)
+                //{
+                //    throw e;
+                //}
+            }
+           
         }
 
         private byte[] GetResourceData(string modFilename, int archiveIndex, long offset, int size)

@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using v2k4FIFAModding.Frosty;
 using v2k4FIFAModdingCL;
@@ -461,7 +462,7 @@ namespace FrostbiteModdingTests
         }
 
         [TestMethod]
-        public void TestCareerMod()
+        public async Task TestCareerMod()
         {
             GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
             ProjectManagement projectManagement = new ProjectManagement(GamePathEXE);
@@ -469,7 +470,7 @@ namespace FrostbiteModdingTests
             projectManagement.Project.WriteToMod("test.fbmod", projectManagement.Project.ModSettings);
             ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
             frostyModExecutor.ForceRebuildOfMods = true;
-            var r = frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Result;
+            await frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray());
         }
 
         [TestMethod]
