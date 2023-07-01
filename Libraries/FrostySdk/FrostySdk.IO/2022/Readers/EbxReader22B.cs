@@ -53,7 +53,8 @@ namespace FrostySdk.IO._2022.Readers
             
             this.LoadRiffEbx();
             this.isValid = true;
-            
+            IsLoaded = true;
+
         }
 
         private void LoadRiffEbx()
@@ -89,7 +90,7 @@ namespace FrostySdk.IO._2022.Readers
                 fsDump.Close();
                 fsDump.Dispose();
 #endif
-                throw new InvalidDataException("Incorrectly formatted RIFF detected.");
+                 throw new InvalidDataException("Incorrectly formatted RIFF detected.");
             }
             chunkName = base.ReadUInt32LittleEndian();
             if (chunkName != 1146634821)
@@ -247,6 +248,7 @@ namespace FrostySdk.IO._2022.Readers
             
             base.Position = payloadOffset;
             base.isValid = true;
+            IsLoaded = true;
 
 
 #if DEBUG

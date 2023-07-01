@@ -97,6 +97,8 @@ namespace FrostySdk.IO
 
         public List<EbxClass> ClassTypes => classTypes;
 
+        public bool IsLoaded { get; set; } = false;
+
         public EbxReader() : base(new MemoryStream())
         {
 
@@ -234,6 +236,7 @@ namespace FrostySdk.IO
             }
             Position = stringsOffset + stringsLen;
             isValid = true;
+            IsLoaded = true;
         }
 
         public virtual EbxAsset ReadAsset()
