@@ -699,7 +699,8 @@ namespace Frostbite.FileManagers
                         groupOfLegacyFilesWithOnlyOne = chunkBatch.ChunkGroupsInBatch
                             .Where(x => !ModifiedChunks.Any(y => y.Id == x.Key))
                             .Where(x => x.Value.Count == 1)
-                            .First();
+                            .Where(x => AssetManager.Instance.GetChunkEntry(x.Key) != null)
+                            .First(x => AssetManager.Instance.GetChunk(AssetManager.Instance.GetChunkEntry(x.Key)) != null);
                         batchGuid = groupOfLegacyFilesWithOnlyOne.Key;
                         gItem2.ModifiedEntry.ChunkId = batchGuid;
 
@@ -709,9 +710,16 @@ namespace Frostbite.FileManagers
                         groupOfLegacyFiles.Add(gItem2);
                         // standard way of doing it
                         //var groupChunkEntryClone = AssetManager.Instance.GetChunkEntry(gItem.Key).Clone<ChunkAssetEntry>();
-                        var groupChunkEntryClone = AssetManager.Instance.GetChunkEntry(batchGuid).Clone<ChunkAssetEntry>();
+                        var originalChunkEntry = AssetManager.Instance.GetChunkEntry(batchGuid);
+                        var groupChunkEntryClone = originalChunkEntry.Clone<ChunkAssetEntry>();
+                        var groupChunk = AssetManager.Instance.GetChunk(originalChunkEntry);
 
-                        var groupChunk = AssetManager.Instance.GetChunk(groupChunkEntryClone);
+                        if (groupChunk == null)
+                        {
+                            FileLogger.WriteLine($"ChunkFileManager2022: Unable to find Group Chunk {groupChunkEntryClone.Id} to mod files");
+                            Logger.Log($"ChunkFileManager2022: Unable to find Group Chunk {groupChunkEntryClone.Id} to mod files");
+                            continue;
+                        }
 
                         var ms_newChunkGroup = new MemoryStream();
                         using (var nw_newChunkGroup = new NativeWriter(ms_newChunkGroup, leaveOpen: true))
