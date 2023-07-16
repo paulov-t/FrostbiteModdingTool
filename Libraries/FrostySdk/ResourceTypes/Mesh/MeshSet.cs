@@ -66,6 +66,7 @@ public class MeshSet
     public AxisAlignedBox BoundingBox { get; set; }
 
     public List<MeshSetLod> Lods { get; } = new List<MeshSetLod>();
+    public List<long> LodOffsets { get; } = new List<long>();
 
 
     public MeshType Type { get; set; }

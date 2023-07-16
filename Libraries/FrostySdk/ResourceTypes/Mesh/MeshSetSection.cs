@@ -75,6 +75,7 @@ namespace FrostySdk.Resources
         public bool HasUnknown3 { get; }
 
         public ushort BoneCount { get; set; }
+        public long Offset2 { get; set; }
 
         private void ReadBones(NativeReader reader, long bonePositions)
         {
