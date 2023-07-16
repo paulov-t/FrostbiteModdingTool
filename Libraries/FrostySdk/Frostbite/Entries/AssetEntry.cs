@@ -428,6 +428,8 @@ namespace FrostySdk.Managers
             if (obj == null)
                 return false;
 
+            var other = obj as AssetEntry;
+
             if (obj is ChunkAssetEntry chunkAssetEntry && this is ChunkAssetEntry)
             {
                 if (chunkAssetEntry.FullPath == this.FullPath
@@ -443,13 +445,16 @@ namespace FrostySdk.Managers
                     return true;
             }
 
-            else if (this.GetType() == obj.GetType() && obj is AssetEntry other)
+            else if (this.GetType() == obj.GetType())
             {
                 if (other.Sha1 == this.Sha1 && other.ToString() == this.ToString())
                     return true;
 
                 if (other.FullPath == this.FullPath 
                     && !string.IsNullOrEmpty(other.Type) && !string.IsNullOrEmpty(this.Type) && other.Type == this.Type)
+                    return true;
+
+                if (other.FullPath == this.FullPath && other.Sha1 == this.Sha1)
                     return true;
             }
 

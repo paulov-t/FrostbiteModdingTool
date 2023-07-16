@@ -225,13 +225,23 @@ namespace FrostySdk.FrostySdk.IO
                             }
                         }
                     }
-                    else if (propertyType.GenericTypeArguments[0].Namespace == "FrostySdk.Ebx" && propertyType.GenericTypeArguments[0].BaseType != typeof(Enum))
+                    else if (
+                        
+                        (propertyType.GenericTypeArguments[0].Namespace == "FrostySdk.Ebx" 
+                        || propertyType.GenericTypeArguments[0].Namespace == "Sdk.Ebx")
+
+                        && propertyType.GenericTypeArguments[0].BaseType != typeof(Enum))
                     {
                         for (int j = 0; j < arrayCount; j++)
                         {
                             object arrayElement = typedArrayObject[j];
                             dataContainers.AddRange(ExtractClass(arrayElement.GetType(), arrayElement, add: false));
                         }
+                    }
+                    else
+                    {
+                        // This is a standard array. Ignore.
+                        //throw new NotImplementedException();
                     }
                 }
             }
@@ -556,16 +566,16 @@ namespace FrostySdk.FrostySdk.IO
             }
             object primaryInstance = exportedInstances[0];
             exportedInstances.RemoveAt(0);
-            //exportedInstances.Sort(delegate (dynamic a, dynamic b)
-            //{
-            //	AssetClassGuid assetClassGuid2 = a.GetInstanceGuid();
-            //	AssetClassGuid assetClassGuid3 = b.GetInstanceGuid();
-            //	byte[] array = assetClassGuid2.ExportedGuid.ToByteArray();
-            //	byte[] array2 = assetClassGuid3.ExportedGuid.ToByteArray();
-            //	uint num = (uint)((array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3]);
-            //	uint value3 = (uint)((array2[0] << 24) | (array2[1] << 16) | (array2[2] << 8) | array2[3]);
-            //	return num.CompareTo(value3);
-            //});
+            exportedInstances.Sort(delegate (dynamic a, dynamic b)
+            {
+                AssetClassGuid assetClassGuid2 = a.GetInstanceGuid();
+                AssetClassGuid assetClassGuid3 = b.GetInstanceGuid();
+                byte[] array = assetClassGuid2.ExportedGuid.ToByteArray();
+                byte[] array2 = assetClassGuid3.ExportedGuid.ToByteArray();
+                uint num = (uint)((array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3]);
+                uint value3 = (uint)((array2[0] << 24) | (array2[1] << 16) | (array2[2] << 8) | array2[3]);
+                return num.CompareTo(value3);
+            });
             nonExportedInstances.Sort((object a, object b) => string.CompareOrdinal(a.GetType().Name, b.GetType().Name));
             sortedObjs.Add(primaryInstance);
             sortedObjs.AddRange(exportedInstances);

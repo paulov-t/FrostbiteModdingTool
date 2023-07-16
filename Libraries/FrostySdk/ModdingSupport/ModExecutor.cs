@@ -1220,7 +1220,17 @@ namespace ModdingSupport
                     foreach (var proc in eaDesktopProcesses)
                     {
                         FileLogger.WriteLine($"ModExecutor:RunEADesktop: Killing {proc.ProcessName} to apply changes");
-                        Logger.Log("Killing EADesktop process to apply changes");
+                        Logger.Log($"Killing {proc.ProcessName} process to apply changes");
+                        proc.Kill();
+                    }
+                }
+                var eaBackgroundProcesses = Process.GetProcesses().Where(x => x.ProcessName.StartsWith("EA "));
+                if (eaBackgroundProcesses != null)
+                {
+                    foreach (var proc in eaBackgroundProcesses)
+                    {
+                        FileLogger.WriteLine($"ModExecutor:RunEADesktop: Killing {proc.ProcessName} to apply changes");
+                        Logger.Log($"Killing {proc.ProcessName} process to apply changes");
                         proc.Kill();
                     }
                 }

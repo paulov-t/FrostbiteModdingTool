@@ -197,7 +197,15 @@ namespace FrostySdk
                 //{
                 //    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
                 //}
+                if (name.Contains("default/settings"))
+                {
+                    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
+                }
                 if (name.Contains("head_"))
+                {
+                    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
+                }
+                if(name.Contains("fifa/attribulator/gameplay/groups/gp_cpuai/gp_cpuai_crossingdecision_runtime"))
                 {
                     File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
                 }

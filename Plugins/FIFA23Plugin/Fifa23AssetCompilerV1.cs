@@ -119,7 +119,7 @@ namespace FIFA23Plugin
             parent.Logger.Log("Modifying TOC Chunks.");
             var modifiedTocChunks = ModifyTOCChunks();
 
-            var entriesToNewPosition = WriteNewDataToCasFiles(dictOfModsToCas);
+            var entriesToNewPosition = WriteNewDataToCasFiles(dictOfModsToCas).ToList();
             if (entriesToNewPosition == null || entriesToNewPosition.Count == 0)
                 return true;
 
@@ -128,9 +128,21 @@ namespace FIFA23Plugin
 
             if (entriesToNewPosition.Count > 0)
             {
-                var entriesErrorText = $"{entriesToNewPosition.Count} Entries were not written to TOC. Some parts of the mod may be removed.";
-                FileLogger.WriteLine(entriesErrorText);
+                var entriesErrorText = $"{entriesToNewPosition.Count} Entries were not written to TOC. Parts of the mod have been removed.";
                 parent.Logger.Log(entriesErrorText);
+
+                // Write to File Logger the entire list
+                FileLogger.WriteLine(entriesErrorText);
+                foreach(var entry in entriesToNewPosition)
+                {
+                    FileLogger.WriteLine(entry.Name);
+                }
+
+                // Write to File Logger the error list
+                foreach (var entry in AssetEntryErrorList)
+                {
+                    FileLogger.WriteLine(entry.Key + "::" + entry.Value);
+                }
             }
 
             return result;

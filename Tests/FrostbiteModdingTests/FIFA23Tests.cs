@@ -478,7 +478,7 @@ namespace FrostbiteModdingTests
         {
             GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
             ProjectManagement projectManagement = new ProjectManagement(GamePathEXE);
-            var projectResult = projectManagement.Project.LoadAsync(@"G:\Work\FIFA Modding\Gameplay mod\FIFA 23\V5\V Gameplay Mod - v5a3.fmtproj").Result;
+            var projectResult = projectManagement.Project.LoadAsync(@"G:\Work\FIFA Modding\Gameplay mod\FIFA 23\V6\V Gameplay Mod - v6a5.fmtproj").Result;
 
             projectManagement.Project.WriteToMod("test.fbmod", new FrostySdk.ModSettings());
 
@@ -495,7 +495,7 @@ namespace FrostbiteModdingTests
         [TestMethod]
         public void TestGPMod()
         {
-            var modPath = @"G:\Work\FIFA Modding\Gameplay mod\FIFA 23\V5\V Gameplay Mod - v5 final.fbmod";
+            var modPath = @"G:\Work\FIFA Modding\Gameplay mod\FIFA 23\V6\V Gameplay Mod - v6a5.fbmod";
             //GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
             GameInstanceSingleton.InitializeSingleton(GamePathEXE, logger: this);
 
@@ -981,10 +981,11 @@ namespace FrostbiteModdingTests
             frostyModExecutor.ForceRebuildOfMods = true;
             frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, 
                 new System.Collections.Generic.List<string>() {
-                    @"G:\Work\FIFA Modding\GraphicMod\FIFA 23\FIFER Licensing Mod TU4.fifamod"
+                    //@"G:\Work\FIFA Modding\GraphicMod\FIFA 23\FIFER Licensing Mod TU4.fifamod"
                     //@"C:\Users\paula\Downloads\eSIM AIO Mod 1.0 - TU#2.fifamod"
                     //@"C:\Users\paula\Downloads\Darwin_Nunez_23.fifamod"
                     //@"C:\Users\paula\Downloads\[FIFA23] Anthem Jackets 22-23 by panda v1.0 TU4.fifamod"
+                   @"G:\Work\FIFA Modding\GraphicMod\FIFA 23\FIFA 23 GFX TURF AND PITCH.fifamod"
 
 
                 }.ToArray()).Wait();
