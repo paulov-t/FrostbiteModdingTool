@@ -51,7 +51,7 @@ As of September 2022, Frosty Toolsuite is open source on [GitHub](https://github
 - FIFA 22 (Mesh Import is not working as expected, use [FIFA Editor Tool](https://www.fifaeditortool.com/) to create these mods instead)
 - FIFA 23 (Mesh Import is not working as expected, use [FIFA Editor Tool](https://www.fifaeditortool.com/) to create these mods instead)
 
-### 50% supported - Likely missing or broken major features
+### 25% supported - Likely missing or broken major features
 - MADDEN 21
 
 ### Read Only Support
@@ -59,6 +59,7 @@ As of September 2022, Frosty Toolsuite is open source on [GitHub](https://github
 - Dead Space (Read only)
 - MADDEN 23 (Read only)
 - EA Sports PGA Tour (Read only)
+- Star Wars Squadrons (Read only)
 
 ### Potential to be supported (Plugins, SDK and Profiles may exist but not tested)
 - Battlefield 4
@@ -70,7 +71,6 @@ As of September 2022, Frosty Toolsuite is open source on [GitHub](https://github
 - FIFA 20
 - MADDEN 20
 - MADDEN 22
-- Star Wars Squadrons
 
 ## Solution explanation
 - All projects use C# .NET 7 and dependant on each other (i.e. if you attempt to build FrostbiteModdingUI, it will expect the other projects to exist in your file system)
