@@ -805,7 +805,7 @@ namespace FrostySdk.Managers
                     entry.Bundles.Add(bundle);
 
                 // Always overwrite if the new item is a patch version
-                if (!existingEntry.ExtraData.IsPatch && entry.ExtraData.IsPatch)
+                if (existingEntry.ExtraData != null && !existingEntry.ExtraData.IsPatch && entry.ExtraData.IsPatch)
                     RES[entry.Name] = entry;
             }
 
@@ -2256,7 +2256,7 @@ namespace FrostySdk.Managers
                         //	resAssetEntry.ParentBundleSize = item.GetValue<int>("ParentBundleSize");
 
                         resAssetEntry.Bundles.Add(bundleId);
-
+                        AddRes(resAssetEntry);
                         //if (item.HasValue("Bundle"))
                         //{
                         //	resAssetEntry.Bundle = item.GetValue<string>("Bundle");
