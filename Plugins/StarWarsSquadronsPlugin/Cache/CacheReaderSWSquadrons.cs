@@ -182,7 +182,13 @@ namespace StarWarsSquadronsPlugin.Cache
             chunkAssetEntry.LogicalSize = nativeReader.ReadUInt();
             chunkAssetEntry.H32 = nativeReader.ReadInt();
             chunkAssetEntry.FirstMip = nativeReader.ReadInt();
-            
+
+            if (nativeReader.ReadBoolean())
+            {
+                chunkAssetEntry.ExtraData = new AssetExtraData();
+                chunkAssetEntry.ExtraData.DataOffset = nativeReader.ReadUInt();
+                chunkAssetEntry.ExtraData.CasPath = nativeReader.ReadLengthPrefixedString();
+            }
 
             return chunkAssetEntry;
         }

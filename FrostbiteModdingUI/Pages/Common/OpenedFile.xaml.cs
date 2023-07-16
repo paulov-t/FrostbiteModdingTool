@@ -251,43 +251,46 @@ namespace FMT.Pages.Common
             DataContext = this;
         }
 
+        private void OpenEbxTextureAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (ebxEntry.Type == "TextureAsset")
+            {
+                try
+                {
+                    MainEditorWindow.Log("Loading Texture " + ebxEntry.Filename);
+                    var res = AssetManager.Instance.GetResEntry(ebxEntry.Name);
+                    if (res != null)
+                    {
+                        MainEditorWindow.Log("Loading RES " + ebxEntry.Filename);
+
+                        BuildTextureViewerFromAssetEntry(res);
+                    }
+                    else
+                    {
+                        res = AssetManager.Instance.GetResEntry(((dynamic)SelectedEbxAsset.RootObject).Resource.ResourceId);
+                        if (res != null)
+                        {
+                            BuildTextureViewerFromAssetEntry(res);
+                        }
+                        throw new Exception("Unable to find RES Entry for " + ebxEntry.Name);
+                    }
+                }
+                catch (Exception e)
+                {
+                    MainEditorWindow.Log($"Failed to load texture with the message :: {e.Message}");
+                }
+            }
+        }
+
         private async Task OpenEbxAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken = default(CancellationToken))
         {
             try
             {
                 SelectedEntry = ebxEntry;
                 SelectedEbxAsset = await AssetManager.Instance.GetEbxAsync(ebxEntry, cancellationToken: cancellationToken);
-                if (ebxEntry.Type == "TextureAsset")
-                {
-                    try
-                    {
-                        MainEditorWindow.Log("Loading Texture " + ebxEntry.Filename);
-                        var res = AssetManager.Instance.GetResEntry(ebxEntry.Name);
-                        if (res != null)
-                        {
-                            MainEditorWindow.Log("Loading RES " + ebxEntry.Filename);
 
-                            BuildTextureViewerFromAssetEntry(res);
-                        }
-                        else 
-                        {
-                            res = AssetManager.Instance.GetResEntry(((dynamic)SelectedEbxAsset.RootObject).Resource.ResourceId);
-                            if (res != null)
-                            {
-                                BuildTextureViewerFromAssetEntry(res);
-                            }
-                            throw new Exception("Unable to find RES Entry for " + ebxEntry.Name);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        MainEditorWindow.Log($"Failed to load texture with the message :: {e.Message}");
-                    }
-
-
-
-                }
-                else if (ebxEntry.Type == "SkinnedMeshAsset" || ebxEntry.Type == "CompositeMeshAsset" || ebxEntry.Type == "RigidMeshAsset")
+                OpenEbxTextureAsset(ebxEntry, cancellationToken);
+                if (ebxEntry.Type == "SkinnedMeshAsset" || ebxEntry.Type == "CompositeMeshAsset" || ebxEntry.Type == "RigidMeshAsset")
                 {
                     if (ebxEntry == null || ebxEntry.Type == "EncryptedAsset")
                     {

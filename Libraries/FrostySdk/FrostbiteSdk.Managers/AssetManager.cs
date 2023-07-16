@@ -1874,24 +1874,21 @@ namespace FrostySdk.Managers
                 entryLocation = AssetDataLocation.Cas;
             }
 
+            Stream streamOfData = null;
+
             switch (entryLocation)
             {
                 case AssetDataLocation.Cas:
                     if (entry.ExtraData == null || entry.ExtraData.DataOffset == 0)
                     {
-                        return GetResourceData(entry.Sha1);
+                        streamOfData = GetResourceData(entry.Sha1);
                     }
-                    //return GetResourceData(entry.ExtraData.BaseSha1, entry.ExtraData.DeltaSha1);
-                    return null;
-                //case AssetDataLocation.SuperBundle:
-                //    return GetResourceData((entry.ExtraData.IsPatch ? "native_patch/" : "native_data/") + superBundles[entry.ExtraData.SuperBundleId].Name + ".sb", entry.ExtraData.DataOffset, entry.Size);
-                //case AssetDataLocation.Cache:
-                //    return GetResourceData(entry.ExtraData.DataOffset, entry.Size);
+                    break;
                 case AssetDataLocation.CasNonIndexed:
-                    return GetResourceData(entry.ExtraData.CasPath, entry.ExtraData.DataOffset, entry.Size, entry);
-                default:
-                    return null;
+                    streamOfData = GetResourceData(entry.ExtraData.CasPath, entry.ExtraData.DataOffset, entry.Size, entry);
+                    break;
             }
+            return streamOfData;
         }
 
         public Stream GetResourceData(byte[] buffer)

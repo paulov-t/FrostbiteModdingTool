@@ -206,7 +206,12 @@ namespace FrostySdk.Frostbite.IO.Output
                 }
                 NativeReader reader = null;
                 if (AssetManager.Instance != null && lod.ChunkId != Guid.Empty)
-                    reader = new NativeReader(AssetManager.Instance.GetChunk(AssetManager.Instance.GetChunkEntry(lod.ChunkId)));
+                {
+                    var c = AssetManager.Instance.GetChunk(AssetManager.Instance.GetChunkEntry(lod.ChunkId));
+                    if (c == null)
+                        throw new ArgumentNullException("Lod's Chunk is Null");
+                    reader = new NativeReader(c);
+                }
                 else if (lod.InlineData != null && lod.InlineData.Length > 0)
                     reader = new NativeReader(new MemoryStream(lod.InlineData));
                 else if (FIFAMod.CurrentFIFAModInstance != null)

@@ -10,8 +10,23 @@ namespace FrostySdk.Frostbite.PluginInterfaces
     {
         public static AssetEntry ConvertDbObjectToAssetEntry(DbObject item, AssetEntry assetEntry)
         {
+            if (!item.HasValue("sha1"))
+            {
+                return null;
+            }
+
             if (ProfileManager.IsLoaded(EGame.StarWarsSquadrons))
+            {
+                if(assetEntry is ChunkAssetEntry)
+                {
+
+                }
                 assetEntry.Sha1 = item.GetValue<Sha1>("sha1");
+                if(assetEntry.Sha1 == Sha1.Zero)
+                {
+
+                }
+            }
             else
                 assetEntry.Sha1 = new FMT.FileTools.Sha1(item.GetValue<byte[]>("sha1"));
 
@@ -61,6 +76,10 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             {
                 ((ChunkAssetEntry)assetEntry).LogicalOffset = item.GetValue<uint>("logicalOffset");
                 ((ChunkAssetEntry)assetEntry).LogicalSize = item.GetValue<uint>("logicalSize");
+                ((ChunkAssetEntry)assetEntry).IsInline = item.HasValue("idata");
+                ((ChunkAssetEntry)assetEntry).RangeStart = item.HasValue("rangeStart") ? item.GetValue<uint>("rangeStart") : 0;
+                ((ChunkAssetEntry)assetEntry).RangeEnd = item.HasValue("rangeEnd") ? item.GetValue<uint>("rangeEnd") : 0;
+                ((ChunkAssetEntry)assetEntry).BundledSize = item.HasValue("bundledSize") ? item.GetValue<uint>("bundledSize") : 0;
             }
             //assetEntry.CASFileLocation = NativeFileLocation;
             //assetEntry.TOCFileLocation = AssociatedTOCFile.NativeFileLocation;

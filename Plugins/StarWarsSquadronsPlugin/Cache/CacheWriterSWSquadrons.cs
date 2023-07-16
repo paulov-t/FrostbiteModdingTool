@@ -212,6 +212,15 @@ namespace StarWarsSquadronsPlugin.Cache
             nativeWriter.Write(chunkEntry.LogicalSize);
             nativeWriter.Write(chunkEntry.H32);
             nativeWriter.Write(chunkEntry.FirstMip);
+
+
+            var extraDataExists = chunkEntry.ExtraData != null;
+            nativeWriter.Write(extraDataExists);
+            if (extraDataExists)
+            {
+                nativeWriter.Write(chunkEntry.ExtraData.DataOffset);
+                nativeWriter.WriteLengthPrefixedString(chunkEntry.ExtraData.CasPath);
+            }
         }
     }
 }

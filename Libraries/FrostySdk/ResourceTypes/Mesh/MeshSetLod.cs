@@ -96,7 +96,34 @@ namespace FrostySdk.Resources
 
         public int MaxCategories => 5;
 
-        public bool HasAdjacencyInMesh => false;
+        private bool m_HasAdjacencyInMesh;
+
+        public bool HasAdjacencyInMesh
+        {
+            get
+            {
+                return m_HasAdjacencyInMesh || ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.StarWarsSquadrons);
+                //{
+                //    case (int)ProfileVersion.NeedForSpeedRivals:
+                //    case (int)ProfileVersion.DragonAgeInquisition:
+                //    case (int)ProfileVersion.Battlefield4:
+                //    case (int)ProfileVersion.PlantsVsZombiesGardenWarfare:
+                //    case (int)ProfileVersion.MirrorsEdgeCatalyst:
+                //    case (int)ProfileVersion.Battlefield1:
+                //    case (int)ProfileVersion.StarWarsBattlefrontII:
+                //    case (int)ProfileVersion.Battlefield5:
+                //    case (int)ProfileVersion.StarWarsSquadrons:
+                //        return true;
+                //    default:
+                //        return false;
+                //}
+            }
+            set
+            {
+                m_HasAdjacencyInMesh = value;
+            }
+        }
+
 
         public byte[] UnknownChunkPad;
 
@@ -104,6 +131,9 @@ namespace FrostySdk.Resources
 
         public MeshSetLod(NativeReader reader, MeshSet meshSet)
         {
+            var positionAtStart = reader.Position;
+            reader.Position = positionAtStart;
+
             Type = (MeshType)reader.ReadUInt();
             maxInstances = reader.ReadUInt();
             uint sectionCount = reader.ReadUInt();
@@ -140,10 +170,15 @@ namespace FrostySdk.Resources
                 AdjacencyBufferSize = reader.ReadUInt32LittleEndian();
                 adjacencyData = new byte[AdjacencyBufferSize];
             }
-            if (ProfileManager.IsFIFA23DataVersion())
+            if (ProfileManager.IsLoaded(
+                FMT.FileTools.Modding.EGame.FIFA23
+                , FMT.FileTools.Modding.EGame.NFSUnbound
+                , FMT.FileTools.Modding.EGame.DeadSpace))
+            {
                 UnknownChunkPad = reader.ReadBytes(8);
-            if (ProfileManager.Game == FMT.FileTools.Modding.EGame.NFSUnbound)
-                UnknownChunkPad = reader.ReadBytes(8);
+                if (ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.DeadSpace))
+                    _ = reader.ReadBytes(4);
+            }
 
             ChunkId = reader.ReadGuid();
             inlineDataOffset = reader.ReadUInt32LittleEndian();

@@ -76,8 +76,9 @@ namespace FrostySdk.Resources
 
         public ushort BoneCount { get; set; }
         public long Offset2 { get; set; }
+        public long BoneListOffset { get; set; }
 
-        private void ReadBones(NativeReader reader, long bonePositions)
+        public void ReadBones(NativeReader reader, long bonePositions)
         {
             long startPosition = reader.Position;
             reader.Position = bonePositions;
@@ -93,7 +94,7 @@ namespace FrostySdk.Resources
             switch(ProfileManager.Game)
             {
                 case FMT.FileTools.Modding.EGame.FIFA23:
-                    Read23(reader, index); break;
+                    ReadFIFA23(reader, index); break;
                 case FMT.FileTools.Modding.EGame.FIFA22:
                 case FMT.FileTools.Modding.EGame.MADDEN22:
                     Read22(reader, index); break;
@@ -191,30 +192,31 @@ namespace FrostySdk.Resources
         private uint FIFA23_UnknownInt1;
         private uint FIFA23_UnknownInt2;
 
-        public void Read23(NativeReader reader, int index)
+        public void ReadFIFA23(NativeReader reader, int index)
         {
             var startPosition = reader.Position;
 
             SectionIndex = index;
-            Offset1 = reader.ReadInt64LittleEndian();
+            Offset1 = reader.ReadInt64LittleEndian(); // 0
             long namePosition = reader.ReadInt64LittleEndian();
             long bonePositions = reader.ReadInt64LittleEndian();
             BoneCount = reader.ReadUInt16LittleEndian(); //438
-            BonesPerVertex = (byte)reader.ReadByte();
-            MaterialId = reader.ReadUShort();
+            BonesPerVertex = (byte)reader.ReadByte(); // 8
+            MaterialId = reader.ReadUShort(); // 28
             StartIndex = reader.ReadByte(); // 0 ? 
             VertexStride = reader.ReadByte(); // 68
             PrimitiveType = (PrimitiveType)reader.ReadByte(); // 3
             PrimitiveCount = (uint)reader.ReadUInt32LittleEndian();
-            StartIndex = reader.ReadUInt32LittleEndian();
-            VertexOffset = reader.ReadUInt32LittleEndian();
+            StartIndex = reader.ReadUInt32LittleEndian(); // 0
+            VertexOffset = reader.ReadUInt32LittleEndian(); // 0
             VertexCount = (uint)reader.ReadUInt32LittleEndian(); // 3157
-            UnknownInt = reader.ReadUInt();
-            FIFA23_UnknownInt1 = reader.ReadUInt(); // hmmm
-            FIFA23_UnknownInt2 = reader.ReadUInt(); // hmmm more unknownness
+            UnknownInt = reader.ReadUInt(); // 0
+            FIFA23_UnknownInt1 = reader.ReadUInt(); // 0 
+            FIFA23_UnknownInt2 = reader.ReadUInt(); // 0
             for (int l = 0; l < 6; l++)
             {
                 TextureCoordinateRatios.Add(reader.ReadSingleLittleEndian());
+                // Texture Coords are usually a over 1 float (e.g. 2.11203742) and then 5 floats of exactly 1.0
             }
 
             for (int i = 0; i < DeclCount; i++)
