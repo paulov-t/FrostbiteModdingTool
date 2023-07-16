@@ -494,6 +494,55 @@
 					"Description": "Weight for categorized scores to summarize final rating.\r\n0:dribble, 1:pass, 2:shot, 3:defense, 4:contribution, 5:flair, 6:offense posisitioning, 7:defense positioning.\r\nTotal has to be 1.0"
 				}
 			]
+		},
+		{
+			"TypeName": "AttribSchema_gp_defense_blockintercept",
+			"Properties": [
+				{
+					"PropertyName": "BlockForceMinDistanceFromOpponent",
+					"Description": "Minimum about of distance away from the opponent before turning a stand tackle into block.\r\n0: Moving towards ball\r\n1: Moving away from ball"
+				},
+				{
+					"PropertyName": "BlockGoalLineMaxDistance",
+					"Description": "The maximum distance we should try to block the ball in goal line situation"
+				},
+				{
+					"PropertyName": "BlockHighDerterminationAggressionThreshold",
+					"Description": "Threshold to reach to use high determination block asset"
+				},
+				{
+					"PropertyName": "BlockHighDerterminationAgilityThreshold",
+					"Description": "Threshold to reach to use high determination block asset"
+				},
+				{
+					"PropertyName": "InterceptCostFactorAngle",
+					"Description": "The penalty associated with the extnet of the turn angle required to intercept the ball."
+				},
+				{
+					"PropertyName": "InterceptCostFactorHeight",
+					"Description": "The penalty associated with hitting a ball higher in the air."
+				},
+				{
+					"PropertyName": "InterceptCostFactorTime",
+					"Description": "The penalty associated with the time required to intercept the ball."
+				},
+				{
+					"PropertyName": "InterceptCostFactorXZ",
+					"Description": "The penalty associated with the displacement in XZ space required to intercept the ball."
+				},
+				{
+					"PropertyName": "InterceptJogSpeed",
+					"Description": "The speed that needs to be reached for a running tackle to be launched."
+				},
+				{
+					"PropertyName": "InterceptMinStrafeSpeed",
+					"Description": "The speed that needs to be reached for a running tackle to be launched."
+				},
+				{
+					"PropertyName": "InterceptRunSpeed",
+					"Description": "The speed that needs to be reached for a running tackle to be launched."
+				}
+			]
 		}
 	]
 }
