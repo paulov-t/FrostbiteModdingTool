@@ -15,7 +15,7 @@ namespace FrostySdk.IO
             writeHeader = inWriteHeader;
         }
 
-        public void Write(DbObject inObj)
+        public virtual void Write(DbObject inObj)
         {
             if (writeHeader)
             {

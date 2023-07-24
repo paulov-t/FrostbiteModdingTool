@@ -12,6 +12,7 @@ using FrostySdk.Managers;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -36,7 +37,7 @@ namespace ModdingSupport
         public int RefCount;
     }
 
-    public class ModExecutor
+    public partial class ModExecutor
     {
         public class ModBundleInfo
         {
@@ -252,6 +253,18 @@ namespace ModdingSupport
         public Dictionary<string, LegacyFileEntry> modifiedLegacy { get; } = new Dictionary<string, LegacyFileEntry>();
 
         public Dictionary<Sha1, ArchiveInfo> archiveData { get; } = new Dictionary<Sha1, ArchiveInfo>();
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public List<string> m_addedSuperBundles = new List<string>();
+
+        public ConcurrentDictionary<int, ModBundleInfo> m_modifiedSuperBundles = new ConcurrentDictionary<int, ModBundleInfo>();
+        public ConcurrentDictionary<int, ModBundleInfo> m_modifiedBundles = new ConcurrentDictionary<int, ModBundleInfo>();
+        public ConcurrentDictionary<int, List<string>> m_addedBundles = new ConcurrentDictionary<int, List<string>>();
+
+        public CasDataInfo m_casData = new CasDataInfo();
 
 
         public int numTasks;
