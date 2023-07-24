@@ -322,6 +322,7 @@ namespace FrostySdk.IO._2022.Readers
         {
             var hashAttribute = property.GetCustomAttribute<HashAttribute>();
             var ebxFieldMetaAttribute = property.GetCustomAttribute<EbxFieldMetaAttribute>();
+            var arrayBaseType = ebxFieldMetaAttribute.BaseType;
 
             long position = base.Position;
             base.Position = position;
@@ -339,16 +340,6 @@ namespace FrostySdk.IO._2022.Readers
 
 
             var position2 = payloadPosition + ebxFieldMetaAttribute.Offset + ebxArray.Offset;
-
-            //if (newPosition < 0 || newPosition > base.Length)
-            //{
-            //    base.Position = position + (arrayOffset) - 8;
-            //}
-            //else
-            //{
-            //    base.Position += arrayOffset - 4;
-            //    base.Position -= 4L;
-            //}
 
             if (newPosition < 0 || newPosition > base.Length)
                 return;
@@ -368,26 +359,79 @@ namespace FrostySdk.IO._2022.Readers
 
             for (int i = 0; i < arrayCount; i++)
             {
-                object obj2 = null;
-
-                // -------------------------------------------------------------------------------------------------------------------------
-                // TODO: Somehow get this working without having to use this.ReadField. Its related to Struct, all other fields work fine
-
-                // Seems to work very well with NFS Unbound
-                //if (ProfileManager.IsGameVersion(EGame.NFSUnbound))
-                //{
-                //    if (genArg0.Name == "PointerRef")
-                //        obj2 = this.ReadField(classType, EbxFieldType.Pointer, field.ClassRef, isReference);
-                //    else if (genArg0.Name == "CString")
-                //        obj2 = this.ReadField(classType, EbxFieldType.CString, field.ClassRef, isReference);
-                //    else
-                //        obj2 = Read(genArg0);
-                //}
-                //// This is only a problem with meshes in FIFA, of course...
-                //else
+                object obj2 = this.ReadField(classType, field.InternalType, field.ClassRef, isReference);
+                if (property != null)
                 {
-                    obj2 = this.ReadField(classType, field.InternalType, field.ClassRef, isReference);
+                    var propValue = property.GetValue(obj);
+                    if (propValue == null)
+                    {
+
+                        var genericTypeDef = property.PropertyType.GetGenericTypeDefinition();
+                        var genericArgs = property.PropertyType.GetGenericArguments();
+                        Type constructed = genericTypeDef.MakeGenericType(genericArgs);
+                        propValue = Activator.CreateInstance(constructed);
+                    }
+
+                    var propValueType = property.PropertyType;
+                    if (propValueType == null)
+                        continue;
+
+                    var addMethod = propValueType.GetMethod("Add");
+                    if (addMethod == null)
+                        continue;
+
+                    addMethod.Invoke(propValue, new object[1] { obj2 });
+                    property.SetValue(obj, propValue);
                 }
+                else
+                {
+
+                }
+            }
+        }
+
+        protected void ReadArray(object obj, PropertyInfo property, bool isReference)
+        {
+            var hashAttribute = property.GetCustomAttribute<HashAttribute>();
+            var ebxFieldMetaAttribute = property.GetCustomAttribute<EbxFieldMetaAttribute>();
+            var arrayBaseType = ebxFieldMetaAttribute.BaseType;
+
+            long position = base.Position;
+            base.Position = position;
+
+            int arrayOffset = Read<int>();
+            var newPosition = base.Position + arrayOffset - 4;
+
+
+            var ebxArray = arrays.Find((EbxArray a) => a.Offset == newPosition - payloadPosition);
+
+            // EbxArray Offset & Payload Position (Payload seems to be always Header = 32)
+            base.Position = ebxArray.Offset + payloadPosition;
+            // Minus 4 to get the Count from the Ebx Bytes
+            base.Position -= 4;
+
+
+            var position2 = payloadPosition + ebxFieldMetaAttribute.Offset + ebxArray.Offset;
+
+            if (newPosition < 0 || newPosition > base.Length)
+                return;
+
+            if (base.Position < 0)
+                return;
+
+            if (base.Position > base.Length)
+                return;
+
+            uint arrayCount = Read<uint>();
+            if (arrayCount < 0)
+                return;
+
+            if (arrayCount >= 999)
+                return;
+
+            for (int i = 0; i < arrayCount; i++)
+            {
+                object obj2 = this.Read(arrayBaseType);
                 if (property != null)
                 {
                     //try
@@ -431,7 +475,7 @@ namespace FrostySdk.IO._2022.Readers
             }
             //base.Position = position;
 
-            if(obj == null)
+            if (obj == null)
             {
 
             }

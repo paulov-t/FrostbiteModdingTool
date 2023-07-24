@@ -371,7 +371,8 @@ namespace FrostySdk.IO._2022.Readers
                 {
                     dynamic obj = base.objects[i];
                     EbxClass @class = this.GetClass(objType);
-                    base.Pad(@class.Alignment);
+                    //base.Pad(@class.Alignment);
+                    base.Pad(align);
 
                     Guid inGuid = Guid.Empty;
                     if (ebxInstance2.IsExported)
@@ -383,7 +384,7 @@ namespace FrostySdk.IO._2022.Readers
 
                     //base.ReadInt32LittleEndian();
                     //base.Position += 12L;
-                    base.ReadGuid();
+                    _ = base.ReadGuid();
 
                     if (align != 4)
                         base.Position += 8L;
