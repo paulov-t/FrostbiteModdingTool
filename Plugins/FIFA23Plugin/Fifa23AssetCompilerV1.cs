@@ -119,7 +119,7 @@ namespace FIFA23Plugin
             parent.Logger.Log("Modifying TOC Chunks.");
             var modifiedTocChunks = ModifyTOCChunks();
 
-            var entriesToNewPosition = WriteNewDataToCasFiles(dictOfModsToCas).ToList();
+            var entriesToNewPosition = WriteNewDataToCasFiles(dictOfModsToCas);
             if (entriesToNewPosition == null || entriesToNewPosition.Count == 0)
                 return true;
 
