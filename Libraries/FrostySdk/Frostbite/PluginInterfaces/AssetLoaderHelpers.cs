@@ -8,27 +8,20 @@ namespace FrostySdk.Frostbite.PluginInterfaces
 {
     public class AssetLoaderHelpers
     {
-        public static AssetEntry ConvertDbObjectToAssetEntry(DbObject item, AssetEntry assetEntry)
+        public static AssetEntry ConvertDbObjectToAssetEntry(DbObject item, AssetEntry assetEntry, bool useByteSha1 = true)
         {
             if (!item.HasValue("sha1"))
             {
                 return null;
             }
 
-            if (ProfileManager.IsLoaded(EGame.StarWarsSquadrons))
-            {
-                if(assetEntry is ChunkAssetEntry)
-                {
-
-                }
-                assetEntry.Sha1 = item.GetValue<Sha1>("sha1");
-                if(assetEntry.Sha1 == Sha1.Zero)
-                {
-
-                }
-            }
-            else
+            if(useByteSha1 || item.GetValueType("sha1") == typeof(byte[]))
                 assetEntry.Sha1 = new FMT.FileTools.Sha1(item.GetValue<byte[]>("sha1"));
+            else if (item.HasValue("sha1bytes"))
+                assetEntry.Sha1 = new FMT.FileTools.Sha1(item.GetValue<byte[]>("sha1bytes"));
+            else
+                assetEntry.Sha1 = item.GetValue<Sha1>("sha1");
+
 
             assetEntry.BaseSha1 = AssetManager.Instance.GetBaseSha1(assetEntry.Sha1);
             assetEntry.Size = item.GetValue("size", 0L);
@@ -68,8 +61,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             else if (assetEntry is ResAssetEntry || item.HasValue("resRid"))
             {
                 ((ResAssetEntry)assetEntry).Name = item.GetValue("name", string.Empty);
-                ((ResAssetEntry)assetEntry).ResRid = item.GetValue<ulong>("resRid", 0ul);
-                ((ResAssetEntry)assetEntry).ResType = item.GetValue<uint>("resType", 0);
+                ((ResAssetEntry)assetEntry).ResRid = item.GetValueType("resRid") == typeof(ulong) ? item.GetValue<ulong>("resRid", 0ul) : (ulong)item.GetValue<long>("resRid", 0L);
+                ((ResAssetEntry)assetEntry).ResType = item.GetValueType("resType") == typeof(uint) ? item.GetValue<uint>("resType", 0) : (uint)item.GetValue<int>("resType", 0);
                 ((ResAssetEntry)assetEntry).ResMeta = item.GetValue<byte[]>("resMeta", null);
             }
             else if (assetEntry is ChunkAssetEntry || item.HasValue("logicalOffset"))

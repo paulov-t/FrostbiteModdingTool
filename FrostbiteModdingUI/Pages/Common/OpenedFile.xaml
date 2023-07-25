@@ -131,29 +131,18 @@
             EffectsManager="{Binding EffectsManager}"
             EnableSSAO="True"
             FXAALevel="Medium"
-                                                 BackgroundColor="Gray"
-                                                Background="Gray"
-              
+            BackgroundColor="Gray"
+            Background="Gray"
             ShowFrameDetails="False"
-                 EnableDeferredRendering="True">
+            EnableDeferredRendering="True">
                 <hx:Viewport3DX.InputBindings>
-                    <!--<KeyBinding Key="B" Command="hx:ViewportCommands.BackView" />
-                                                <KeyBinding Key="F" Command="hx:ViewportCommands.FrontView" />
-                                                            <KeyBinding Key="U" Command="hx:ViewportCommands.TopView" />
-                                                            <KeyBinding Key="D" Command="hx:ViewportCommands.BottomView" />
-                                                            <KeyBinding Key="L" Command="hx:ViewportCommands.LeftView" />
-                                                            <KeyBinding Key="R" Command="hx:ViewportCommands.RightView" />
-                                                            <KeyBinding Command="hx:ViewportCommands.ZoomExtents" Gesture="Control+E" />-->
                     <MouseBinding Command="hx:ViewportCommands.Rotate" Gesture="RightClick" />
                     <MouseBinding Command="hx:ViewportCommands.Zoom" Gesture="MiddleClick" />
                     <MouseBinding Command="hx:ViewportCommands.Pan" Gesture="LeftClick" />
                 </hx:Viewport3DX.InputBindings>
                 <hx:DirectionalLight3D Direction="{Binding Camera.LookDirection}" Color="#D6D6D6" />
                 <hx:AmbientLight3D Color="#111111" />
-
-
                 <hx:Element3DPresenter Content="{Binding GroupModel}" />
-
             </hx:Viewport3DX>
 
 

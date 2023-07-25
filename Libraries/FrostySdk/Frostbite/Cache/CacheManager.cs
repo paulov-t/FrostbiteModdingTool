@@ -252,8 +252,19 @@ namespace FrostySdk.Frostbite
 
             if (!string.IsNullOrEmpty(ProfileManager.CacheReader))
             {
-                var resultFromPlugin = ((ICacheReader)AssetManager.Instance.LoadTypeFromPlugin(ProfileManager.CacheReader)).Read();
-                return resultFromPlugin;
+                var resultTypeFromPlugin = AssetManager.Instance.LoadTypeFromPlugin(ProfileManager.CacheReader);
+                if (resultTypeFromPlugin != null)
+                {
+                    var resultFromPlugin = ((ICacheReader)resultTypeFromPlugin).Read();
+                    return resultFromPlugin;
+                }
+
+                var resultTypeFromAssembly = AssetManager.LoadTypeByName(ProfileManager.CacheReader);
+                if (resultTypeFromAssembly != null)
+                {
+                    var resultFromPlugin = ((ICacheReader)resultTypeFromAssembly).Read();
+                    return resultFromPlugin;
+                }
             }
 
             return false;

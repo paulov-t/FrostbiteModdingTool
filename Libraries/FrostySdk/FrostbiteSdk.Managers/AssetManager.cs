@@ -1625,10 +1625,10 @@ namespace FrostySdk.Managers
             if (EBX.ContainsKey($"{Fnv1.HashString(name.ToString().ToLower())}"))
                 return EBX[$"{Fnv1.HashString(name.ToString().ToLower())}"];
 
-            //if (CacheManager.HasEbx(name.ToString()))
-            //{
-            //    EBX.TryAdd(name.ToString(), CacheManager.GetEbx(name.ToString()));
-            //}
+            if (CacheManager.HasEbx(name.ToString()))
+            {
+                EBX.TryAdd(name.ToString(), CacheManager.GetEbx(name.ToString()));
+            }
 
             return null;
         }
@@ -2119,70 +2119,8 @@ namespace FrostySdk.Managers
                 foreach (DbObject item in sb.GetValue<DbObject>("ebx"))
                 {
                     EbxAssetEntry ebxAssetEntry = new EbxAssetEntry();
-                    ebxAssetEntry = (EbxAssetEntry)AssetLoaderHelpers.ConvertDbObjectToAssetEntry(item, ebxAssetEntry);
+                    ebxAssetEntry = (EbxAssetEntry)AssetLoaderHelpers.ConvertDbObjectToAssetEntry(item, ebxAssetEntry, false);
                     AddEbx(ebxAssetEntry);
-                    ////if (item.GetValue<string>("name").Contains("gp_actor_movement_runtime", StringComparison.OrdinalIgnoreCase))
-                    ////{
-
-                    ////}
-
-                    ////EbxAssetEntry ebxAssetEntry = AddEbx(item, ProfileManager.IsMadden21DataVersion(ProfileManager.Game));
-                    ////EbxAssetEntry ebxAssetEntry = AddEbx(item, true);
-                    ////if (ebxAssetEntry.Sha1 != item.GetValue<FMT.FileTools.Sha1>("sha1") && item.GetValue("casPatchType", 0) != 0)
-                    ////{
-                    ////	ebxAssetEntry.Sha1 = item.GetValue<FMT.FileTools.Sha1>("sha1");
-                    ////	ebxAssetEntry.IsInline = item.HasValue("idata");
-                    ////}
-
-                    ////if (ebxAssetEntry.Size != item.GetValue<long>("size"))
-                    ////{
-                    ////	ebxAssetEntry.Size = item.GetValue("size", 0L);
-                    ////}
-
-                    ////if (ebxAssetEntry.OriginalSize != item.GetValue<long>("originalSize"))
-                    ////{
-                    ////	ebxAssetEntry.OriginalSize = item.GetValue("originalSize", 0L);
-                    ////}
-
-                    ////if (item.GetValue("cache", defaultValue: false) && ebxAssetEntry.Location != AssetDataLocation.Cache)
-                    ////{
-                    ////	helper.RemoveEbxData(ebxAssetEntry.Name);
-                    ////}
-
-                    ////if (item.HasValue("SBFileLocation"))
-                    ////	ebxAssetEntry.SBFileLocation = item.GetValue<string>("SBFileLocation");
-
-                    ////if (item.HasValue("TOCFileLocation"))
-                    ////	ebxAssetEntry.TOCFileLocation = item.GetValue<string>("TOCFileLocation");
-
-                    ////if (item.HasValue("SB_CAS_Offset_Position"))
-                    ////	ebxAssetEntry.SB_CAS_Offset_Position = item.GetValue<int>("SB_CAS_Offset_Position");
-
-                    ////if (item.HasValue("SB_CAS_Size_Position"))
-                    ////	ebxAssetEntry.SB_CAS_Size_Position = item.GetValue<int>("SB_CAS_Size_Position");
-
-                    ////if (item.HasValue("SB_OriginalSize_Position"))
-                    ////	ebxAssetEntry.SB_OriginalSize_Position = item.GetValue<int>("SB_OriginalSize_Position");
-
-                    ////if (item.HasValue("SB_Sha1_Position"))
-                    ////	ebxAssetEntry.SB_Sha1_Position = item.GetValue<int>("SB_Sha1_Position");
-
-                    ////if (item.HasValue("ParentBundleOffset"))
-                    ////	ebxAssetEntry.ParentBundleOffset = item.GetValue<int>("ParentBundleOffset");
-
-                    ////if (item.HasValue("ParentBundleSize"))
-                    ////	ebxAssetEntry.ParentBundleSize = item.GetValue<int>("ParentBundleSize");
-
-                    ////ebxAssetEntry.Bundles.Add(bundleId);
-
-                    ////if (item.HasValue("Bundle"))
-                    ////{
-                    ////	ebxAssetEntry.Bundle = item.GetValue<string>("Bundle");
-                    ////}
-                    ////else if (AssetManager.Instance.bundles.Count < bundleId)
-                    ////{
-                    ////	ebxAssetEntry.Bundle = AssetManager.Instance.bundles[bundleId].Name;
-                    ////}
                 }
             }
         }
@@ -2196,29 +2134,7 @@ namespace FrostySdk.Managers
                     if (!ProfileManager.IsResTypeIgnored((ResourceType)item.GetValue("resType", 0L)))
                     {
                         ResAssetEntry resAssetEntry = new ResAssetEntry();
-                        resAssetEntry = (ResAssetEntry)AssetLoaderHelpers.ConvertDbObjectToAssetEntry(item, resAssetEntry);
-
-
-                        //                 ResAssetEntry resAssetEntry = AddRes(item, 
-                        //ProfilesLibrary.IsMadden21DataVersion()
-                        ////|| ProfilesLibrary.IsFIFA22DataVersion()
-                        //);
-                        //                 if (resAssetEntry.Sha1 != item.GetValue<FMT.FileTools.Sha1>("sha1") && item.GetValue("casPatchType", 0) != 0)
-                        //                 {
-                        //                     resRidList.Remove(resAssetEntry.ResRid);
-                        //                     resAssetEntry.Sha1 = item.GetValue<FMT.FileTools.Sha1>("sha1");
-                        //                     resAssetEntry.Size = item.GetValue("size", 0L);
-                        //                     resAssetEntry.ResRid = item.GetValue("resRid", 0UL);
-                        //                     resAssetEntry.ResMeta = item.GetValue<byte[]>("resMeta");
-                        //                     resAssetEntry.IsInline = item.HasValue("idata");
-                        //                     resAssetEntry.OriginalSize = item.GetValue("originalSize", 0L);
-                        //                     resRidList.Add(resAssetEntry.ResRid, resAssetEntry);
-                        //                 }
-                        //if (item.GetValue("cache", defaultValue: false) && resAssetEntry.Location != AssetDataLocation.Cache)
-                        //{
-                        //	helper.RemoveResData(resAssetEntry.Name);
-                        //}
-
+                        resAssetEntry = (ResAssetEntry)AssetLoaderHelpers.ConvertDbObjectToAssetEntry(item, resAssetEntry, false);
 
                         if (item.HasValue("SBFileLocation"))
                         {
@@ -2246,22 +2162,8 @@ namespace FrostySdk.Managers
                         if (item.HasValue("SB_Sha1_Position"))
                             resAssetEntry.SB_Sha1_Position = item.GetValue<int>("SB_Sha1_Position");
 
-                        //if (item.HasValue("ParentBundleOffset"))
-                        //	resAssetEntry.ParentBundleOffset = item.GetValue<int>("ParentBundleOffset");
-
-                        //if (item.HasValue("ParentBundleSize"))
-                        //	resAssetEntry.ParentBundleSize = item.GetValue<int>("ParentBundleSize");
-
                         resAssetEntry.Bundles.Add(bundleId);
                         AddRes(resAssetEntry);
-                        //if (item.HasValue("Bundle"))
-                        //{
-                        //	resAssetEntry.Bundle = item.GetValue<string>("Bundle");
-                        //}
-                        //else if (AssetManager.Instance.bundles.Count < bundleId)
-                        //{
-                        //	resAssetEntry.Bundle = AssetManager.Instance.bundles[bundleId].Name;
-                        //}
                     }
                 }
             }
@@ -2274,7 +2176,7 @@ namespace FrostySdk.Managers
                 foreach (DbObject item in sb.GetValue<DbObject>("chunks"))
                 {
                     ChunkAssetEntry chunkAssetEntry = new ChunkAssetEntry();
-                    chunkAssetEntry = (ChunkAssetEntry)AssetLoaderHelpers.ConvertDbObjectToAssetEntry(item, chunkAssetEntry);
+                    chunkAssetEntry = (ChunkAssetEntry)AssetLoaderHelpers.ConvertDbObjectToAssetEntry(item, chunkAssetEntry, false);
                     AddChunk(chunkAssetEntry);
                 }
             }

@@ -1058,47 +1058,50 @@ namespace Frostbite.FileManagers
 
         public static void CleanUpChunks(bool fullReset = false)
         {
-            var lam = (ChunkFileManager2022)AssetManager.Instance.GetLegacyAssetManager();
-            var movedEntries = lam.LegacyEntries.Where(x => x.Value.ModifiedEntry != null
-                    && x.Value.ModifiedEntry.Data == null
-                    && x.Value.ModifiedEntry.NewOffset.HasValue
-                    );
-
-            // Revert all the moved files
-            foreach (var lfe in movedEntries)
+            var iLAM = AssetManager.Instance.GetLegacyAssetManager();
+            if (iLAM is ChunkFileManager2022 lam)
             {
-                lfe.Value.ModifiedEntry = null;
-            }
+                var movedEntries = lam.LegacyEntries.Where(x => x.Value.ModifiedEntry != null
+                        && x.Value.ModifiedEntry.Data == null
+                        && x.Value.ModifiedEntry.NewOffset.HasValue
+                        );
 
-            // Revert all the chunks
-            foreach (EbxAssetEntry item in AssetManager.Instance.EnumerateEbx("ChunkFileCollector"))
-            {
-                GetChunkAssetForEbx(item, out ChunkAssetEntry chunkAssetEntry, out EbxAsset ebxAsset);
-                if (chunkAssetEntry != null)
+                // Revert all the moved files
+                foreach (var lfe in movedEntries)
                 {
-                    AssetManager.Instance.RevertAsset(chunkAssetEntry);
+                    lfe.Value.ModifiedEntry = null;
                 }
-                AssetManager.Instance.RevertAsset(item);
-            }
 
-            foreach (ChunkAssetEntry assetEntry in lam.ModifiedChunks)
-            {
-                AssetManager.Instance.RevertAsset(assetEntry);
-                //assetEntry.ModifiedEntry = null;
-            }
-            lam.ModifiedChunks.Clear();
-
-            // Revert all legacy files
-            if (fullReset)
-            {
-                var resetEntryCount = 0;
-                var modifiedEntries = lam.LegacyEntries.Where(x => x.Value.ModifiedEntry != null).Select(x => x.Value);
-                foreach (var lfe in modifiedEntries)
+                // Revert all the chunks
+                foreach (EbxAssetEntry item in AssetManager.Instance.EnumerateEbx("ChunkFileCollector"))
                 {
-                    lfe.ModifiedEntry = null;
-                    resetEntryCount++;
+                    GetChunkAssetForEbx(item, out ChunkAssetEntry chunkAssetEntry, out EbxAsset ebxAsset);
+                    if (chunkAssetEntry != null)
+                    {
+                        AssetManager.Instance.RevertAsset(chunkAssetEntry);
+                    }
+                    AssetManager.Instance.RevertAsset(item);
                 }
-                //AssetManager.Instance.Logger.Log($"Reset {resetEntryCount} legacy files");
+
+                foreach (ChunkAssetEntry assetEntry in lam.ModifiedChunks)
+                {
+                    AssetManager.Instance.RevertAsset(assetEntry);
+                    //assetEntry.ModifiedEntry = null;
+                }
+                lam.ModifiedChunks.Clear();
+
+                // Revert all legacy files
+                if (fullReset)
+                {
+                    var resetEntryCount = 0;
+                    var modifiedEntries = lam.LegacyEntries.Where(x => x.Value.ModifiedEntry != null).Select(x => x.Value);
+                    foreach (var lfe in modifiedEntries)
+                    {
+                        lfe.ModifiedEntry = null;
+                        resetEntryCount++;
+                    }
+                    //AssetManager.Instance.Logger.Log($"Reset {resetEntryCount} legacy files");
+                }
             }
         }
 
