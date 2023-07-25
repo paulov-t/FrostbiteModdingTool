@@ -1,8 +1,16 @@
+<div align=center>
+
 ![image](https://github.com/paulov-t/FrostbiteModdingTool/assets/7080439/deb7c279-7069-4a4c-b8e3-a36c898295df)
+
+</div>
+
+---
+
 <div align=center style="text-align: center">
   
 <h1 style="text-align: center"> Frostbite Modding Tool </h1>
 The Frostbite Modding Tool (FMT) is a tool to create mods for FIFA, Madden and other Frostbite Engine games.
+
 </div>
 
 ---
@@ -12,6 +20,7 @@ The Frostbite Modding Tool (FMT) is a tool to create mods for FIFA, Madden and o
 ![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/FrostbiteModdingTool/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/FrostbiteModdingTool/latest/total)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
+
 </div>
 
 ---
@@ -56,9 +65,10 @@ As of September 2022, Frosty Toolsuite is open source on [GitHub](https://github
 - MADDEN 21
 
 ### Read Only Support
-- NFS Unbound (Read only)
 - Dead Space (Read only)
+- FIFA 17 (Read only)
 - MADDEN 23 (Read only)
+- NFS Unbound (Read only)
 - EA Sports PGA Tour (Read only)
 - Star Wars Squadrons (Read only)
 
@@ -66,7 +76,6 @@ As of September 2022, Frosty Toolsuite is open source on [GitHub](https://github
 - Battlefield 4
 - Battlefield 5
 - Battlefield 2042
-- FIFA 17
 - FIFA 18
 - FIFA 19
 - FIFA 20
