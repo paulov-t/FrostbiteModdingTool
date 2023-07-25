@@ -27,7 +27,7 @@ namespace FMT
             if (emptyTheSet)
             {
                 Emptying = true;
-                RunHeapPreAllocation();
+                //RunHeapPreAllocation();
                 Collect(force: true);
                 EmptyWorkingSet();
             }
