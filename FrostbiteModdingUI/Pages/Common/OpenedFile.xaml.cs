@@ -185,7 +185,7 @@ namespace FMT.Pages.Common
                         MainEditorWindow.Log("Loading Legacy File " + SelectedLegacyEntry.Filename);
                         btnImport.IsEnabled = true;
                         btnExport.IsEnabled = true;
-                        ImageViewerScreen.Visibility = Visibility.Visible;
+                        //layoutImageViewer.Visibility = Visibility.Visible;
 
                         BuildTextureViewerFromStream((MemoryStream)ProjectManagement.Instance.Project.AssetManager.GetCustomAsset("legacy", legacyFileEntry));
 
@@ -770,32 +770,23 @@ namespace FMT.Pages.Common
                     {
                         expToStream = textureExporter.ExportToStream(textureAsset, TextureUtils.ImageFormat.PNG);
                         expToStream.Position = 0;
-                        //var ddsData = textureExporter.WriteToDDS(textureAsset);
-                        //BuildTextureViewerFromStream(new MemoryStream(ddsData));
 
                     }
                     catch (Exception exception_ToStream)
                     {
                         MainEditorWindow.LogError($"Error loading texture with message :: {exception_ToStream.Message}");
                         MainEditorWindow.LogError(exception_ToStream.ToString());
-                        ImageViewer.Source = null; ImageViewerScreen.Visibility = Visibility.Collapsed;
+                        ImageViewer.Source = null;
+                        //ImageViewerScreen.Visibility = Visibility.Collapsed;
 
                         textureExporter.Export(textureAsset, res.Filename + ".DDS", "*.DDS");
                         MainEditorWindow.LogError($"As the viewer failed. The image has been exported to {res.Filename}.dds instead.");
                         return;
                     }
 
-                    //using var nr = new NativeReader(expToStream);
-                    //nr.Position = 0;
-                    //var textureBytes = nr.ReadToEnd();
-
-                    //ImageViewer.Source = LoadImage(textureBytes);
                     ImageViewer.Source = LoadImage(((MemoryStream)expToStream).ToArray());
 
-
-
-
-                    ImageViewerScreen.Visibility = Visibility.Visible;
+                    //ImageViewerScreen.Visibility = Visibility.Visible;
                     ImageViewer.MaxHeight = textureAsset.Height;
                     ImageViewer.MaxWidth = textureAsset.Width;
 
@@ -808,7 +799,8 @@ namespace FMT.Pages.Common
                 {
                     MainEditorWindow.LogError($"Error loading texture with message :: {e.Message}");
                     MainEditorWindow.LogError(e.ToString());
-                    ImageViewer.Source = null; ImageViewerScreen.Visibility = Visibility.Collapsed;
+                    ImageViewer.Source = null; 
+                    //ImageViewerScreen.Visibility = Visibility.Collapsed;
                 }
                 finally
                 {
@@ -838,20 +830,8 @@ namespace FMT.Pages.Common
                 ImageEngineImage imageEngineImage = new ImageEngineImage(stream.ToArray());
                 var iData = imageEngineImage.Save(new ImageFormats.ImageEngineFormatDetails(ImageEngineFormat.BMP), MipHandling.KeepTopOnly, removeAlpha: false);
 
-                //var CurrentDDSImage = new DDSImage(stream);
-                //stream.Position = 0;
-                //var dds2 = new DDSImage2(((MemoryStream)stream).ToArray());
-                //FourCC fourCC = dds2.GetPixelFormatFourCC();
-
-                //CurrentDDSImageFormat = fourCC.ToString() + " - " + CurrentDDSImage._image.ToString() + " - " + CurrentDDSImage._image.Format.ToString();
-                //var textureBytes = new NativeReader(CurrentDDSImage.SaveToStream()).ReadToEnd();
-                ////var textureBytes = new NativeReader(textureExporter.ExportToStream(texture)).ReadToEnd();
-
-                //CurrentDDSImageFormat = imageEngineImage.Format.ToString() + " - " + imageEngineImage.FormatDetails.DX10Format;
-
-                //ImageViewer.Source = LoadImage(textureBytes);
                 ImageViewer.Source = LoadImage(iData);
-                ImageViewerScreen.Visibility = Visibility.Visible;
+                //ImageViewerScreen.Visibility = Visibility.Visible;
 
                 btnExport.IsEnabled = true;
                 btnImport.IsEnabled = true;
@@ -861,7 +841,8 @@ namespace FMT.Pages.Common
             catch (Exception e)
             {
                 MainEditorWindow.LogError(e.Message);
-                ImageViewer.Source = null; ImageViewerScreen.Visibility = Visibility.Collapsed;
+                ImageViewer.Source = null;
+                //ImageViewerScreen.Visibility = Visibility.Collapsed;
             }
 
         }

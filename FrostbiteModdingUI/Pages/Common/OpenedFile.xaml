@@ -52,37 +52,51 @@
                 </StackPanel>
             </Button>
         </Grid>
-        <DockingManager Grid.Row="1" x:Name="ImageViewerScreen" Visibility="Collapsed">
+        <DockingManager Grid.Row="1" x:Name="dockingForViewers">
             <LayoutRoot>
                 <LayoutPanel>
-                    <LayoutAnchorablePane>
-                        <LayoutAnchorable Title="Image">
-                            <Image  x:Name="ImageViewer" Grid.RowSpan="3" Stretch="Fill" VerticalAlignment="Top"  MinHeight="200" MinWidth="200" MaxWidth="1000" MaxHeight="1000">
+                    <LayoutDocumentPaneGroup>
+                        <LayoutDocumentPane>
+                            <LayoutDocument x:Name="layoutEbxViewer" CanClose="False" Title="Ebx Viewer">
+                                <local:Editor x:Name="EBXViewer" Visibility="Collapsed">
 
-                            </Image>
-                        </LayoutAnchorable>
-                    </LayoutAnchorablePane>
+                                </local:Editor>
+                            </LayoutDocument>
+                            <LayoutDocument x:Name="layoutImageViewer" CanClose="False" Title="Image Viewer">
+                                <Grid>
+                                    <Image x:Name="ImageViewer">
+
+                                    </Image>
+                                </Grid>
+                            </LayoutDocument>
+                            <LayoutDocument x:Name="layoutTextViewer" CanClose="False" Title="Text Viewer">
+                                <Grid>
+                                    <TextBox x:Name="TextViewer"
+                         Visibility="Collapsed"
+                          AcceptsReturn="True"
+                         AcceptsTab="True"
+                         ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                             LostFocus="TextViewer_LostFocus"
+                         VerticalContentAlignment="Stretch"
+                         VerticalAlignment="Stretch"
+                         HorizontalAlignment="Stretch"
+                         HorizontalContentAlignment="Stretch"
+                         >
+
+                                    </TextBox>
+                                </Grid>
+                            </LayoutDocument>
+                          
+                        </LayoutDocumentPane>
+                    </LayoutDocumentPaneGroup>
+                  
                 </LayoutPanel>
             </LayoutRoot>
         </DockingManager>
 
 
-        <TextBox Grid.Row="1" x:Name="TextViewer" MaxLines="999999" 
-                     Visibility="Collapsed"
-                      AcceptsReturn="True"
-                     AcceptsTab="True"
-                     ScrollViewer.VerticalScrollBarVisibility="Visible"
-                      LostFocus="TextViewer_LostFocus"
-                     VerticalContentAlignment="Stretch"
-                     VerticalAlignment="Stretch"
-                     HorizontalAlignment="Stretch"
-                     HorizontalContentAlignment="Stretch"
-                     >
-
-        </TextBox>
-        <local:Editor Grid.Row="1" x:Name="EBXViewer" Visibility="Collapsed">
-
-        </local:Editor>
+      
+        
 
         <local2:BrowserOfBIG Grid.Row="1" x:Name="BIGViewer" Visibility="Collapsed">
 
