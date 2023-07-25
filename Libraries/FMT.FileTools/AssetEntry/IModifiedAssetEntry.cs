@@ -10,7 +10,6 @@ namespace FrostySdk.FrostbiteSdk.Managers
 
         public long Size { get; set; }
 
-        public long OriginalSize { get; set; }
         public byte[] Data { get; set; }
 
         public object DataObject { get; set; }

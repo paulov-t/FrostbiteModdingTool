@@ -77,7 +77,6 @@ namespace FrostySdk.Frostbite.PluginInterfaces
         /// 
         /// </summary>
         public byte[] Flags;
-        private bool disposedValue;
 
         //public List<bool> Flags = new List<bool>();
 

@@ -19,7 +19,7 @@ namespace FMT.FileTools
 
         public IModifiedAssetEntry ModifiedEntry { get; set; }
 
-        long OriginalSize { get; set; }
+        public long OriginalSize { get; set; }
 
         public List<int> Bundles { get; set; }
 
