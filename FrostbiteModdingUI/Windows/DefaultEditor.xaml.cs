@@ -575,7 +575,7 @@ namespace FrostbiteModdingUI.Windows
             //LegacyFileManager_FMTV2.CleanUpChunks(true); // no longer needed as it should be handled by the Asset Manager Reset
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Project files|*.fbproject";
+            openFileDialog.Filter = "Project files|*.fbproject;*.fmtproj;*.fifamod;*.fbmod;";
             var result = openFileDialog.ShowDialog();
             if (result.HasValue && result.Value)
             {
@@ -590,7 +590,7 @@ namespace FrostbiteModdingUI.Windows
                     CancellationToken cancellation = default(CancellationToken);
                     try
                     {
-                        await ProjectManagement.Project.LoadAsync(openFileDialog.FileName, cancellation);
+                        await ProjectManagement.LoadProjectFromFile(openFileDialog.FileName, cancellation);
                     }
                     catch (Exception ex)
                     {

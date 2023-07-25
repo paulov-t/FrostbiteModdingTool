@@ -1,11 +1,16 @@
-﻿using FrostySdk;
+﻿using FrostbiteSdk;
+using FrostySdk;
 using FrostySdk.Frostbite;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;
 using FrostySdk.ModsAndProjects.Projects;
+using Microsoft.Win32;
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using v2k4FIFAModdingCL;
 
 namespace v2k4FIFAModding.Frosty
@@ -28,40 +33,7 @@ namespace v2k4FIFAModding.Frosty
 
         private static string PreviousGameVersion { get; set; }
 
-        //public ProjectManagement()
-        //{
-        //    if (AssetManager.Instance == null)
-        //        throw new NullReferenceException("AssetManager Instance must be set before ProjectManagement can be used!");
-
-        //    if (Instance == null)
-        //    {
-        //        Instance = this;
-        //    }
-        //    else
-        //    {
-        //        throw new OverflowException("Cannot create 2 instances of ProjectManagement");
-        //    }
-        //}
-
-        //public ProjectManagement(string gamePath)
-        //{
-        //    if (AssetManager.Instance == null)
-        //        throw new NullReferenceException("AssetManager Instance must be instantiated before ProjectManagement can be used!");
-
-        //    if (Instance == null)
-        //    {
-        //        Instance = this;
-        //        Project = new FrostbiteProject();
-        //        Project.ModSettings.Title = "FMT Editor Project";
-        //    }
-        //    else
-        //    {
-        //        throw new OverflowException("Cannot create 2 instances of ProjectManagement");
-        //    }
-        //}
-
         public ProjectManagement(in string gamePath, in ILogger logger = null)
-        //: this(gamePath)
         {
             if (AssetManager.Instance == null)
                 throw new NullReferenceException("AssetManager Instance must be instantiated before ProjectManagement can be used!");
@@ -79,6 +51,76 @@ namespace v2k4FIFAModding.Frosty
             {
                 throw new OverflowException("Cannot create 2 instances of ProjectManagement");
             }
+        }
+
+        public async Task<IProject> LoadProjectFromFile(string filePath, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var fiFile = new FileInfo(filePath);
+            var fileExtension = fiFile.Extension.ToLower();
+            switch (fileExtension)
+            {
+
+                case ".fbproject":
+                    try
+                    {
+                        Project = new FrostbiteProject();
+                        await Project.LoadAsync(filePath, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError("Unable to load project. This may be due to a Title Update. Message: " + ex.Message);
+                    }
+                    break;
+                case ".fmtproj":
+                    //var mbFmtProj = MessageBox.Show("This is a NEW/UPCOMMING file format. This does nothing right now!", "EXPERIMENTAL");
+                    try
+                    {
+                        Project = FMTProject.Read(filePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError("Unable to load project. This may be due to a Title Update. Message: " + ex.Message);
+                    }
+                    break;
+                case ".fifamod":
+
+                    var mbFIFAMod = MessageBox.Show(
+                        "You are opening a compiled FIFAMod from FIFA Editor Tool. " + Environment.NewLine +
+                        "This is experimental and may crash the Application. " + Environment.NewLine +
+                        "This process may be missing or losing files whilst processing. " + Environment.NewLine +
+                        "Please always give credit to other's work!", "EXPERIMENTAL");
+                    if (mbFIFAMod == MessageBoxResult.OK)
+                    {
+                        using (FIFAModReader reader = new FIFAModReader(new FileStream(fiFile.FullName, FileMode.Open)))
+                        {
+                            Project = new FrostbiteProject();
+                            Project.Load(reader);
+                        }
+                    }
+                    break;
+                case ".fbmod":
+
+                    var mbFBMod = MessageBox.Show(
+                        "You are opening a compiled FBMod from Frostbite Modding Tool. " + Environment.NewLine +
+                        "This is experimental and may crash the Application. " + Environment.NewLine +
+                        "This process may be missing or losing files whilst processing. " + Environment.NewLine +
+                        "Please always give credit to other's work!", "EXPERIMENTAL");
+                    if (mbFBMod == MessageBoxResult.OK)
+                    {
+                        FrostbiteMod frostbiteMod = new FrostbiteMod(fiFile.FullName);
+                        Project = new FMTProject("loadInFbMod");
+                        if (Project.Load(frostbiteMod))
+                        {
+                            Log($"Successfully opened {fiFile.FullName}");
+                        }
+                        else
+                        {
+                            Log($"Failed to open {fiFile.FullName}");
+                        }
+                    }
+                    break;
+            }
+            return Project;
         }
 
         public void Log(string text, params object[] vars)
