@@ -19,4 +19,10 @@
     <ProjectReference Include="..\FrostySdk\FrostySdk.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Controls\DynamicEditors\System_UInt64.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
 </Project>
