@@ -14,7 +14,7 @@ using System.Linq;
 namespace Madden23Plugin
 {
 
-    public class AssetCompilerMadden23 : BaseAssetCompiler, IAssetCompiler
+    public class AssetCompilerMadden23 : Frostbite2022AssetCompiler, IAssetCompiler
     {
         /// <summary>
         /// This is run AFTER the compilation of the fbmod into resource files ready for the Actions to TOC/SB/CAS to be taken

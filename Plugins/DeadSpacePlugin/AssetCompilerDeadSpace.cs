@@ -13,7 +13,7 @@ using System.Linq;
 namespace NFSUnboundPlugin
 {
 
-    public class AssetCompilerDeadSpace : BaseAssetCompiler, IAssetCompiler
+    public class AssetCompilerDeadSpace : Frostbite2022AssetCompiler, IAssetCompiler
     {
         /// <summary>
         /// This is run AFTER the compilation of the fbmod into resource files ready for the Actions to TOC/SB/CAS to be taken

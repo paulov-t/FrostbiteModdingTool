@@ -45,7 +45,13 @@ namespace FrostySdk.Frostbite.PluginInterfaces
 
     public interface IAssetCompiler
     {
+        bool PreCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter);
+
         bool Compile(FileSystem fs, ILogger logger, ModExecutor modExecuter);
+
+        bool PostCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter);
+
+        bool RunGame(FileSystem fs, ILogger logger, ModExecutor modExecuter);
 
         bool Cleanup(FileSystem fs, ILogger logger, ModExecutor modExecuter);
     }

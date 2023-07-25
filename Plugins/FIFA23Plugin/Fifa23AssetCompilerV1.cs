@@ -17,7 +17,7 @@ namespace FIFA23Plugin
     /// FIFA 23 Asset Compiler. Solid and works. Uses .cache file to determine what needs editing
     /// Linked to FIFA21BundleAction
     /// </summary>
-    public class Fifa23AssetCompilerV1 : BaseAssetCompiler, IAssetCompiler
+    public class Fifa23AssetCompilerV1 : Frostbite2022AssetCompiler, IAssetCompiler
     {
         /// <summary>
         /// This is run AFTER the compilation of the fbmod into resource files ready for the Actions to TOC/SB/CAS to be taken

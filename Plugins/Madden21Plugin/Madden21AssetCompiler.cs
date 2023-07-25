@@ -21,7 +21,7 @@ namespace Madden21Plugin
     /// <summary>
     /// Currently. The Madden 21 Compiler does not work in game.
     /// </summary>
-    public class Madden21AssetCompiler : BaseAssetCompiler, IAssetCompiler
+    public class Madden21AssetCompiler : Frostbite2022AssetCompiler, IAssetCompiler
     {
         /// <summary>
         /// Construct the Modded Bundles within CAS files

@@ -706,9 +706,21 @@ namespace ModdingSupport
 
             if (pluginCompiler != null)
             {
+                if (!((IAssetCompiler)pluginCompiler).PreCompile(fs, logger, this))
+                {
+                    Logger.LogError("An error occurred within the Pre Compile. Stopping.");
+                    return false;
+                }
+
                 if (!((IAssetCompiler)pluginCompiler).Compile(fs, logger, this))
                 {
                     Logger.LogError("An error occurred within the Plugin Compiler. Stopping.");
+                    return false;
+                }
+
+                if (!((IAssetCompiler)pluginCompiler).PostCompile(fs, logger, this))
+                {
+                    Logger.LogError("An error occurred within the Plugin Post Compile. Stopping.");
                     return false;
                 }
             }

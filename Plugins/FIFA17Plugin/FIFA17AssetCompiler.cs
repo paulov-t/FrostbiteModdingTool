@@ -1,39 +1,38 @@
-﻿using FrostySdk.Frostbite.PluginInterfaces;
+﻿using FrostySdk;
+using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Interfaces;
 using ModdingSupport;
 
-namespace FrostySdk.Frostbite.Compilers
+namespace FIFA17Plugin
 {
-    /// <summary>
-    /// A "compiler" that does nothing at all and passes a true back to the Executor
-    /// </summary>
-    public class FrostbiteNullCompiler : IAssetCompiler
+    public class FIFA17AssetCompiler : IAssetCompiler
     {
         public bool Cleanup(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
-            return true;
+            throw new System.NotImplementedException();
         }
 
         public bool Compile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
-            logger.Log($"NULL Compiler. Doing nothing.");
-
-            return true;
+            throw new System.NotImplementedException();
         }
 
         public bool PostCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
-            return true;
+            // Probably best to do the fifaconfig.exe change here
+
+
+            throw new System.NotImplementedException();
         }
 
         public bool PreCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
-            return true;
+            throw new System.NotImplementedException();
         }
 
         public bool RunGame(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
-            return true;
+            throw new System.NotImplementedException();
         }
     }
 }

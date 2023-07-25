@@ -19,7 +19,7 @@ using static ModdingSupport.ModExecutor;
 
 namespace StarWarsSquadronsPlugin
 {
-    public class SWSCompiler : BaseAssetCompiler, IAssetCompiler
+    public class SWSCompiler : Frostbite2022AssetCompiler, IAssetCompiler
     {
 
         public override bool Compile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
