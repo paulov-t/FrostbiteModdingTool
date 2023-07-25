@@ -16,7 +16,10 @@ using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 
 namespace FrostySdk.Frostbite.Compilers
 {
-    public abstract class BaseAssetCompiler : IAssetCompiler
+    /// <summary>
+    /// An Asset Compiler that can be used for most 2022 games using Frostbite Engine
+    /// </summary>
+    public abstract class Frostbite2022AssetCompiler : IAssetCompiler
     {
         public string ModDirectory { get; } = "ModData";
         public string PatchDirectory { get; } = "Patch";
@@ -1126,6 +1129,20 @@ namespace FrostySdk.Frostbite.Compilers
             return true;
         }
 
+        public bool PreCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        {
+            return true;
+        }
+
+        public bool PostCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        {
+            return true;
+        }
+
+        public bool RunGame(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        {
+            return true;
+        }
 
         public struct ModdedFile
         {
