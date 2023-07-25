@@ -14,7 +14,7 @@ using static ModdingSupport.ModExecutor;
 namespace FrostySdk.Frostbite.Compilers
 {
     /// <summary>
-    /// Used by FIFA 17 and above
+    /// Used by FIFA 19, FIFA 20, Madden 20 and above
     /// </summary>
     public class FifaBundleAction
     {
