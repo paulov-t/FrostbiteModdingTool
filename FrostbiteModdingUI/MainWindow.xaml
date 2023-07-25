@@ -29,7 +29,7 @@
         <ItemsControl Grid.Row="2" ItemsSource="{Binding ProfilesWithEditor}" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Visible" HorizontalAlignment="Center" HorizontalContentAlignment="Stretch">
             <ItemsControl.ItemTemplate>
                 <DataTemplate >
-                    <mah:Tile Title="{Binding DisplayName}" Tag="{Binding}" Style="{Binding EditorIcon}" Background="Black" Padding="0" Margin="1" Click="Tile_Click">
+                    <mah:Tile Title="{Binding DisplayName}" Tag="{Binding}" Background="Black" Padding="0" Margin="1" Click="Tile_Click">
                         <Grid Margin="1">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="2*"></RowDefinition>
