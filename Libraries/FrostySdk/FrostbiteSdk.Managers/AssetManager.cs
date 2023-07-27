@@ -1613,6 +1613,8 @@ namespace FrostySdk.Managers
 
         public EbxAssetEntry GetEbxEntry(ReadOnlySpan<char> name)
         {
+            if (name.IsEmpty || name.Length == 0)
+                return null;
             // Old school, search by string
             if (EBX.TryGetValue(name.ToString().ToLower(), out var ent))// ContainsKey(name.ToString()))
                 return ent;// EBX[name.ToString()];

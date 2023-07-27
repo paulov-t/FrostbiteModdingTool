@@ -349,10 +349,13 @@ namespace FrostySdk.FrostySdk.IO
             if (stringsToCStringOffsets.Any())
             {
                 var oldEntry = AssetManager.Instance.GetEbxEntry(stringsToCStringOffsets.Keys.First());
-                var oldEbxStream = AssetManager.Instance.GetEbxStream(oldEntry);
-                using (var reader = new EbxReader22B(oldEbxStream, true))
+                if (oldEntry != null)
                 {
-                    origEbxArrays.AddRange(reader.arrays.Where(x => x.Count > 0).OrderBy(x => x.Offset));
+                    var oldEbxStream = AssetManager.Instance.GetEbxStream(oldEntry);
+                    using (var reader = new EbxReader22B(oldEbxStream, true))
+                    {
+                        origEbxArrays.AddRange(reader.arrays.Where(x => x.Count > 0).OrderBy(x => x.Offset));
+                    }
                 }
             }
             var ebxxArrays = arrays.Where(x => x.Count > 0).OrderBy(x => x.Offset).ToArray();

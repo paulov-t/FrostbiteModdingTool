@@ -140,28 +140,21 @@ namespace FrostySdk.IO
                 var magic1 = reader.ReadUInt();
                 FourCC riffType = reader.ReadUInt();
                 riffType = reader.ReadUInt();
-                reader.ReadUInt();
-                reader.ReadUInt();
+                _ = reader.ReadUInt();
+                _ = reader.ReadUInt();
+
+                // Guids
                 uint guidCount = reader.ReadUInt();
                 for (int m = 0; m < guidCount; m++)
                 {
-                    uint guidHash = reader.ReadUInt();
+                    // A Hash
+                    _ = reader.ReadUInt();
+
+                    // The Guid
                     Guid guid = reader.ReadGuid();
                     Guids.Add(guid);
-
-                    //if (!ClassIdToGuid.ContainsKey(guidHash))
-                    //	ClassIdToGuid.Add(guidHash, guid);
-
-                    //// Should I overwrite?
-                    //ClassIdToGuid[guidHash] = guid;
-
-                    //if (!GuidSignatures.ContainsKey(guidHash))
-                    //	GuidSignatures.Add(guidHash, guid);
-
-                    //// Should I overwrite?
-                    //GuidSignatures[guidHash] = guid;
-
                 }
+
                 var typeCount = reader.ReadUInt();
                 for (int l = 0; l < typeCount; l++)
                 {
@@ -171,11 +164,11 @@ namespace FrostySdk.IO
                     ushort classType = reader.ReadUShort();
                     ushort size = reader.ReadUShort();
                     ushort alignment = reader.ReadUShort();
-                    if ((alignment & 0x80u) != 0)
-                    {
-                        fieldCount += 256;
-                        alignment = (byte)(alignment & 0x7Fu);
-                    }
+                    //if ((alignment & 0x80u) != 0)
+                    //{
+                    //    fieldCount += 256;
+                    //    alignment = (byte)(alignment & 0x7Fu);
+                    //}
                     EbxClass ebxClass = default(EbxClass);
                     ebxClass.NameHash = nameHash;
                     ebxClass.FieldIndex = (int)fieldLayoutIndex;
@@ -183,7 +176,6 @@ namespace FrostySdk.IO
                     ebxClass.Alignment = (byte)((alignment == 0) ? 8 : alignment);
                     ebxClass.Size = size;
                     ebxClass.Type = ReflectionTypeDescripter ? classType : ((ushort)(classType >> 1));
-                    //ebxClass.Type = classType;
                     ebxClass.Index = l;
                     ebxClass.Name = Guids[l].ToString();
                     EbxClass value = ebxClass;
@@ -200,25 +192,16 @@ namespace FrostySdk.IO
                 for (int k = 0; k < fieldCountInDescriptor; k++)
                 {
                     uint fieldNameHash = reader.ReadUInt();
-                    //int fieldNameHash = reader.ReadInt();
                     uint dataOffset = reader.ReadUInt();
                     ushort type = reader.ReadUShort();
                     short classRef = reader.ReadShort();
                     EbxField ebxField = default(EbxField);
                     ebxField.NameHash = fieldNameHash;
                     ebxField.Type = (ushort)(type >> 1);
-                    //var shiftType = (ushort)(type >> 1);
-                    //ebxField.Type = type;
                     ebxField.ClassRef = (ushort)classRef;
                     ebxField.DataOffset = dataOffset;
                     ebxField.SecondOffset = 0u;
-                    //if(ebxField.Type == 243)
-                    //               {
-                    //	continue;
-                    //               }
-
                     fields.Add(ebxField);
-                    //NameHashToEbxField.Add(fieldNameHash, ebxField);
                     var matchingClass = ClassFields.FirstOrDefault(x => k >= x.Key.FieldIndex && k < x.Key.FieldIndex + x.Key.FieldCount).Key;
                     if (!string.IsNullOrEmpty(matchingClass.Name))
                         ClassFields[matchingClass].Add(ebxField);
