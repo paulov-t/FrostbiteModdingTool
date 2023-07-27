@@ -892,7 +892,7 @@ namespace FrostySdk
             catalogs.Add(catalogInfo2);
         }
 
-        public IEnumerable<DbObject> EnumerateBundles()
+        public IEnumerable<DbObject> EnumerateManifestBundles()
         {
             foreach (ManifestBundleInfo manifestBundle in manifestBundles)
             {

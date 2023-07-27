@@ -20,7 +20,7 @@ namespace FrostySdk.Frostbite.Loaders
 
             parent.superBundles.Add(new SuperBundleEntry { Name = "<none>" });
 
-            foreach (DbObject bundle in parent.FileSystem.EnumerateBundles())
+            foreach (DbObject bundle in parent.FileSystem.EnumerateManifestBundles())
             {
                 BundleEntry be = new BundleEntry { Name = bundle.GetValue<string>("name"), SuperBundleId = 0 };
                 parent.Bundles.Add(be);
