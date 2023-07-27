@@ -710,15 +710,19 @@ namespace FIFAModdingUI.Pages.Common
             browserDocuments.AllowDuplicateContent = false;
             foreach (var child in browserDocuments.Children)
             {
-                if (child.Title.StartsWith(assetEntry.Filename))
+                if (child is LayoutDocument document)
                 {
-                    browserDocuments.SelectedContentIndex = browserDocuments.Children.IndexOf(child);
-                    return;
+                    if (document.Description.Equals(assetEntry.Path + assetEntry.Filename, StringComparison.OrdinalIgnoreCase))
+                    {
+                        browserDocuments.SelectedContentIndex = browserDocuments.Children.IndexOf(child);
+                        return;
+                    }
                 }
             }
             // ---- ----------
             var layoutDocument = new LayoutDocument();
             layoutDocument.Title = assetEntry.Filename;
+            layoutDocument.Description = assetEntry.Path + assetEntry.Filename;
             layoutDocument.Content = new OpenedFile(assetEntry);
             browserDocuments.Children.Insert(0, layoutDocument);
             browserDocuments.SelectedContentIndex = 0;
