@@ -266,9 +266,9 @@ namespace FrostbiteModdingUI.Pages.Player
                         var textureEbx = AssetManager.Instance.GetEbx(ebxEntry);
                         if (textureEbx != null)
                         {
-                            var resentry = AssetManager.Instance.GetResEntry(ebxEntry.Name);
-                            var res = AssetManager.Instance.GetRes(resentry);
-                            Texture t = new Texture(res, AssetManager.Instance);
+                            var resEntry = AssetManager.Instance.GetResEntry(ebxEntry.Name);
+                            var res = AssetManager.Instance.GetRes(resEntry);
+                            Texture t = new Texture(res, resEntry);
                             TextureExporter textureExporter = new TextureExporter();
 
                             Task.Run(() =>

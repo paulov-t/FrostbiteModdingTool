@@ -232,7 +232,7 @@ namespace FrostbiteModdingUI.Models
             }
             EbxAsset textureAsset = AssetManager.Instance.GetEbx(textureAssetEntry);
             ulong textureResRid = ((dynamic)textureAsset.RootObject).Resource;
-            Texture texture = new Texture(AssetManager.Instance.GetRes(AssetManager.Instance.GetResEntry(textureResRid)), AssetManager.Instance);
+            Texture texture = new Texture(AssetManager.Instance.GetRes(AssetManager.Instance.GetResEntry(textureResRid)), AssetManager.Instance.GetResEntry(textureResRid));
             MemoryStream textureDDSStream = new MemoryStream();
             TextureExporter textureExporter = new TextureExporter();
             textureDDSStream = textureExporter.ExportToStream(texture) as MemoryStream;

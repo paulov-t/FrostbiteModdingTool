@@ -343,7 +343,7 @@ namespace FIFAModdingUI.Pages.Common
                     {
                         using (var resStream = AssetManager.Instance.GetRes(resEntry))
                         {
-                            Texture texture = new Texture(resStream, ProjectManagement.Instance.Project.AssetManager);
+                            Texture texture = new Texture(resStream, resEntry);
                             TextureExporter textureExporter = new TextureExporter();
                             if (isFolder)
                                 saveLocation += ".png";
