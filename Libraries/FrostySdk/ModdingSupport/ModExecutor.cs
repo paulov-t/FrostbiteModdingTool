@@ -266,13 +266,13 @@ namespace ModdingSupport
 
         public CasDataInfo m_casData = new CasDataInfo();
 
+        public Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>> Resources { get; } = new Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>>();
+
 
         public int numTasks;
 
 
         public static int chunksBundleHash { get; } = Fnv1.HashString("chunks");
-
-        //public Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>> resources = new Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>>();
 
         public ILogger Logger
         {

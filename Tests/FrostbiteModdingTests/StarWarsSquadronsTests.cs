@@ -138,6 +138,20 @@ namespace FrostbiteModdingTests
         }
 
         [TestMethod]
+        public void TestSplashscreenTextureMod()
+        {
+            var modPath = @"G:\Work\FIFA Modding\SWS Splash Test Mod.fbmod";
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, logger: this);
+
+            ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+            frostyModExecutor.ForceRebuildOfMods = true;
+            var r = frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath,
+                new System.Collections.Generic.List<string>() {
+                    modPath
+                }.ToArray()).Result;
+        }
+
+        [TestMethod]
         public void LoadEbxGameplayGameModes()
         {
             var buildCache = new CacheManager();

@@ -36,6 +36,12 @@ namespace FrostySdk.Frostbite.Loaders
 
             foreach (ChunkAssetEntry entry in parent.FileSystem.ProcessManifestChunks())
             {
+#if DEBUG
+                if(entry.Id.ToString() == "a92100e2-6386-7c42-fd75-88571e788b05")
+                {
+
+                }
+#endif 
                 parent.AddChunk(entry);
                 //if (!parent.Chunks.ContainsKey(entry.Id))
                 //{

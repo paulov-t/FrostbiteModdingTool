@@ -2179,6 +2179,14 @@ namespace FrostySdk.Managers
                 {
                     ChunkAssetEntry chunkAssetEntry = new ChunkAssetEntry();
                     chunkAssetEntry = (ChunkAssetEntry)AssetLoaderHelpers.ConvertDbObjectToAssetEntry(item, chunkAssetEntry, false);
+
+                    chunkAssetEntry.Bundles.Add(bundleId);
+#if DEBUG
+                    if (chunkAssetEntry.Id.ToString() == "a92100e2-6386-7c42-fd75-88571e788b05")
+                    {
+
+                    }
+#endif 
                     AddChunk(chunkAssetEntry);
                 }
             }

@@ -14,9 +14,12 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             : base(inStream, leaveOpen: leaveOpen)
         {
             if (baseBinarySbWriter == null)
-                throw new ArgumentNullException(nameof(baseBinarySbWriter));
+                binarySbWriter = new BaseBinarySbWriter();
+                //throw new ArgumentNullException(nameof(baseBinarySbWriter));
 
             binarySbWriter = baseBinarySbWriter;
+            if(binarySbWriter == null)
+                binarySbWriter = new BaseBinarySbWriter();
 
             endian = inEndian;
         }

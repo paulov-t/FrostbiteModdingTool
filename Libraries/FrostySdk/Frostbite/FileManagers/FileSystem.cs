@@ -49,9 +49,16 @@ namespace FrostySdk
         /// </summary>
         public ulong SystemIteration;
 
-        private List<ManifestBundleInfo> manifestBundles { get; } = new List<ManifestBundleInfo>();
 
-        private List<ManifestChunkInfo> manifestChunks { get; } = new List<ManifestChunkInfo>();
+        // ---------------- MANIFEST
+        public List<ManifestBundleInfo> ManifestBundles { get; } = new();
+        public List<ManifestFileInfo> ManifestFiles { get; } = new();
+        public List<string> ManifestPaths { get; } = new();
+        public Dictionary<string, long> ManifestPathOffsets { get; } = new();
+        public List<ManifestChunkInfo> ManifestChunks { get; } = new();
+        public Dictionary<string, List<ManifestChunkInfo>> ManifestPathsToChunks { get; } = new();
+
+        // ---------------- MANIFEST
 
         public int SuperBundleCount => superBundles.Count;
 
@@ -177,6 +184,7 @@ namespace FrostySdk
                 key = LoadKey();
 
             ReadInitfs(key, patched);
+            EbxSharedTypeDescriptors.LoadSharedTypeDescriptors();
 
             ZStd.Bind();
             Oodle.Bind(BasePath);
@@ -894,7 +902,7 @@ namespace FrostySdk
 
         public IEnumerable<DbObject> EnumerateManifestBundles()
         {
-            foreach (ManifestBundleInfo manifestBundle in manifestBundles)
+            foreach (ManifestBundleInfo manifestBundle in ManifestBundles)
             {
                 ManifestFileInfo manifestFileInfo = manifestBundle.files[0];
                 Catalog catalogInfo = catalogs[manifestFileInfo.file.CatalogIndex];
@@ -922,8 +930,8 @@ namespace FrostySdk
 
         public List<ChunkAssetEntry> ProcessManifestChunks()
         {
-            List<ChunkAssetEntry> list = new List<ChunkAssetEntry>();
-            foreach (ManifestChunkInfo manifestChunk in manifestChunks)
+            List<ChunkAssetEntry> chunks = new List<ChunkAssetEntry>();
+            foreach (ManifestChunkInfo manifestChunk in ManifestChunks)
             {
                 ManifestFileInfo file = manifestChunk.file;
                 ChunkAssetEntry chunkAssetEntry = new ChunkAssetEntry();
@@ -934,9 +942,9 @@ namespace FrostySdk
                 chunkAssetEntry.ExtraData = new AssetExtraData();
                 chunkAssetEntry.ExtraData.DataOffset = file.offset;
                 chunkAssetEntry.ExtraData.CasPath = casPath;
-                list.Add(chunkAssetEntry);
+                chunks.Add(chunkAssetEntry);
             }
-            return list;
+            return chunks;
         }
 
         public ManifestBundleInfo GetManifestBundle(string name)
@@ -946,7 +954,7 @@ namespace FrostySdk
             {
                 result = Fnv1.HashString(name);
             }
-            foreach (ManifestBundleInfo manifestBundle in manifestBundles)
+            foreach (ManifestBundleInfo manifestBundle in ManifestBundles)
             {
                 if (manifestBundle.hash == result)
                 {
@@ -958,7 +966,7 @@ namespace FrostySdk
 
         public ManifestBundleInfo GetManifestBundle(int nameHash)
         {
-            foreach (ManifestBundleInfo manifestBundle in manifestBundles)
+            foreach (ManifestBundleInfo manifestBundle in ManifestBundles)
             {
                 if (manifestBundle.hash == nameHash)
                 {
@@ -970,23 +978,23 @@ namespace FrostySdk
 
         public ManifestChunkInfo GetManifestChunk(Guid id)
         {
-            return manifestChunks.Find((ManifestChunkInfo a) => a.guid == id);
+            return ManifestChunks.Find((ManifestChunkInfo a) => a.guid == id);
         }
 
         public void AddManifestBundle(ManifestBundleInfo bi)
         {
-            manifestBundles.Add(bi);
+            ManifestBundles.Add(bi);
         }
 
         public void AddManifestChunk(ManifestChunkInfo ci)
         {
-            manifestChunks.Add(ci);
+            ManifestChunks.Add(ci);
         }
 
         public void ResetManifest()
         {
-            manifestBundles.Clear();
-            manifestChunks.Clear();
+            ManifestBundles.Clear();
+            ManifestChunks.Clear();
             catalogs.Clear();
             superBundles.Clear();
             ProcessLayouts();
@@ -996,62 +1004,67 @@ namespace FrostySdk
         {
             using (NativeWriter nativeWriter = new NativeWriter(new MemoryStream()))
             {
-                List<ManifestFileInfo> list = new List<ManifestFileInfo>();
-                foreach (ManifestBundleInfo manifestBundle in manifestBundles)
+                List<ManifestFileInfo> manifestFiles = new List<ManifestFileInfo>();
+                foreach (ManifestBundleInfo manifestBundle in ManifestBundles)
                 {
                     for (int i = 0; i < manifestBundle.files.Count; i++)
                     {
                         ManifestFileInfo item = manifestBundle.files[i];
-                        list.Add(item);
+                        manifestFiles.Add(item);
                     }
                 }
-                foreach (ManifestChunkInfo manifestChunk in manifestChunks)
+                foreach (ManifestChunkInfo manifestChunk in ManifestChunks)
                 {
-                    list.Add(manifestChunk.file);
-                    manifestChunk.fileIndex = list.Count - 1;
+                    manifestFiles.Add(manifestChunk.file);
+                    manifestChunk.fileIndex = manifestFiles.Count - 1;
                 }
-                nativeWriter.Write(list.Count);
-                nativeWriter.Write(manifestBundles.Count);
-                nativeWriter.Write(manifestChunks.Count);
-                foreach (ManifestFileInfo item2 in list)
+                nativeWriter.Write(manifestFiles.Count);
+                nativeWriter.Write(ManifestBundles.Count);
+                nativeWriter.Write(ManifestChunks.Count);
+                foreach (ManifestFileInfo fI in manifestFiles)
                 {
-                    nativeWriter.Write(item2.file);
-                    nativeWriter.Write(item2.offset);
-                    nativeWriter.Write(item2.size);
+                    nativeWriter.Write(fI.file);
+                    nativeWriter.Write(fI.offset);
+                    nativeWriter.Write(fI.size);
                 }
-                foreach (ManifestBundleInfo manifestBundle2 in manifestBundles)
+                foreach (ManifestBundleInfo bundle in ManifestBundles)
                 {
-                    nativeWriter.Write(manifestBundle2.hash);
-                    nativeWriter.Write(list.IndexOf(manifestBundle2.files[0]));
-                    nativeWriter.Write(manifestBundle2.files.Count);
+                    nativeWriter.Write(bundle.hash);
+                    nativeWriter.Write(manifestFiles.IndexOf(bundle.files[0]));
+                    nativeWriter.Write(bundle.files.Count);
                     nativeWriter.Write(0);
                     nativeWriter.Write(0);
                 }
-                foreach (ManifestChunkInfo manifestChunk2 in manifestChunks)
+                foreach (ManifestChunkInfo manifestChunk in ManifestChunks)
                 {
-                    nativeWriter.Write(manifestChunk2.guid);
-                    nativeWriter.Write(manifestChunk2.fileIndex);
+                    nativeWriter.Write(manifestChunk.guid);
+                    nativeWriter.Write(manifestChunk.fileIndex);
                 }
                 return ((MemoryStream)nativeWriter.BaseStream).ToArray();
             }
         }
 
-        private void ProcessManifest(DbObject patchLayout)
+        private void ProcessManifest(DbObject layout)
         {
-            DbObject manifest = patchLayout.GetValue<DbObject>("manifest");
+            DbObject manifest = layout.GetValue<DbObject>("manifest");
             if (manifest == null)
                 return;
 
-            List<ManifestFileInfo> manifestFiles = new List<ManifestFileInfo>();
             ManifestFileRef fileRef = manifest.GetValue("file", 0);
             _ = catalogs[fileRef.CatalogIndex];
             var fsPath = ResolvePath(fileRef);
             if (string.IsNullOrEmpty(fsPath))
                 return;
 
+            ManifestPaths.Add(fsPath);
+            if (!ManifestPathsToChunks.ContainsKey(fsPath))
+                ManifestPathsToChunks.Add(fsPath, new List<ManifestChunkInfo>());
+
             using (NativeReader reader = new NativeReader(new FileStream(fsPath, FileMode.Open, FileAccess.Read)))
             {
                 long manifestOffset = manifest.GetValue<int>("offset");
+                if(!ManifestPathOffsets.ContainsKey(fsPath))
+                    ManifestPathOffsets.Add(fsPath, manifestOffset);
                 long manifestSize = manifest.GetValue<int>("size");
 
                 reader.Position = manifestOffset;
@@ -1070,7 +1083,7 @@ namespace FrostySdk
                         size = reader.ReadLong(),
                         isChunk = false
                     };
-                    manifestFiles.Add(fi);
+                    ManifestFiles.Add(fi);
                 }
 
                 // bundles
@@ -1085,9 +1098,10 @@ namespace FrostySdk
                     int unk2 = reader.ReadInt();
 
                     for (int j = 0; j < count; j++)
-                        bi.files.Add(manifestFiles[startIndex + j]);
+                        bi.files.Add(ManifestFiles[startIndex + j]);
 
-                    manifestBundles.Add(bi);
+                    if(!ManifestBundles.Contains(bi))
+                        ManifestBundles.Add(bi);
                 }
 
                 // chunks
@@ -1098,11 +1112,14 @@ namespace FrostySdk
                         guid = reader.ReadGuid(),
                         fileIndex = reader.ReadInt()
                     };
-                    ci.file = manifestFiles[ci.fileIndex];
+                    ci.file = ManifestFiles[ci.fileIndex];
                     ci.file.isChunk = true;
-                    manifestChunks.Add(ci);
+
+                    ManifestChunks.Add(ci);
+                    ManifestPathsToChunks[fsPath].Add(ci);
                 }
             }
+
         }
 
         public static string LastPatchedVersionPath

@@ -5,7 +5,7 @@
   "CacheName": "swsquadrons",
   "Deobfuscator": "NullDeobfuscator",
   "AssetLoader": "StarWarsSquadronsPlugin.AssetLoaderSWSquadrons",
-  "AssetCompiler": "FrostbiteNullCompiler",
+  "AssetCompiler": "SWSCompiler",
   "EditorScreen": "DefaultEditor",
   // Texture Importer (Overriding the base Importer)
   "TextureImporter": "TextureImporterSWSquadrons",
@@ -67,14 +67,14 @@
   "CanExportMeshes": true,
   // GeometryDeclarationDesc stream count
   "GDDMaxStreams": 16,
-  "CompressedFormatEBX": "Oodle", // Checked on GP files. FIFA 23 only uses Oodle!
-  "CompressedFormatRES": "Oodle",
-  "CompressedFormatChunk": "Oodle",
-  "CompressedFormatLegacy": "Oodle",
+  "CompressedFormatEBX": "LZ4", 
+  "CompressedFormatRES": "LZ4",
+  "CompressedFormatChunk": "LZ4",
+  "CompressedFormatLegacy": "LZ4",
   "LegacyFileManager": "ChunkFileManager",
   "CanUseModData": true,
   "ForceUseModData": true,
   "SupportLowMemoryFootprint": true,
   "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0004099",
-  "SteamId": ""
+  "SteamId": "1222730"
 }

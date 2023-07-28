@@ -441,11 +441,15 @@ namespace FrostySdk.ModsAndProjects.Projects
             // -----------------------
             // Added Legacy Files
             nw.WriteLengthPrefixedString("legacy"); // CFC 
-            nw.Write(AssetManager.Instance.CustomAssetManagers["legacy"].AddedFileEntries.Count); // Count Added
-            foreach (var lfe in AssetManager.Instance.CustomAssetManagers["legacy"].AddedFileEntries)
+            nw.Write(AssetManager.Instance.CustomAssetManagers["legacy"].AddedFileEntries != null ? AssetManager.Instance.CustomAssetManagers["legacy"].AddedFileEntries.Count : 0); // Count Added
+            if (AssetManager.Instance.CustomAssetManagers["legacy"].AddedFileEntries != null)
             {
-                nw.WriteLengthPrefixedString(JsonConvert.SerializeObject(lfe));
+                foreach (var lfe in AssetManager.Instance.CustomAssetManagers["legacy"].AddedFileEntries)
+                {
+                    nw.WriteLengthPrefixedString(JsonConvert.SerializeObject(lfe));
+                }
             }
+            
         }
 
         private static void LegacyFilesAddedRead(NativeReader nr)

@@ -1,11 +1,15 @@
 ﻿using FMT.FileTools;
+using FMT.FileTools.Modding;
 using Frostbite.Textures;
+using FrostySdk;
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Managers;
 using FrostySdk.Resources;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using static PInvoke.BCrypt.BCRYPT_ALGORITHM_IDENTIFIER;
+using System.Windows.Media.Media3D;
 
 namespace StarWarsSquadronsPlugin.Textures
 {
@@ -89,7 +93,7 @@ namespace StarWarsSquadronsPlugin.Textures
                 byte[] textureArray = new byte[nativeReader.Length - nativeReader.Position];
                 nativeReader.Read(textureArray, 0, (int)(nativeReader.Length - nativeReader.Position));
                 AssetManager.Instance.ModifyChunk(textureAsset.ChunkId, textureArray, textureAsset);
-                AssetManager.Instance.ModifyRes(resRid, ToFIFA23Bytes(textureAsset));
+                AssetManager.Instance.ModifyRes(resRid, ToSWSBytes(textureAsset));
                 AssetManager.Instance.ModifyEbx(assetEntry.Name, ebxAsset);
                 resEntry.LinkAsset(chunkEntry);
                 assetEntry.LinkAsset(resEntry);
@@ -102,24 +106,22 @@ namespace StarWarsSquadronsPlugin.Textures
             throw new NotImplementedException();
         }
 
-        public static byte[] ToFIFA23Bytes(Texture texture)
+        public static byte[] ToSWSBytes(Texture texture)
         {
             byte[] finalArray = null;
             using (var nw = new NativeWriter(new MemoryStream()))
             {
                 //mipOffsets[0] = nativeReader.ReadUInt();
-                nw.Write(texture.mipOffsets[0]);
+                nw.Write((uint)texture.mipOffsets[0]);
                 //mipOffsets[1] = nativeReader.ReadUInt();
-                nw.Write(texture.mipOffsets[1]);
+                nw.Write((uint)texture.mipOffsets[1]);
                 //type = (TextureType)nativeReader.ReadUInt();
-                nw.Write((uint)texture.Type);
+                nw.Write((uint)texture.type);
                 //pixelFormat = nativeReader.ReadInt();
                 nw.Write(texture.pixelFormat);
-
                 //unknown1 = nativeReader.ReadUInt();
-                nw.Write(texture.unknown1);
-                //}
-                //flags = (TextureFlags)nativeReader.ReadUShort();
+                nw.Write((uint)texture.unknown1);
+                //flags = (TextureFlags)(Version >= 11 ? nativeReader.ReadUShort() : nativeReader.ReadUInt());
                 nw.Write((ushort)texture.flags);
                 //width = nativeReader.ReadUShort();
                 nw.Write(texture.width);
@@ -130,27 +132,32 @@ namespace StarWarsSquadronsPlugin.Textures
                 //sliceCount = nativeReader.ReadUShort();
                 nw.Write(texture.sliceCount);
                 //mipCount = nativeReader.ReadByte();
-                nw.Write(texture.mipCount);
+                nw.Write(texture.MipCount);
                 //firstMip = nativeReader.ReadByte();
                 nw.Write(texture.firstMip);
-                //if (ProfilesLibrary.IsFIFA23DataVersion())
-                //{
-                //unknown4 = nativeReader.ReadInt();
-                nw.Write(texture.unknown4);
-                //}
                 //chunkId = nativeReader.ReadGuid();
                 nw.Write(texture.chunkId);
+                //for (int i = 0; i < 15; i++)
+                //{
+                //    mipSizes[i] = nativeReader.ReadUInt();
+                //}
                 for (int i = 0; i < 15; i++)
                 {
-                    //mipSizes[i] = nativeReader.ReadUInt();
                     nw.Write(texture.mipSizes[i]);
                 }
                 //chunkSize = nativeReader.ReadUInt();
                 nw.Write(texture.chunkSize);
                 //assetNameHash = nativeReader.ReadUInt();
-                nw.Write(texture.assetNameHash);
-                //textureGroup = nativeReader.ReadSizedString(16);
+                nw.Write(texture.AssetNameHash);
+
+                //TextureGroup = nativeReader.ReadSizedString(16);
                 nw.WriteFixedSizedString(texture.textureGroup, 16);
+
+                //if (ProfileManager.IsLoaded(EGame.BFV, EGame.StarWarsSquadrons))
+                //{
+                //    _ = nativeReader.ReadUInt();
+                //}
+                nw.Write(0u);
 
                 finalArray = ((MemoryStream)nw.BaseStream).ToArray();
             }

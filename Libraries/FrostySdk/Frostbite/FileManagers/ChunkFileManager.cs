@@ -295,12 +295,12 @@ namespace FrostbiteSdk.Frostbite.FileManagers
 
         public void RevertAsset(AssetEntry assetEntry)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void LoadEntriesModifiedFromProject(List<LegacyFileEntry> entries)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }

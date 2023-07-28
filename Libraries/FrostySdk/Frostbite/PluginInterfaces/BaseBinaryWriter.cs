@@ -74,11 +74,17 @@ namespace FrostySdk.Frostbite.PluginInterfaces
 
                 // res
                 foreach (DbObject res in bundleObj.GetValue<DbObject>("res"))
-                    bundleWriter.Write(res.GetValue<int>("resType"), endian);
+                    bundleWriter.Write(res.GetValueType("resType") == typeof(uint) ? res.GetValue<uint>("resType") : res.GetValue<int>("resType"), endian);
                 foreach (DbObject res in bundleObj.GetValue<DbObject>("res"))
                     bundleWriter.Write(res.GetValue<byte[]>("resMeta"));
                 foreach (DbObject res in bundleObj.GetValue<DbObject>("res"))
-                    bundleWriter.Write(res.GetValue<long>("resRid"), endian);
+                {
+                    if (res.GetValueType("resRid") == typeof(ulong))
+                        bundleWriter.Write(res.GetValue<ulong>("resRid"), endian);
+                    else
+                        bundleWriter.Write(res.GetValue<long>("resRid"), endian);
+
+                }
 
                 // chunks
                 foreach (DbObject chunk in bundleObj.GetValue<DbObject>("chunks"))

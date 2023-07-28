@@ -194,6 +194,7 @@ namespace v2k4FIFAModding.Frosty
             }
 
             Project = new FrostbiteProject(AssetManager.Instance, AssetManager.Instance.FileSystem);
+            Project.ModSettings.Title = "Test Project";
             return Project;
         }
 

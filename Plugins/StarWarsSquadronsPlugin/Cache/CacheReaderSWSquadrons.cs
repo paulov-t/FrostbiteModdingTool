@@ -190,6 +190,12 @@ namespace StarWarsSquadronsPlugin.Cache
                 chunkAssetEntry.ExtraData.CasPath = nativeReader.ReadLengthPrefixedString();
             }
 
+            var bundleCount = nativeReader.ReadUInt();
+            for (int bundleItemIndex = 0; bundleItemIndex < bundleCount; bundleItemIndex++)
+            {
+                chunkAssetEntry.Bundles.Add(nativeReader.ReadInt());
+            }
+
             return chunkAssetEntry;
         }
 
