@@ -19,9 +19,8 @@ namespace FrostySdk.Frostbite.Compilers
     /// <summary>
     /// An Asset Compiler that can be used for most 2022 games using Frostbite Engine
     /// </summary>
-    public abstract class Frostbite2022AssetCompiler : IAssetCompiler
+    public class Frostbite2022AssetCompiler : FrostbiteNullCompiler, IAssetCompiler
     {
-        public string ModDirectory { get; } = "ModData";
         public string PatchDirectory { get; } = "Patch";
 
         public Dictionary<ModType, int> ErrorCounts { get; } = new Dictionary<ModType, int>();
@@ -241,7 +240,7 @@ namespace FrostySdk.Frostbite.Compilers
             }
         }
 
-        public virtual bool Compile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public override bool Compile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             //logger.Log($"Compiler {fs.BasePath}");
 
@@ -1129,17 +1128,17 @@ namespace FrostySdk.Frostbite.Compilers
             return true;
         }
 
-        public bool PreCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public override bool PreCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             return true;
         }
 
-        public bool PostCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public override bool PostCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             return true;
         }
 
-        public bool RunGame(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public override bool RunGame(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             return true;
         }

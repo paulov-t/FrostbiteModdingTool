@@ -9,29 +9,31 @@ namespace FrostySdk.Frostbite.Compilers
     /// </summary>
     public class FrostbiteNullCompiler : IAssetCompiler
     {
-        public bool Cleanup(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public virtual string ModDirectory { get; } = "ModData";
+
+        public virtual bool Cleanup(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             return true;
         }
 
-        public bool Compile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public virtual bool Compile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             logger.Log($"NULL Compiler. Doing nothing.");
 
             return true;
         }
 
-        public bool PostCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public virtual bool PostCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             return true;
         }
 
-        public bool PreCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public virtual bool PreCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             return true;
         }
 
-        public bool RunGame(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public virtual bool RunGame(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             return true;
         }
