@@ -31,48 +31,9 @@ namespace Madden22Plugin
 
         public string fileName { get; set; }
 
-        public static void InitialiseStd()
-        {
-            if (!string.IsNullOrEmpty(ProfileManager.EBXTypeDescriptor))
-            {
-                if (std == null)
-                {
-                    std = (IEbxSharedTypeDescriptor)AssetManager.LoadTypeByName(ProfileManager.EBXTypeDescriptor
-                        , AssetManager.Instance.FileSystem, "SharedTypeDescriptors.ebx", false);
-                }
-            }
-            else
-            {
-                if (std == null)
-                {
-                    std = new EbxSharedTypeDescriptors(FileSystem.Instance, "SharedTypeDescriptors.ebx", patch: false);
-                }
-
-                if (patchStd == null)
-                {
-                    var allSTDs = FileSystem.Instance.memoryFs.Where(x => x.Key.Contains("SharedTypeDescriptors", StringComparison.OrdinalIgnoreCase)).ToList();
-                    if (FileSystem.Instance.HasFileInMemoryFs("SharedTypeDescriptors_patch.ebx"))
-                    {
-                        patchStd = new EbxSharedTypeDescriptors(FileSystem.Instance, "SharedTypeDescriptors_patch.ebx", patch: true);
-                    }
-                    if (FileSystem.Instance.HasFileInMemoryFs("SharedTypeDescriptors_Patch.ebx"))
-                    {
-                        patchStd = new EbxSharedTypeDescriptors(FileSystem.Instance, "SharedTypeDescriptors_Patch.ebx", patch: true);
-                    }
-                }
-            }
-        }
-
         public EbxReaderM22(Stream InStream, bool inPatched)
             : base(InStream, passthru: true)
         {
-            InitialiseStd();
-
-            //var fsDump = new FileStream("ebxV4.dat", FileMode.OpenOrCreate);
-            //InStream.CopyTo(fsDump);
-            //fsDump.Close();
-            //fsDump.Dispose();
-
             InStream.Position = 0;
 
             patched = inPatched;
