@@ -1,5 +1,6 @@
 using FMT.FileTools;
 using FrostySdk.Attributes;
+using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +11,40 @@ namespace FrostySdk.IO
 {
     public class EbxSharedTypeDescriptors : IEbxSharedTypeDescriptor
     {
+        public static IEbxSharedTypeDescriptor std { get; set; }
+
+        public static IEbxSharedTypeDescriptor patchStd { get; set; }
+
+        public static void LoadSharedTypeDescriptors()
+        {
+            if (EbxSharedTypeDescriptors.std == null)
+            {
+                
+                if (FileSystem.Instance.HasFileInMemoryFs("SharedTypeDescriptors.ebx"))
+                {
+                    if (!string.IsNullOrEmpty(ProfileManager.LoadedProfile.EBXTypeDescriptor))
+                        EbxSharedTypeDescriptors.std = (IEbxSharedTypeDescriptor)AssetManager.LoadTypeByName(ProfileManager.LoadedProfile.EBXTypeDescriptor, "SharedTypeDescriptors.ebx", false);
+                    else
+                        EbxSharedTypeDescriptors.std = new EbxSharedTypeDescriptors("SharedTypeDescriptors.ebx", false);
+                }
+                if (FileSystem.Instance.HasFileInMemoryFs("SharedTypeDescriptors_patch.ebx"))
+                {
+                    if (!string.IsNullOrEmpty(ProfileManager.LoadedProfile.EBXTypeDescriptor))
+                        EbxSharedTypeDescriptors.patchStd = (IEbxSharedTypeDescriptor)AssetManager.LoadTypeByName(ProfileManager.LoadedProfile.EBXTypeDescriptor, "SharedTypeDescriptors.ebx", true);
+                    else
+                        EbxSharedTypeDescriptors.patchStd = new EbxSharedTypeDescriptors("SharedTypeDescriptors.ebx", true);
+                }
+                if (FileSystem.Instance.HasFileInMemoryFs("SharedTypeDescriptors_Patch.ebx"))
+                {
+                    if (!string.IsNullOrEmpty(ProfileManager.LoadedProfile.EBXTypeDescriptor))
+                        EbxSharedTypeDescriptors.patchStd = (IEbxSharedTypeDescriptor)AssetManager.LoadTypeByName(ProfileManager.LoadedProfile.EBXTypeDescriptor, "SharedTypeDescriptors.ebx", true);
+                    else
+                        EbxSharedTypeDescriptors.patchStd = new EbxSharedTypeDescriptors("SharedTypeDescriptors.ebx", true);
+                }
+            }
+        }
+
+
         private List<EbxClass?> classes = new List<EbxClass?>();
         public List<EbxClass?> Classes { get { return classes; } }
 
@@ -91,7 +126,7 @@ namespace FrostySdk.IO
 
         public readonly bool IsPatch;
 
-        public EbxSharedTypeDescriptors(FileSystem fs, string name, bool patch)
+        public EbxSharedTypeDescriptors(string name, bool patch)
         {
             IsPatch = patch;
             if (IsPatch)
@@ -99,7 +134,7 @@ namespace FrostySdk.IO
 
             }
 
-            var ebxtys = fs.GetFileFromMemoryFs(name);
+            var ebxtys = FileSystem.Instance.GetFileFromMemoryFs(name);
             //         if (File.Exists("Debugging/" + name + ".dat"))
             //             File.Delete("Debugging/" + name + ".dat");
 

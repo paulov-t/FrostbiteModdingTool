@@ -69,7 +69,6 @@ namespace FrostySdk.IO
                 stream.Position = 0;
             }
             InStream.Position = 0;
-            EbxReaderV2.InitialiseStd();
             patched = inPatched;
             ebxVersion = (EbxVersion)ReadUInt();
             if (ebxVersion != EbxVersion.Version2 && ebxVersion != EbxVersion.Version4)

@@ -938,22 +938,18 @@ namespace FrostySdk.IO
 
         internal EbxClass GetClass(Guid guid)
         {
-            EbxReaderV2.InitialiseStd();
+            if (EbxSharedTypeDescriptors.patchStd.GetClass(guid).HasValue)
+                return EbxSharedTypeDescriptors.patchStd.GetClass(guid).Value;
 
-            if (EbxReaderV2.patchStd.GetClass(guid).HasValue)
-                return EbxReaderV2.patchStd.GetClass(guid).Value;
-
-            return EbxReaderV2.std.GetClass(guid).Value;
+            return EbxSharedTypeDescriptors.std.GetClass(guid).Value;
         }
 
         internal EbxField GetField(EbxClass classType, int index)
         {
-            EbxReaderV2.InitialiseStd();
+            if (classType.SecondSize == 1 && EbxSharedTypeDescriptors.patchStd.GetField(index).HasValue)
+                return EbxSharedTypeDescriptors.patchStd.GetField(index).Value;
 
-            if (classType.SecondSize == 1 && EbxReaderV2.patchStd.GetField(index).HasValue)
-                return EbxReaderV2.patchStd.GetField(index).Value;
-
-            return EbxReaderV2.std.GetField(index).Value;
+            return EbxSharedTypeDescriptors.std.GetField(index).Value;
         }
     }
 }

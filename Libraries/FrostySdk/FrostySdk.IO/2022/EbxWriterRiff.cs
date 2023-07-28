@@ -89,87 +89,87 @@ namespace FrostySdk.FrostySdk.IO
                             }
                         }
                     }
-                    if (propertyInfo == null)
-                    {
-                        switch (field.DebugType)
-                        {
-                            case EbxFieldType.TypeRef:
-                                writer.WriteUInt64LittleEndian(0uL);
-                                break;
-                            case EbxFieldType.FileRef:
-                                writer.WriteUInt64LittleEndian(0uL);
-                                break;
-                            case EbxFieldType.CString:
-                                writer.WriteInt32LittleEndian(0);
-                                break;
-                            case EbxFieldType.Pointer:
-                                writer.WriteInt32LittleEndian(0);
-                                break;
-                            case EbxFieldType.Struct:
-                                {
-                                    EbxClass value = GetClass(classType, field);
-                                    writer.WritePadding(value.Alignment);
-                                    writer.WriteEmpty(value.Size);
-                                    break;
-                                }
-                            case EbxFieldType.Array:
-                                writer.WriteInt32LittleEndian(0);
-                                break;
-                            case EbxFieldType.Enum:
-                                writer.WriteInt32LittleEndian(0);
-                                break;
-                            case EbxFieldType.Float32:
-                                writer.WriteSingleLittleEndian(0f);
-                                break;
-                            case EbxFieldType.Float64:
-                                writer.WriteDoubleLittleEndian(0.0);
-                                break;
-                            case EbxFieldType.Boolean:
-                                writer.Write((byte)0);
-                                break;
-                            case EbxFieldType.Int8:
-                                writer.Write(0);
-                                break;
-                            case EbxFieldType.UInt8:
-                                writer.Write((byte)0);
-                                break;
-                            case EbxFieldType.Int16:
-                                writer.WriteInt16LittleEndian(0);
-                                break;
-                            case EbxFieldType.UInt16:
-                                writer.WriteUInt16LittleEndian(0);
-                                break;
-                            case EbxFieldType.Int32:
-                                writer.WriteInt32LittleEndian(0);
-                                break;
-                            case EbxFieldType.UInt32:
-                                writer.WriteUInt32LittleEndian(0u);
-                                break;
-                            case EbxFieldType.Int64:
-                                writer.WriteInt64LittleEndian(0L);
-                                break;
-                            case EbxFieldType.UInt64:
-                                writer.WriteUInt64LittleEndian(0uL);
-                                break;
-                            case EbxFieldType.Guid:
-                                writer.WriteGuid(Guid.Empty);
-                                break;
-                            case EbxFieldType.Sha1:
-                                writer.Write(Sha1.Zero);
-                                break;
-                            case EbxFieldType.String:
-                                writer.WriteFixedSizedString(string.Empty, 32);
-                                break;
-                            case EbxFieldType.ResourceRef:
-                                writer.WriteUInt64LittleEndian(0uL);
-                                break;
-                            case EbxFieldType.BoxedValueRef:
-                                writer.WriteGuid(Guid.Empty);
-                                break;
-                        }
-                    }
-                    else
-                    {
+                    //if (propertyInfo == null)
+                    //{
+                    //    switch (field.DebugType)
+                    //    {
+                    //        case EbxFieldType.TypeRef:
+                    //            writer.WriteUInt64LittleEndian(0uL);
+                    //            break;
+                    //        case EbxFieldType.FileRef:
+                    //            writer.WriteUInt64LittleEndian(0uL);
+                    //            break;
+                    //        case EbxFieldType.CString:
+                    //            writer.WriteInt32LittleEndian(0);
+                    //            break;
+                    //        case EbxFieldType.Pointer:
+                    //            writer.WriteInt32LittleEndian(0);
+                    //            break;
+                    //        case EbxFieldType.Struct:
+                    //            {
+                    //                EbxClass value = GetClass(classType, field);
+                    //                writer.WritePadding(value.Alignment);
+                    //                writer.WriteEmpty(value.Size);
+                    //                break;
+                    //            }
+                    //        case EbxFieldType.Array:
+                    //            writer.WriteInt32LittleEndian(0);
+                    //            break;
+                    //        case EbxFieldType.Enum:
+                    //            writer.WriteInt32LittleEndian(0);
+                    //            break;
+                    //        case EbxFieldType.Float32:
+                    //            writer.WriteSingleLittleEndian(0f);
+                    //            break;
+                    //        case EbxFieldType.Float64:
+                    //            writer.WriteDoubleLittleEndian(0.0);
+                    //            break;
+                    //        case EbxFieldType.Boolean:
+                    //            writer.Write((byte)0);
+                    //            break;
+                    //        case EbxFieldType.Int8:
+                    //            writer.Write(0);
+                    //            break;
+                    //        case EbxFieldType.UInt8:
+                    //            writer.Write((byte)0);
+                    //            break;
+                    //        case EbxFieldType.Int16:
+                    //            writer.WriteInt16LittleEndian(0);
+                    //            break;
+                    //        case EbxFieldType.UInt16:
+                    //            writer.WriteUInt16LittleEndian(0);
+                    //            break;
+                    //        case EbxFieldType.Int32:
+                    //            writer.WriteInt32LittleEndian(0);
+                    //            break;
+                    //        case EbxFieldType.UInt32:
+                    //            writer.WriteUInt32LittleEndian(0u);
+                    //            break;
+                    //        case EbxFieldType.Int64:
+                    //            writer.WriteInt64LittleEndian(0L);
+                    //            break;
+                    //        case EbxFieldType.UInt64:
+                    //            writer.WriteUInt64LittleEndian(0uL);
+                    //            break;
+                    //        case EbxFieldType.Guid:
+                    //            writer.WriteGuid(Guid.Empty);
+                    //            break;
+                    //        case EbxFieldType.Sha1:
+                    //            writer.Write(Sha1.Zero);
+                    //            break;
+                    //        case EbxFieldType.String:
+                    //            writer.WriteFixedSizedString(string.Empty, 32);
+                    //            break;
+                    //        case EbxFieldType.ResourceRef:
+                    //            writer.WriteUInt64LittleEndian(0uL);
+                    //            break;
+                    //        case EbxFieldType.BoxedValueRef:
+                    //            writer.WriteGuid(Guid.Empty);
+                    //            break;
+                    //    }
+                    //}
+                    //else
+                    //{
                         bool isArray = GetField(classType, classType.FieldIndex + fieldIndex).TypeCategory == EbxTypeCategory.ArrayType;
                         bool isReference = propertyInfo.GetCustomAttribute<IsReferenceAttribute>() != null;
                         EbxFieldMetaAttribute ebxFieldMetaAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
@@ -186,7 +186,7 @@ namespace FrostySdk.FrostySdk.IO
                         {
                             WriteField(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.Type, classMeta.Alignment, writer, isReference);
                         }
-                    }
+                    //}
                 }
                 writer.WritePadding(classType.Alignment);
 

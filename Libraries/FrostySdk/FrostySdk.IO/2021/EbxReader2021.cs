@@ -12,9 +12,9 @@ namespace FrostySdk.IO
 
     public class EbxReader2021 : EbxReader
     {
-        public static IEbxSharedTypeDescriptor std => EbxReaderV2.std;
+        public static IEbxSharedTypeDescriptor std => EbxSharedTypeDescriptors.std;
 
-        public static IEbxSharedTypeDescriptor patchStd => EbxReaderV2.patchStd;
+        public static IEbxSharedTypeDescriptor patchStd => EbxSharedTypeDescriptors.patchStd;
 
         public List<Guid> classGuids = new List<Guid>();
 
@@ -36,7 +36,6 @@ namespace FrostySdk.IO
                 stream = InStream;
                 stream.Position = 0;
             }
-            EbxReaderV2.InitialiseStd();
             patched = inPatched;
             ebxVersion = (EbxVersion)ReadUInt();
             stringsOffset = ReadUInt();

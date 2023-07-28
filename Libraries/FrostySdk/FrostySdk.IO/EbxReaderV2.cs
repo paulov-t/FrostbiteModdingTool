@@ -12,64 +12,11 @@ namespace FrostySdk.IO
 {
     public class EbxReaderV2 : EbxReader
     {
-        public static IEbxSharedTypeDescriptor std;
-
-        public static IEbxSharedTypeDescriptor patchStd;
-
         public List<Guid> classGuids { get; } = new List<Guid>();
 
         public bool patched;
 
         public override string RootType => TypeLibrary.GetType(classGuids[instances[0].ClassRef])?.Name ?? string.Empty;
-
-        public static void InitialiseStd()
-        {
-            if (!string.IsNullOrEmpty(ProfileManager.EBXTypeDescriptor))
-            {
-                if (std == null)
-                {
-                    std = (IEbxSharedTypeDescriptor)AssetManager.LoadTypeByName(ProfileManager.EBXTypeDescriptor
-                        , AssetManager.Instance.FileSystem, "SharedTypeDescriptors.ebx", false);
-                    //std = new EbxSharedTypeDescriptorV2(AssetManager.Instance.fs, "SharedTypeDescriptors.ebx", patch: false);
-                }
-
-                if (FileSystem.Instance.HasFileInMemoryFs("SharedTypeDescriptors_patch.ebx"))
-                {
-                    patchStd = (IEbxSharedTypeDescriptor)AssetManager.LoadTypeByName(ProfileManager.EBXTypeDescriptor
-                        , AssetManager.Instance.FileSystem, "SharedTypeDescriptors_patch.ebx", true);
-                }
-
-                //if (FileSystem.Instance.HasFileInMemoryFs("SharedTypeDescriptors_Patch.ebx"))
-                //{
-                //	patchStd = (IEbxSharedTypeDescriptor)AssetManager.Instance.LoadTypeByName(ProfilesLibrary.EBXTypeDescriptor
-                //		, AssetManager.Instance.fs, "SharedTypeDescriptors_Patch.ebx", false);
-                //}
-            }
-            else
-            {
-
-                if (std == null)
-                {
-                    if (ProfileManager.IsFIFA19DataVersion())
-                        std = new EbxSharedTypeDescriptors(AssetManager.Instance.FileSystem, "Dictionaries/ebx.dict", patch: false);
-                    else
-                        std = new EbxSharedTypeDescriptors(AssetManager.Instance.FileSystem, "SharedTypeDescriptors.ebx", patch: false);
-                }
-
-                if (patchStd == null)
-                {
-                    var allSTDs = AssetManager.Instance.FileSystem.memoryFs.Where(x => x.Key.Contains("SharedTypeDescriptors", StringComparison.OrdinalIgnoreCase)).ToList();
-                    if (AssetManager.Instance.FileSystem.HasFileInMemoryFs("SharedTypeDescriptors_patch.ebx"))
-                    {
-                        patchStd = new EbxSharedTypeDescriptors(AssetManager.Instance.FileSystem, "SharedTypeDescriptors_patch.ebx", patch: true);
-                    }
-                    if (AssetManager.Instance.FileSystem.HasFileInMemoryFs("SharedTypeDescriptors_Patch.ebx"))
-                    {
-                        patchStd = new EbxSharedTypeDescriptors(AssetManager.Instance.FileSystem, "SharedTypeDescriptors_Patch.ebx", patch: true);
-                    }
-                }
-            }
-        }
 
         public EbxReaderV2(Stream InStream, bool inPatched)
             : base(InStream, passthru: true)
@@ -85,7 +32,6 @@ namespace FrostySdk.IO
                 stream.Position = 0;
             }
             Position = 0;
-            InitialiseStd();
 
             patched = inPatched;
             magic = (EbxVersion)ReadUInt32LittleEndian();
@@ -248,13 +194,13 @@ namespace FrostySdk.IO
             {
                 if (classGuids.Contains(typeInfoGuidAttribute.Guid))
                 {
-                    if (patched && patchStd != null)
+                    if (patched && EbxSharedTypeDescriptors.patchStd != null)
                     {
-                        ebxClass = patchStd.GetClass(typeInfoGuidAttribute.Guid);
+                        ebxClass = EbxSharedTypeDescriptors.patchStd.GetClass(typeInfoGuidAttribute.Guid);
                     }
                     if (!ebxClass.HasValue)
                     {
-                        ebxClass = std.GetClass(typeInfoGuidAttribute.Guid);
+                        ebxClass = EbxSharedTypeDescriptors.std.GetClass(typeInfoGuidAttribute.Guid);
                     }
                     break;
                 }
@@ -276,19 +222,19 @@ namespace FrostySdk.IO
             EbxClass? ebxClass = null;
             Guid? guid = null;
             int index2 = (short)index + (classType.HasValue ? classType.Value.Index : 0);
-            guid = std.GetGuid(index2);
+            guid = EbxSharedTypeDescriptors.std.GetGuid(index2);
             if (classType.HasValue && classType.Value.SecondSize >= 1)
             {
-                guid = patchStd.GetGuid(index2);
-                ebxClass = patchStd.GetClass(index2);
+                guid = EbxSharedTypeDescriptors.patchStd.GetGuid(index2);
+                ebxClass = EbxSharedTypeDescriptors.patchStd.GetClass(index2);
                 if (!ebxClass.HasValue)
                 {
-                    ebxClass = std.GetClass(guid.Value);
+                    ebxClass = EbxSharedTypeDescriptors.std.GetClass(guid.Value);
                 }
             }
             else
             {
-                ebxClass = std.GetClass(index2);
+                ebxClass = EbxSharedTypeDescriptors.std.GetClass(index2);
             }
             if (ebxClass.HasValue && !string.IsNullOrEmpty(ebxClass.Value.Name) && guid != Guid.Empty)
             {
@@ -301,18 +247,18 @@ namespace FrostySdk.IO
         {
             if (classType.SecondSize == 1)
             {
-                return patchStd.GetField(index).Value;
+                return EbxSharedTypeDescriptors.patchStd.GetField(index).Value;
             }
-            return std.GetField(index).Value;
+            return EbxSharedTypeDescriptors.std.GetField(index).Value;
         }
 
         public override object CreateObject(EbxClass classType)
         {
             if (classType.SecondSize == 1)
             {
-                return TypeLibrary.CreateObject(patchStd.GetGuid(classType).Value);
+                return TypeLibrary.CreateObject(EbxSharedTypeDescriptors.patchStd.GetGuid(classType).Value);
             }
-            return TypeLibrary.CreateObject(std.GetGuid(classType).Value);
+            return TypeLibrary.CreateObject(EbxSharedTypeDescriptors.std.GetGuid(classType).Value);
         }
 
         public object ReadClass(EbxClassMetaAttribute classMeta, object obj, Type objType, long startOffset)

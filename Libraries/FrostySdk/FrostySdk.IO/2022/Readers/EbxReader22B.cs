@@ -15,9 +15,9 @@ namespace FrostySdk.IO._2022.Readers
     {
         //internal const int EbxExternalReferenceMask = 1;
 
-        internal static EbxSharedTypeDescriptorV2 std { get; private set; }
+        //internal static EbxSharedTypeDescriptorV2 std { get; private set; }
 
-        internal static EbxSharedTypeDescriptorV2 patchStd { get; private set; }
+        //internal static EbxSharedTypeDescriptorV2 patchStd { get; private set; }
 
         public EbxReader22B(Stream ebxDataStream, bool inPatched)
             : base(ebxDataStream, passthru: true)
@@ -33,14 +33,7 @@ namespace FrostySdk.IO._2022.Readers
             {
                 throw new ArgumentNullException("ebxDataStream");
             }
-            if (EbxReader22B.std == null)
-            {
-                EbxReader22B.std = new EbxSharedTypeDescriptorV2("SharedTypeDescriptors.ebx", false);
-                if (FileSystem.Instance.HasFileInMemoryFs("SharedTypeDescriptors_patch.ebx"))
-                {
-                    EbxReader22B.patchStd = new EbxSharedTypeDescriptorV2("SharedTypeDescriptors_patch.ebx", true);
-                }
-            }
+            
             if (stream != InStream)
             {
                 stream = InStream;
@@ -411,10 +404,10 @@ namespace FrostySdk.IO._2022.Readers
             EbxClass? ebxClass = null;
             var nameHashAttribute = objType.GetCustomAttribute<HashAttribute>();
             var ebxclassmeta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
-            if (nameHashAttribute != null && ebxclassmeta != null && EbxReader22B.patchStd != null)
+            if (nameHashAttribute != null && ebxclassmeta != null && EbxSharedTypeDescriptors.patchStd != null)
             {
-                var nHClass = EbxReader22B.patchStd.Classes
-                          .Union(EbxReader22B.std.Classes).FirstOrDefault(x => x.HasValue && x.Value.NameHash == nameHashAttribute.Hash);
+                var nHClass = EbxSharedTypeDescriptors.patchStd.Classes
+                          .Union(EbxSharedTypeDescriptors.std.Classes).FirstOrDefault(x => x.HasValue && x.Value.NameHash == nameHashAttribute.Hash);
                 if (nHClass.HasValue)
                     return nHClass.Value;
             }
@@ -436,9 +429,9 @@ namespace FrostySdk.IO._2022.Readers
         {
             if (classType.SecondSize == 1)
             {
-                return TypeLibrary.CreateObject(EbxReader22B.patchStd.GetGuid(classType).Value);
+                return TypeLibrary.CreateObject(EbxSharedTypeDescriptors.patchStd.GetGuid(classType).Value);
             }
-            return TypeLibrary.CreateObject(EbxReader22B.std.GetGuid(classType).Value);
+            return TypeLibrary.CreateObject(EbxSharedTypeDescriptors.std.GetGuid(classType).Value);
         }
 
         public override object Read(Type type, long? readPosition = null, int? paddingAlignment = null)

@@ -52,6 +52,8 @@ namespace FrostySdk.IO
 
         public List<Guid> Dependencies => dependencies;
 
+        public List<string> SdkNamespaces = new List<string>() { "Sdk.Ebx", "FrostySdk.Ebx" };
+
         public EbxWriter(Stream inStream, EbxWriteFlags inFlags = EbxWriteFlags.None)
             : base(inStream, inFlags)
         {
@@ -611,24 +613,35 @@ namespace FrostySdk.IO
 
         private void WriteClass(object obj, Type objType, NativeWriter writer)
         {
-            if (objType.BaseType.Namespace == "FrostySdk.Ebx")
-            {
+            if (SdkNamespaces.Contains(objType.BaseType.Namespace))
                 WriteClass(obj, objType.BaseType, writer);
-            }
-            PropertyInfo[] properties = objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
-            EbxClass ebxClass = classTypes[FindExistingClass(objType)];
-            PropertyInfo[] array = properties;
-            foreach (PropertyInfo propertyInfo in array)
+
+            PropertyInfo[] pis = objType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            EbxClass classType = classTypes[FindExistingClass(objType)];
+
+            foreach (PropertyInfo pi in pis)
             {
-                if ((propertyInfo.GetCustomAttribute<IsTransientAttribute>() == null || flags.HasFlag(EbxWriteFlags.IncludeTransient)) && !propertyInfo.Name.Equals("__InstanceGuid"))
-                {
-                    EbxFieldMetaAttribute customAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
-                    bool isReference = propertyInfo.GetCustomAttribute<IsReferenceAttribute>() != null;
-                    EbxFieldType ebxType = (EbxFieldType)((customAttribute.Flags >> 4) & 0x1F);
-                    WriteField(propertyInfo.GetValue(obj), ebxType, ebxClass.Alignment, writer, isReference);
-                }
+                // ignore transients if not saving to project
+                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !flags.HasFlag(EbxWriteFlags.IncludeTransient))
+                    continue;
+
+                // ignore the instance guid
+                if (pi.Name.Equals("__InstanceGuid"))
+                    continue;
+
+                EbxFieldMetaAttribute fta = pi.GetCustomAttribute<EbxFieldMetaAttribute>();
+                bool isReference = pi.GetCustomAttribute<IsReferenceAttribute>() != null;
+
+                EbxFieldType ebxType = (EbxFieldType)((fta.Flags >> 4) & 0x1F);
+                WriteField(pi.GetValue(obj), ebxType, classType.Alignment, writer, isReference);
             }
-            writer.WritePadding(ebxClass.Alignment);
+
+            if(classType.Alignment == 0)
+            {
+                writer.WritePadding(8);
+                return;
+            }
+            writer.WritePadding(classType.Alignment);
         }
 
         private void WriteField(object obj, EbxFieldType ebxType, byte classAlignment, NativeWriter writer, bool isReference)

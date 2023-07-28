@@ -78,7 +78,6 @@ namespace FrostySdk.IO
 
         public override void InitialRead(Stream InStream, bool inPatched)
         {
-            EbxReaderV2.InitialiseStd();
             //if (!string.IsNullOrEmpty(InBoundName) && InBoundName.Contains("gp_"))
             //{
             //}

@@ -1079,40 +1079,40 @@ namespace FrostySdk.FrostySdk.IO
             return @class;
         }
 
-        protected Guid GetTypeInfoGuid(EbxClass classType)
-        {
-            if (classType.SecondSize == 0)
-            {
-                return EbxReader22B.std.GetGuid(classType).Value;
-            }
-            return EbxReader22B.patchStd.GetGuid(classType).Value;
-        }
+        //protected Guid GetTypeInfoGuid(EbxClass classType)
+        //{
+        //    if (classType.SecondSize == 0)
+        //    {
+        //        return EbxReader22B.std.GetGuid(classType).Value;
+        //    }
+        //    return EbxReader22B.patchStd.GetGuid(classType).Value;
+        //}
 
         protected EbxClass GetClass(Guid guid)
         {
-            if (EbxReader22B.patchStd != null && EbxReader22B.patchStd.GetClass(guid).HasValue)
+            if (EbxSharedTypeDescriptors.patchStd != null && EbxSharedTypeDescriptors.patchStd.GetClass(guid).HasValue)
             {
-                return EbxReader22B.patchStd.GetClass(guid).Value;
+                return EbxSharedTypeDescriptors.patchStd.GetClass(guid).Value;
             }
-            return EbxReader22B.std.GetClass(guid).Value;
+            return EbxSharedTypeDescriptors.std.GetClass(guid).Value;
         }
 
         protected EbxField GetField(EbxClass classType, int index)
         {
-            if (classType.SecondSize >= 1 && EbxReader22B.patchStd.GetField(index).HasValue)
+            if (classType.SecondSize >= 1 && EbxSharedTypeDescriptors.patchStd.GetField(index).HasValue)
             {
-                return EbxReader22B.patchStd.GetField(index).Value;
+                return EbxSharedTypeDescriptors.patchStd.GetField(index).Value;
             }
-            return EbxReader22B.std.GetField(index).Value;
+            return EbxSharedTypeDescriptors.std.GetField(index).Value;
         }
 
         protected EbxClass GetClass(EbxClass parentClassType, EbxField field)
         {
-            if (parentClassType.SecondSize >= 1 && EbxReader22B.patchStd.GetClass(parentClassType.Index + (short)field.ClassRef).HasValue)
+            if (parentClassType.SecondSize >= 1 && EbxSharedTypeDescriptors.patchStd.GetClass(parentClassType.Index + (short)field.ClassRef).HasValue)
             {
-                return EbxReader22B.patchStd.GetClass(parentClassType.Index + (short)field.ClassRef).Value;
+                return EbxSharedTypeDescriptors.patchStd.GetClass(parentClassType.Index + (short)field.ClassRef).Value;
             }
-            return EbxReader22B.std.GetClass(parentClassType.Index + (short)field.ClassRef).Value;
+            return EbxSharedTypeDescriptors.std.GetClass(parentClassType.Index + (short)field.ClassRef).Value;
 
         }
     }

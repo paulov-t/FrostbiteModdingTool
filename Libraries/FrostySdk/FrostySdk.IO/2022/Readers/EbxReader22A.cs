@@ -131,7 +131,7 @@ namespace FrostySdk.IO._2022.Readers
             get
             {
                 if (_AllEbxFields == null)
-                    _AllEbxFields = EbxReader22B.patchStd.Fields.Union(EbxReader22B.std.Fields);
+                    _AllEbxFields = EbxSharedTypeDescriptors.patchStd.Fields.Union(EbxSharedTypeDescriptors.std.Fields);
 
                 return _AllEbxFields;
             }
@@ -156,15 +156,24 @@ namespace FrostySdk.IO._2022.Readers
             var ebxfieldmeta = property.GetCustomAttribute<EbxFieldMetaAttribute>();
             EbxFieldType fieldType = (EbxFieldType)((ebxfieldmeta.Flags >> 4) & 0x1Fu);
 
-            var allFields = EbxReader22B.std.Fields;
-            List<EbxField> classFields = EbxReader22B.std.ClassFields.ContainsKey(classType) ? EbxReader22B.std.ClassFields[classType] : null;
-            if (classType.SecondSize >= 1 && EbxReader22B.patchStd != null)
+            EbxField field = default(EbxField);
+            if (EbxSharedTypeDescriptors.std == null)
             {
-                classFields = EbxReader22B.patchStd.ClassFields[classType];
-                allFields = allFields.Union(EbxReader22B.patchStd.Fields).ToList();
+                field.Type = ebxfieldmeta.Flags;
+                //field.DebugTypeOverride = fieldType;
+                field.NameHash = nameHash;
+
+                return field;
             }
 
-            EbxField field = default(EbxField);
+            var allFields = EbxSharedTypeDescriptors.std.Fields;
+            List<EbxField> classFields = EbxSharedTypeDescriptors.std.ClassFields.ContainsKey(classType) ? EbxSharedTypeDescriptors.std.ClassFields[classType] : null;
+            if (classType.SecondSize >= 1 && EbxSharedTypeDescriptors.patchStd != null)
+            {
+                classFields = EbxSharedTypeDescriptors.patchStd.ClassFields[classType];
+                allFields = allFields.Union(EbxSharedTypeDescriptors.patchStd.Fields).ToList();
+            }
+
             if (classFields != null)
             {
                 var nameHashFields = classFields.Where(x => x.NameHash == nameHash);
@@ -182,7 +191,7 @@ namespace FrostySdk.IO._2022.Readers
             get
             {
                 if (_AllEbxClasses == null)
-                    _AllEbxClasses = EbxReader22B.patchStd.Classes.Union(EbxReader22B.std.Classes).Where(x => x.HasValue).Select(x => x.Value);
+                    _AllEbxClasses = EbxSharedTypeDescriptors.patchStd.Classes.Union(EbxSharedTypeDescriptors.std.Classes).Where(x => x.HasValue).Select(x => x.Value);
 
                 return _AllEbxClasses;
             }
@@ -595,20 +604,20 @@ namespace FrostySdk.IO._2022.Readers
             if (!classType.HasValue)
             {
                 guid = this.classGuids[index];
-                ebxClass = EbxReader22B.patchStd?.GetClass(guid.Value) ?? EbxReader22B.std.GetClass(guid.Value);
+                ebxClass = EbxSharedTypeDescriptors.patchStd?.GetClass(guid.Value) ?? EbxSharedTypeDescriptors.std.GetClass(guid.Value);
             }
             else
             {
                 int index2 = ((base.magic != EbxVersion.Riff) ? ((short)index + (classType?.Index ?? 0)) : index);
-                guid = EbxReader22B.std.GetGuid(index2);
+                guid = EbxSharedTypeDescriptors.std.GetGuid(index2);
                 if (classType.Value.SecondSize >= 1)
                 {
-                    guid = EbxReader22B.patchStd.GetGuid(index2);
-                    ebxClass = EbxReader22B.patchStd.GetClass(index2) ?? EbxReader22B.std.GetClass(guid.Value);
+                    guid = EbxSharedTypeDescriptors.patchStd.GetGuid(index2);
+                    ebxClass = EbxSharedTypeDescriptors.patchStd.GetClass(index2) ?? EbxSharedTypeDescriptors.std.GetClass(guid.Value);
                 }
                 else
                 {
-                    ebxClass = EbxReader22B.std.GetClass(index2);
+                    ebxClass = EbxSharedTypeDescriptors.std.GetClass(index2);
                 }
             }
             if (ebxClass.HasValue)
@@ -623,9 +632,9 @@ namespace FrostySdk.IO._2022.Readers
         {
             if (classType.SecondSize >= 1)
             {
-                return EbxReader22B.patchStd.GetField(index).Value;
+                return EbxSharedTypeDescriptors.patchStd.GetField(index).Value;
             }
-            return EbxReader22B.std.GetField(index).Value;
+            return EbxSharedTypeDescriptors.std.GetField(index).Value;
         }
 
         public override object CreateObject(EbxClass classType)
