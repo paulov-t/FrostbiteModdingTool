@@ -160,7 +160,7 @@ namespace FrostbiteModdingUI.Windows
             this.UpdateLayout();
         }
 
-        public static ProjectManagement ProjectManagement { get; set; }
+        public ProjectManagement ProjectManagement { get; set; }
 
         public async Task InitialiseOfSelectedGame(string filePath)
         {
@@ -661,10 +661,10 @@ namespace FrostbiteModdingUI.Windows
             var testmodname = "EditorProject.fbmod";
 
             var author = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Author : string.Empty;
-            var category = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Author : string.Empty;
-            var desc = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Author : string.Empty;
-            var title = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Author : string.Empty;
-            var version = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Author : string.Empty;
+            var category = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Category : string.Empty;
+            var desc = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Description : string.Empty;
+            var title = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Title : string.Empty;
+            var version = ProjectManagement.Project.ModSettings != null ? ProjectManagement.Project.ModSettings.Version : string.Empty;
 
             loadingDialog.Update("Launching game", "Creating Mod", 50);
             await Task.Run(() =>
