@@ -67,15 +67,15 @@ namespace FrostbiteSdk.Frostbite.FileManagers
                         {
                             using (NativeReader nativeReader = new NativeReader(chunk))
                             {
-                                uint num = nativeReader.ReadUInt();
-                                long num3 = nativeReader.Position = nativeReader.ReadLong();
-                                for (uint num4 = 0u; num4 < num; num4++)
+                                uint chunkFileCollectorCount = nativeReader.ReadUInt();
+                                long chunkFileCollectorPosition = nativeReader.Position = nativeReader.ReadLong();
+                                for (uint chunkFileIndex = 0u; chunkFileIndex < chunkFileCollectorCount; chunkFileIndex++)
                                 {
-                                    long position = nativeReader.ReadLong();
-                                    long position2 = nativeReader.Position;
-                                    nativeReader.Position = position;
+                                    long fileNamePosition = nativeReader.ReadLong();
+                                    long currentPosition = nativeReader.Position;
+                                    nativeReader.Position = fileNamePosition;
                                     string text = nativeReader.ReadNullTerminatedString();
-                                    nativeReader.Position = position2;
+                                    nativeReader.Position = currentPosition;
                                     LegacyFileEntry legacyFileEntry = null;
                                     if (!legacyEntries.ContainsKey(text))
                                     {
@@ -88,14 +88,18 @@ namespace FrostbiteSdk.Frostbite.FileManagers
                                         legacyFileEntry = legacyEntries[text];
                                     }
                                     LegacyFileEntry.ChunkCollectorInstance chunkCollectorInstance = new LegacyFileEntry.ChunkCollectorInstance();
-                                    chunkCollectorInstance.CompressedOffset = nativeReader.ReadLong();
-                                    chunkCollectorInstance.CompressedSize = nativeReader.ReadLong();
-                                    chunkCollectorInstance.Offset = nativeReader.ReadLong();
-                                    chunkCollectorInstance.Size = nativeReader.ReadLong();
+                                    chunkCollectorInstance.CompressedOffset = legacyFileEntry.CompressedOffsetStart = nativeReader.ReadLong();
+                                    chunkCollectorInstance.CompressedSize = legacyFileEntry.CompressedSize = nativeReader.ReadLong();
+                                    chunkCollectorInstance.Offset  = nativeReader.ReadLong();
+                                    chunkCollectorInstance.Size = legacyFileEntry.Size = nativeReader.ReadLong();
                                     chunkCollectorInstance.ChunkId = nativeReader.ReadGuid();
                                     chunkCollectorInstance.Entry = item;
                                     legacyFileEntry.CollectorInstances.Add(chunkCollectorInstance);
                                     legacyFileEntry.ChunkId = chunkCollectorInstance.ChunkId;
+                                    if (legacyFileEntry.ExtraData == null)
+                                        legacyFileEntry.ExtraData = new AssetExtraData();
+
+                                    legacyFileEntry.ExtraData.DataOffset = (uint)chunkCollectorInstance.Offset;
 
                                 }
                             }
@@ -164,18 +168,28 @@ namespace FrostbiteSdk.Frostbite.FileManagers
 
         public ReadOnlySpan<byte> GetAssetAsSpan(AssetEntry entry)
         {
-            LegacyFileEntry legacyFileEntry = entry as LegacyFileEntry;
-            Stream chunkStream = GetChunkStream(legacyFileEntry);
-            if (chunkStream == null)
+            LegacyFileEntry legacyFileEntry = (LegacyFileEntry)GetAssetEntry(entry.Name);
+
+            if (legacyFileEntry == null)
+                return null;
+
+            if (legacyFileEntry.ModifiedEntry != null && legacyFileEntry.ModifiedEntry.Data != null)
+            {
+                return legacyFileEntry.ModifiedEntry.Data;
+            }
+
+            return GetChunkData(legacyFileEntry);
+        }
+
+        private ReadOnlySpan<byte> GetChunkData(LegacyFileEntry lfe)
+        {
+            var chunkEntry = AssetManager.GetChunkEntry(lfe.ChunkId);
+            if (chunkEntry == null)
             {
                 return null;
             }
-            using (NativeReader nativeReader = new NativeReader(chunkStream))
-            {
-                LegacyFileEntry.ChunkCollectorInstance chunkCollectorInstance = legacyFileEntry.IsModified ? legacyFileEntry.CollectorInstances[0].ModifiedEntry : legacyFileEntry.CollectorInstances[0];
-                nativeReader.Position = chunkCollectorInstance.Offset;
-                return nativeReader.ReadBytes((int)chunkCollectorInstance.Size);
-            }
+
+            return AssetManager.GetChunkData(chunkEntry).Slice((int)lfe.ExtraData.DataOffset, (int)lfe.Size);
         }
 
         public void ModifyAsset(string key, byte[] data)
