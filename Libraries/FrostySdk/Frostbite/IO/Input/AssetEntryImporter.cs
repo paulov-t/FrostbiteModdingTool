@@ -127,6 +127,7 @@ namespace FrostySdk.Frostbite.IO.Input
                 return false;
 
             var ebx = AssetManager.Instance.GetEbx(ebxAssetEntry);
+            //var ebx = AssetManager.Instance.GetEbxAsync(ebxAssetEntry).Result;
             if (ebx == null)
                 return false;
 
@@ -143,23 +144,27 @@ namespace FrostySdk.Frostbite.IO.Input
             try
             {
                 var originalName = ((dynamic)ebx.RootObject).Name;
-                JsonConvert.PopulateObject(Encoding.UTF8.GetString(bytes), ebx.RootObject, new JsonSerializerSettings()
+                if (!Task.Run(() =>
                 {
-                    ObjectCreationHandling = ObjectCreationHandling.Auto,
-                    ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                    NullValueHandling = NullValueHandling.Ignore,
-                    Converters = {
+                    JsonConvert.PopulateObject(Encoding.UTF8.GetString(bytes), ebx.RootObject, new JsonSerializerSettings()
+                    {
+                        ObjectCreationHandling = ObjectCreationHandling.Reuse,
+                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                        NullValueHandling = NullValueHandling.Ignore,
+                        Converters = {
                         new ReplaceArrayConverter()
                         , new PointerRefConverter()
                         //, new ResourceRefConverter()
                     },
-                    MaxDepth = 10
-                });
+                        MaxDepth = 10
+                    });
 
-                ((dynamic)ebx.RootObject).Name = originalName;
-                //jobjectFromJson = JObject.Parse(Encoding.UTF8.GetString(bytes));
+                    ((dynamic)ebx.RootObject).Name = originalName;
+                    //jobjectFromJson = JObject.Parse(Encoding.UTF8.GetString(bytes));
 
+                }).Wait(2000))
+                    throw new Exception($"Import took too long for {originalName}");
 
             }
             catch (Exception populationException)

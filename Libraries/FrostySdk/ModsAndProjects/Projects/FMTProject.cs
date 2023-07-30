@@ -305,15 +305,15 @@ namespace FrostySdk.ModsAndProjects.Projects
                     continue;
 
                 AssetEntryImporter assetEntryImporter = new AssetEntryImporter(ebxAssetEntry);
-                try
-                {
+                //try
+                //{
                     assetEntryImporter.ImportWithJSON(Encoding.UTF8.GetBytes(json));
                     ebxAssetEntry.IsDirty = false;
-                }
-                catch (Exception ex) 
-                {
-                    FileLogger.WriteLine($"Failed to load {assetName} from Project with message {ex.Message}");
-                }
+                //}
+                //catch (Exception ex) 
+                //{
+                //    FileLogger.WriteLine($"Failed to load {assetName} from Project with message {ex.Message}");
+                //}
                 assetEntryImporter = null;
             }
         }

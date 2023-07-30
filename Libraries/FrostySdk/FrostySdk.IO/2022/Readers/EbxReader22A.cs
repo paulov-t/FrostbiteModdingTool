@@ -160,9 +160,7 @@ namespace FrostySdk.IO._2022.Readers
             if (EbxSharedTypeDescriptors.std == null)
             {
                 field.Type = ebxfieldmeta.Flags;
-                //field.DebugTypeOverride = fieldType;
                 field.NameHash = nameHash;
-
                 return field;
             }
 
