@@ -148,24 +148,6 @@
                                 </StackPanel>
                             </MenuItem.Header>
                         </MenuItem>
-                        <Separator></Separator>
-                        <MenuItem Visibility="Collapsed">
-                            <MenuItem.Header>
-                                <StackPanel  VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
-                                    <MaterialDesign:PackIcon Kind="ClockFast" VerticalAlignment="Center" />
-                                    <Label Content="Recent Files" FontSize="10" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </MenuItem.Header>
-                            <ListView ItemsSource="{Binding RecentProjectFiles}">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Label FontSize="10" FontWeight="Bold" Content="{Binding Name}" VerticalAlignment="Center" />
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </MenuItem>
-                        
-                        
                     </MenuItem>
                     <MenuItem x:Name="miMod" IsEnabled="False">
                         <MenuItem.Header>
@@ -360,21 +342,6 @@
                                     </mah:MetroTabItem.Header>
                                     <localControls:Browser x:Name="bootsBrowser"></localControls:Browser>
                                 </mah:MetroTabItem>
-
-                                <mah:MetroTabItem x:Name="TabPlayers" Header="Players" Visibility="Collapsed">
-                                    <localPlayerControls:PlayerEditor x:Name="playerEditor"></localPlayerControls:PlayerEditor>
-                                </mah:MetroTabItem>
-
-                                <!--<TabItem x:Name="TabTeams">
-                                    <TabItem.Header>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                                            <MaterialDesign:PackIcon Kind="MicrosoftTeams" VerticalAlignment="Center" />
-                                            <Label Content="{DynamicResource textTeams}"></Label>
-                                        </StackPanel>
-                                    </TabItem.Header>
-                                    <FMTControlsPages:FIFADBTeamsEditor></FMTControlsPages:FIFADBTeamsEditor>
-                                </TabItem>-->
-
                                 <mah:MetroTabItem x:Name="TabDB">
                                     <mah:MetroTabItem.Header>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
