@@ -349,7 +349,8 @@ namespace ModdingSupport
                 return dictionary;
             }
         }
-        string modDirName = "ModData";
+
+        string ModDirectoryName { get; set; } = "ModData";
 
         private bool FileIsSymbolic(string path)
         {
@@ -365,7 +366,7 @@ namespace ModdingSupport
             {
                 throw new Exception("Unable to initialize Plugins");
             }
-            string modPath = fs.BasePath + modDirName + "\\";
+            string modPath = fs.BasePath + ModDirectoryName + "\\";
             string patchPath = "Patch";
 
             string profileName = ProfileManager.ProfileName;
@@ -723,6 +724,8 @@ namespace ModdingSupport
                     Logger.LogError("An error occurred within the Plugin Post Compile. Stopping.");
                     return false;
                 }
+
+                ModDirectoryName = ((IAssetCompiler)pluginCompiler).ModDirectory;
             }
             else
             {
@@ -930,7 +933,7 @@ namespace ModdingSupport
             }
 
             //string modPath = fs.BasePath + modDirName + "\\";
-            string modPath = "\\" + modDirName + "\\";
+            string modPath = "\\" + ModDirectoryName + "\\";
 
             var foundMods = false;
             var lastModPaths = new Dictionary<string, DateTime>();
@@ -1153,6 +1156,8 @@ namespace ModdingSupport
         {
             FileLogger.WriteLine("ModExecutor:RunEADesktop");
 
+            var dataPath = ModDirectoryName;
+
             Logger.Log($"Launching {ProfileManager.DisplayName} via EADesktop.");
 
             // -------------------------------------------------------------------------------------------------------------------
@@ -1180,14 +1185,14 @@ namespace ModdingSupport
             var userIniPaths = Directory.GetFiles(eaDesktopConfigAppDataPath, "user_*.ini");
             if (!userIniPaths.Any())
             {
-                FileLogger.WriteLine("ModExecutor:RunEADesktop: Unable to find user *.ini to apply -dataPath=ModData");
-                throw new FileNotFoundException("Unable to find user *.ini to apply -dataPath=ModData. Please ensure EADesktop is properly installed and run at least once!");
+                FileLogger.WriteLine($"ModExecutor:RunEADesktop: Unable to find user *.ini to apply -dataPath={dataPath}");
+                throw new FileNotFoundException($"Unable to find user *.ini to apply -dataPath={dataPath}. Please ensure EADesktop is properly installed and run at least once!");
             }
 
             KillEADesktopProcess();
 
 
-            var desiredCommandLineSetting = ProfileManager.LoadedProfile.EADesktopCommandLineSetting + "=-dataPath ModData";
+            var desiredCommandLineSetting = $"{ProfileManager.LoadedProfile.EADesktopCommandLineSetting}=-dataPath {ModDirectoryName}";
             foreach (var userIniPath in userIniPaths)
             {
                 bool desiredSettingAlreadyExists = false;
@@ -1216,7 +1221,7 @@ namespace ModdingSupport
                     || !allTextOfUserIni.Contains(desiredCommandLineSetting)
                     )
                 {
-                    FileLogger.WriteLine("ModExecutor:RunEADesktop: -dataPath=ModData does not exist for this game. Setting it up.");
+                    FileLogger.WriteLine($"ModExecutor:RunEADesktop: -dataPath={ModDirectoryName} does not exist for this game. Setting it up.");
 
                     sb.AppendLine(string.Empty);
                     sb.Append(desiredCommandLineSetting);
