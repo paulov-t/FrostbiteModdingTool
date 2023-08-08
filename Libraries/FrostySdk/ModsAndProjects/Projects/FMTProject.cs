@@ -6,6 +6,7 @@ using FrostySdk.Frostbite.IO.Output;
 using FrostySdk.Frosty.FET;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.ModsAndProjects.FET;
 using FrostySdk.Resources;
 using Newtonsoft.Json;
 using System;
@@ -531,7 +532,9 @@ namespace FrostySdk.ModsAndProjects.Projects
             if (hasLocaleIniMod)
             {
                 nr.ReadBoolean();
-                AssetManager.Instance.LocaleINIMod = new Frostbite.IO.LocaleINIMod(nr.ReadLengthPrefixedBytes());
+                //AssetManager.Instance.LocaleINIMod = new Frostbite.IO.LocaleINIMod(nr.ReadLengthPrefixedBytes());
+                AssetManager.Instance.LocaleINIMod.Save(nr.ReadLengthPrefixedBytes());
+
             }
         }
 

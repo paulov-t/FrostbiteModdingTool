@@ -25,6 +25,7 @@ namespace FrostySdk.ModsAndProjects.Projects
         public ModSettings ModSettings { get; }
         public IEnumerable<AssetEntry> ModifiedAssetEntries { get; }
 
+        public bool Load(in FIFAMod fifaMod);
         public bool Load(in FIFAModReader reader);
         public bool Load(in FrostbiteMod frostbiteMod);
         public bool Load(in string inFilename);

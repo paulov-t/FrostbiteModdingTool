@@ -998,7 +998,8 @@ namespace FrostySdk
                 {
                     var localeIsEncrypted = reader.ReadBoolean();
                     var localeiniSize = reader.ReadInt();
-                    AssetManager.Instance.LocaleINIMod = new Frostbite.IO.LocaleINIMod(reader.ReadBytes(localeiniSize));
+                    AssetManager.Instance.LocaleINIMod.Save(reader.ReadBytes(localeiniSize));
+                    //AssetManager.Instance.LocaleINIMod = new Frostbite.IO.LocaleINIMod(reader.ReadBytes(localeiniSize));
                 }
             }
 

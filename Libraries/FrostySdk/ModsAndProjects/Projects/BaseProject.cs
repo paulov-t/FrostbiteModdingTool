@@ -15,6 +15,8 @@ using System.Configuration;
 using FrostySdk.Resources;
 using System.Reflection.Metadata.Ecma335;
 using FrostySdk.Frosty.FET;
+using static FrostbiteSdk.Frosty.Abstract.BaseModReader;
+using FrostbiteSdk.FrostbiteSdk.Managers;
 
 namespace FrostySdk.ModsAndProjects.Projects
 {
@@ -43,6 +45,81 @@ namespace FrostySdk.ModsAndProjects.Projects
         }
 
         public abstract string FileExtension { get; }
+
+        public virtual bool Load(in FIFAMod fifaMod)
+        {
+            var resources = fifaMod.Resources
+                .OrderBy(x => x.Name)
+                .ThenBy(x => x.Name);
+
+            Dictionary<Guid, byte[]> rawChunkDatas = new Dictionary<Guid, byte[]>();
+
+            foreach (BaseModResource r in resources)
+            {
+                IAssetEntry entry = new AssetEntry();
+                var t = r.GetType().Name;
+                switch (t)
+                {
+                    case "EbxResource":
+                        entry = new EbxAssetEntry();
+                        break;
+                    case "ResResource":
+                        entry = new ResAssetEntry();
+                        break;
+                    case "ChunkResource":
+                        entry = new ChunkAssetEntry();
+                        break;
+                    default:
+                        entry = null;
+                        break;
+                }
+
+                if (entry != null)
+                {
+                    r.FillAssetEntry(entry);
+                    var d = fifaMod.GetResourceData(r);
+                    using CasReader casReader = new CasReader(new MemoryStream(d));
+                    var d2 = casReader.Read();
+                    d = null;
+
+                    if (r.IsLegacyFile)
+                    {
+                        if (r.LegacyFullName.Contains("CFC", StringComparison.OrdinalIgnoreCase)
+                                 || r.LegacyFullName.Contains("Collector", StringComparison.OrdinalIgnoreCase)
+                                 )
+                            continue;
+
+                        AssetManager.Instance.ModifyLegacyAsset(r.LegacyFullName, d2);
+                    }
+                    else
+                    {
+                        if (entry is ChunkAssetEntry)
+                        {
+                            rawChunkDatas.Add(Guid.Parse(entry.Name), d2);
+                        }
+                        AssetManager.Instance.ModifyEntry(entry, d2);
+                    }
+                }
+            }
+
+            var modifiedEntries = AssetManager.Instance.ModifiedEntries;
+            LoadTexturesFromChunks(modifiedEntries, rawChunkDatas);
+            LoadMeshesFromChunks(modifiedEntries, rawChunkDatas);
+
+            var initfs = fifaMod.ModReader.InitFSModifications;
+            foreach (var mod in initfs.InitFsModifications)
+            {
+                foreach(var file in mod.Contents)
+                {
+                    AssetManager.InitFSManager.ModifyFile(file.Key, file.Value);    
+                }
+                //fileInInitfs.ModifyFile(fileInInitfs.Description, fileInInitfs.Contents);
+            }
+            var localeini = fifaMod.ModReader.LocaleIniModifications;
+            AssetManager.LocaleINIMod.Save(Encoding.UTF8.GetBytes(localeini.LocaleIniFiles[0].Contents));
+
+            return modifiedEntries.Any();
+        }
 
         public virtual bool Load(in FIFAModReader reader)
         {
@@ -102,6 +179,8 @@ namespace FrostySdk.ModsAndProjects.Projects
 
             var modifiedEntries = AssetManager.Instance.ModifiedEntries;
             LoadTexturesFromChunks(modifiedEntries, rawChunkDatas);
+            LoadMeshesFromChunks(modifiedEntries, rawChunkDatas);
+
             return modifiedEntries.Any();
         }
 
@@ -131,6 +210,12 @@ namespace FrostySdk.ModsAndProjects.Projects
                     case "LegacyResource":
                         entry = new LegacyFileEntry();
                         break;
+                    case "EmbeddedResource":
+                        if (string.IsNullOrEmpty(r.Name))
+                            entry = null;
+                        else
+                            entry = new EmbeddedFileEntry();
+                        break;
                     default:
                         entry = null;
                         break;
@@ -140,6 +225,9 @@ namespace FrostySdk.ModsAndProjects.Projects
                 {
                     r.FillAssetEntry(entry);
                     var d = frostbiteMod.GetResourceData(r);
+                    if (d == null)
+                        continue;
+
                     using (CasReader casReader = new CasReader(new MemoryStream(d)))
                     {
                         var d2 = casReader.Read();
@@ -156,10 +244,17 @@ namespace FrostySdk.ModsAndProjects.Projects
 
             var modifiedEntries = AssetManager.Instance.ModifiedEntries;
             LoadTexturesFromChunks(modifiedEntries, rawChunkDatas);
+            LoadMeshesFromChunks(modifiedEntries, rawChunkDatas);
 
             return modifiedEntries.Any();
         }
 
+        /// <summary>
+        /// Loads in the Texture Assets properly from the Chunk files
+        /// </summary>
+        /// <param name="modifiedEntries"></param>
+        /// <param name="rawChunkDatas"></param>
+        /// <returns></returns>
         public virtual bool LoadTexturesFromChunks(IEnumerable<IAssetEntry> modifiedEntries, Dictionary<Guid, byte[]> rawChunkDatas)
         {
             // Sort out textures
@@ -183,6 +278,45 @@ namespace FrostySdk.ModsAndProjects.Projects
                     }
                 }
             }
+            return true;
+        }
+
+        /// <summary>
+        /// Loads in the Chunks for Meshes
+        /// </summary>
+        /// <param name="modifiedEntries"></param>
+        /// <param name="rawChunkDatas"></param>
+        /// <returns></returns>
+        public virtual bool LoadMeshesFromChunks(IEnumerable<IAssetEntry> modifiedEntries, Dictionary<Guid, byte[]> rawChunkDatas)
+        {
+            // Sort out meshes
+            foreach (var entry in modifiedEntries)
+            {
+                if (entry is ResAssetEntry resAsset)
+                {
+                    if (resAsset.Type == "MeshSet")
+                    {
+                        MeshSet meshSet = new MeshSet(AssetManager.Instance.GetRes(resAsset));
+                        foreach (var lod in meshSet.Lods)
+                        {
+                            if (lod.ChunkId != Guid.Empty && !lod.HasAdjacencyInMesh)
+                            {
+                                if (!rawChunkDatas.Any(x => x.Key == lod.ChunkId))
+                                    continue;
+
+                                var rawChunkData = rawChunkDatas.Single(x => x.Key == lod.ChunkId);
+
+                                var chunkEntry = AssetManager.Instance.GetChunkEntry(lod.ChunkId);
+                                if (chunkEntry == null)
+                                    continue;
+
+                                AssetManager.Instance.ModifyChunk(chunkEntry, rawChunkData.Value);
+                            }
+                        }
+                    }
+                }
+            }
+
             return true;
         }
 
