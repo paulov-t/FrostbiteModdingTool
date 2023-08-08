@@ -78,7 +78,6 @@ namespace Madden21Plugin
 
         }
 
-        ModExecutor ModExecuter = null;
         ModExecutor parent => ModExecuter;
 
         /// <summary>

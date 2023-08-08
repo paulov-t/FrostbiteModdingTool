@@ -24,7 +24,7 @@ namespace StarWarsSquadronsPlugin
     public class SWSCompiler : Frostbite2022AssetCompiler, IAssetCompiler
     {
 
-        //public override string ModDirectory => "";
+        public override string ModDirectory => "";
 
         public override bool PreCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
@@ -290,32 +290,71 @@ namespace StarWarsSquadronsPlugin
 
                 using (var nw = new NativeWriter(new FileStream(casPath, FileMode.Open)))
                 {
-                    nw.Position = nw.Length;
-
                     var entries = casFilesToNewChunkPositions[casFilesToNewChunkKey];
                     foreach (var entry in entries) 
                     {
+                        nw.Position = nw.Length;
+
                         var data = ModExecuter.archiveData[entry.Item3.Sha1].Data;
-                        entry.Item1.Offset = (uint)nw.Position;
-                        entry.Item1.size = data.Length;
+                        entry.Item1.ModifiedOffset = (uint)nw.Position;
+                        entry.Item1.ModifiedSize = data.Length;
                         nw.Write(data);
                     }
                 }
             }
 
+            foreach (var casFilesToNewChunkKey in casFilesToNewChunkPositions.Keys)
+            {
+                var casPath = FileSystem.Instance.ResolvePath(casFilesToNewChunkKey, true);
+                if (!File.Exists(casPath))
+                    continue;
+
+                using (var nw = new NativeWriter(new FileStream(casPath, FileMode.Open)))
+                {
+                    var entries = casFilesToNewChunkPositions[casFilesToNewChunkKey];
+                    foreach (var entry in entries)
+                    {
+                        nw.Position = nw.Length;
+
+                        var data = ModExecuter.archiveData[entry.Item3.Sha1].Data;
+                        entry.Item1.ModifiedOffset = (uint)nw.Position;
+                        entry.Item1.ModifiedSize = data.Length;
+                        nw.Write(data);
+                    }
+                }
+            }
             foreach (var m in FileSystem.Instance.ManifestPaths)
             {
-                var resolvedPath = m.Replace(FileSystem.Instance.BasePath, Path.Combine(FileSystem.Instance.BasePath, $"{ModDirectory}\\"), StringComparison.OrdinalIgnoreCase);
+                var resolvedPath =
+                        !string.IsNullOrEmpty(ModDirectory)
+                        ? m.Replace(FileSystem.Instance.BasePath, Path.Combine(FileSystem.Instance.BasePath, $"{ModDirectory}\\"), StringComparison.OrdinalIgnoreCase)
+                        : m;
                 //var casPath = FileSystem.Instance.ResolvePath(m, false);
                 //if (!File.Exists(casPath))
                 //    continue;
 
-                var manifestData = FileSystem.Instance.WriteManifest();
-                using (var nw = new NativeWriter(new FileStream(resolvedPath, FileMode.Open)))
+                using var nw = new NativeWriter(new FileStream(resolvedPath, FileMode.Open));
+
+                foreach(var manifestChunk in FileSystem.Instance.ManifestPathsToChunks[m])
                 {
-                    nw.Position = FileSystem.Instance.ManifestPathOffsets[m];
-                    nw.Write(manifestData);
+                    foreach(var item in casFilesToNewChunkPositions.Values)
+                    {
+                        if (!item.Any(x => x.Item2.guid == manifestChunk.guid))
+                            continue;
+
+
+                        {
+                            foreach (var entry in item.Where(x => x.Item1.ModifiedOffset.HasValue && x.Item1.ModifiedSize.HasValue))
+                            {
+                                nw.Position = entry.Item1.OffsetPosition;
+                                nw.Write(entry.Item1.ModifiedOffset.Value);
+                                nw.Write(entry.Item1.ModifiedSize.Value);
+                            }
+                        }
+
+                    }
                 }
+                
             }
 
 
@@ -332,7 +371,7 @@ namespace StarWarsSquadronsPlugin
             //    var pathToPatchCat = Path.Combine(FileSystem.Instance.BasePath, ModDirectory, "Patch", entry.Catalog, "cas.cat");
             //    var pathToMDDataCat = Path.Combine(FileSystem.Instance.BasePath, ModDirectory, "Data", entry.Catalog, "cas.cat");
             //    var pathToMDPatchCat = Path.Combine(FileSystem.Instance.BasePath, ModDirectory, "Patch", entry.Catalog, "cas.cat");
-               
+
             //        using (NativeReader reader = new NativeReader(new FileStream(pathToDataCat, FileMode.Open, FileAccess.Read)))
             //        {
             //            FileInfo fi = new FileInfo(pathToMDPatchCat);

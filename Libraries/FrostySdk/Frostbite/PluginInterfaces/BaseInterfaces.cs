@@ -45,6 +45,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
 
     public interface IAssetCompiler
     {
+        public string ModDirectory { get; }
+
         bool PreCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter);
 
         bool Compile(FileSystem fs, ILogger logger, ModExecutor modExecuter);

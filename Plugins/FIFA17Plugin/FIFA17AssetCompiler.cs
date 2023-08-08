@@ -7,6 +7,8 @@ namespace FIFA17Plugin
 {
     public class FIFA17AssetCompiler : IAssetCompiler
     {
+        public string ModDirectory => "ModData";
+
         public bool Cleanup(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             throw new System.NotImplementedException();
