@@ -68,23 +68,39 @@ namespace FrostySdk.Frosty.FET
             WriteLengthPrefixedString(string.Empty);
             AddResource(new EmbeddedResource("Icon", modSettings.Icon, ResourceManifest));
             WriteUInt32LittleEndian(0);
-            //Write7BitEncodedInt(0); // locale ini
+            // locale ini
             Write7BitEncodedInt(AssetManager.Instance.LocaleINIMod.HasUserData ? 1 : 0);
             if (AssetManager.Instance.LocaleINIMod.HasUserData)
             {
-                WriteLengthPrefixedString("Locale.ini");
+                WriteLengthPrefixedString($"{modSettings.Title} Locale.ini");
                 WriteLengthPrefixedString(Encoding.UTF8.GetString(AssetManager.Instance.LocaleINIMod.UserData));
             }
-            //Write7BitEncodedInt(0); // init fs
-            Write7BitEncodedInt(AssetManager.Instance.LocaleINIMod.HasUserData ? 1 : 0); // init fs
+
+            // Remove Locale.Ini in InitFsManager to replace with Locale Ini Manager version
             if (AssetManager.Instance.LocaleINIMod.HasUserData)
             {
-                WriteLengthPrefixedString("Locale.ini");
-                Write7BitEncodedInt(AssetManager.Instance.LocaleINIMod.HasUserData ? 1 : 0); // locale.ini
-                WriteLengthPrefixedString("data/locale.ini");
-                Write7BitEncodedInt(AssetManager.Instance.LocaleINIMod.UserData.Length);
-                Write(AssetManager.Instance.LocaleINIMod.UserData);
+                if (AssetManager.Instance.InitFSManager.DataModifications.ContainsKey("Scripts/ini/data/locale.ini"))
+                    AssetManager.Instance.InitFSManager.DataModifications.Remove("Scripts/ini/data/locale.ini");
+
+                AssetManager.Instance.InitFSManager.DataModifications.Add("Scripts/ini/data/locale.ini", AssetManager.Instance.LocaleINIMod.UserData);
             }
+
+            // Initfs
+            //Write7BitEncodedInt(0);
+
+            var initfsmodCount = AssetManager.Instance.InitFSManager.DataModifications.Count;
+            Write7BitEncodedInt(initfsmodCount); // init fs
+            foreach (var initfsmod in AssetManager.Instance.InitFSManager.DataModifications)
+            {
+                WriteLengthPrefixedString(initfsmod.Key);
+                Write7BitEncodedInt(1);
+                WriteLengthPrefixedString(initfsmod.Key);
+                Write7BitEncodedInt(initfsmod.Value.Length);
+                Write(initfsmod.Value);
+            }
+
+
+
             Write7BitEncodedInt(0); // player lua
             Write7BitEncodedInt(0); // player kit lua
             //WritePlayerLuaMods(this, project.PlayerLuaMod);
