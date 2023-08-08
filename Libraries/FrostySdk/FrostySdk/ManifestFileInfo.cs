@@ -18,5 +18,9 @@ namespace FrostySdk
 
         public bool IsChunk { get { return isChunk; } set { isChunk = value; } }
 
+        public long OffsetPosition { get; set; }
+
+        public long? ModifiedOffset { get; set; }
+        public long? ModifiedSize { get; set; }
     }
 }
