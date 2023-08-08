@@ -3,6 +3,7 @@ using FMT.FileTools.Modding;
 using FrostbiteSdk.Frosty.Abstract;
 using FrostySdk.Frosty.FET;
 using FrostySdk.Managers;
+using FrostySdk.ModsAndProjects.FET;
 using Modding.Categories;
 using Standart.Hash.xxHash;
 using System;
@@ -155,6 +156,8 @@ namespace FrostySdk
         PlayerLuaModification PlayerLuaModifications = new PlayerLuaModification();
 
         public bool HasChecksums { get; }
+        public FIFAModLocaleIniSettings LocaleIniModifications { get; private set; }
+        public FIFAModInitFsSettings InitFSModifications { get; private set; }
 
         public FIFAModReader(Stream stream)
             : base(stream)
@@ -260,8 +263,8 @@ namespace FrostySdk
             string facebookLink = ((Version >= 8) ? ReadLengthPrefixedString() : string.Empty);
             string customLink = ((Version >= 8) ? ReadLengthPrefixedString() : string.Empty);
             uint screenshotsCount = ((Version < 5) ? 4u : ReadUInt32LittleEndian());
-            ReadLocaleIniSettings();
-            ReadInitFsModifications();
+            LocaleIniModifications = ReadLocaleIniSettings();
+            InitFSModifications = ReadInitFsModifications();
             PlayerLuaModifications = ReadPlayerLuaModifications(PlayerLuaModifications);
             return new FIFAModDetails(inTitle: inTitle, inAuthor: author, mainCategory: mainCategory, subCategory: subCategory, customCategory: customCategory, secondCustomCategory: customSubCategory, inVersion: userVersion, inDescription: description)
             {
@@ -277,57 +280,55 @@ namespace FrostySdk
             };
         }
 
-        private void ReadLocaleIniSettings()
+        private FIFAModLocaleIniSettings ReadLocaleIniSettings()
         {
             if (Version < 9)
             {
-                return;
-                //return new LocaleIniSettings();
+                return new FIFAModLocaleIniSettings();
             }
-            //LocaleIniSettings settings = new LocaleIniSettings();
+            FIFAModLocaleIniSettings settings = new FIFAModLocaleIniSettings();
             int count = Read7BitEncodedInt();
             for (int i = 0; i < count; i++)
             {
                 string description = ReadLengthPrefixedString();
                 string contents = ReadLengthPrefixedString();
-                //settings.AddLocaleIniFile(new LocaleIniFile
-                //{
-                //    Description = description,
-                //    Contents = contents
-                //});
+                settings.AddLocaleIniFile(new LocaleIniFile
+                {
+                    Description = description,
+                    Contents = contents
+                });
             }
-            //return settings;
+            return settings;
         }
 
-        private void ReadInitFsModifications()
+        private FIFAModInitFsSettings ReadInitFsModifications()
         {
             if (Version < 11)
             {
-                return;
-                //return new InitFsSettings();
+                return new FIFAModInitFsSettings();
             }
-            //InitFsSettings settings = new InitFsSettings();
+            FIFAModInitFsSettings settings = new FIFAModInitFsSettings();
             int count = Read7BitEncodedInt();
             for (int i = 0; i < count; i++)
             {
                 string description = ReadLengthPrefixedString();
                 int filesInModification = Read7BitEncodedInt();
-                //InitFSModification modification = new InitFSModification
-                //{
-                //	Description = description
-                //};
-                //settings.AddInitFsModification(modification);
+                InitFSModification modification = new InitFSModification
+                {
+                    Description = description
+                };
+                settings.AddInitFsModification(modification);
                 for (int j = 0; j < filesInModification; j++)
                 {
                     string fileName = ReadLengthPrefixedString();
                     int fileLength = Read7BitEncodedInt();
                     byte[] fileData = ReadBytes(fileLength);
-                    //modification.ModifyFile(fileName, fileData);
+                    modification.ModifyFile(fileName, fileData);
                 }
-                //modification.ClearDirtyFlag();
+                modification.ClearDirtyFlag();
             }
-            //settings.ClearDirtyFlag();
-            //return settings;
+            settings.ClearDirtyFlag();
+            return settings;
         }
 
         private PlayerLuaModification ReadPlayerLuaModifications(PlayerLuaModification playerLuaMods)
@@ -734,6 +735,9 @@ namespace FrostySdk
                 content.Clear();
             }
         }
+
+        
+
 
     }
 }
