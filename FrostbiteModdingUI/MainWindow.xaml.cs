@@ -1,4 +1,6 @@
 ﻿using FIFAModdingUI.Windows;
+using FMT.FileTools;
+using FMT.FileTools.Modding;
 using FMT.Windows;
 using FrostbiteModdingUI.Models;
 using FrostbiteModdingUI.Windows;
@@ -10,8 +12,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using v2k4FIFAModdingCL;
 using static FrostySdk.ProfileManager;
 
 //namespace FIFAModdingUI
@@ -56,6 +60,75 @@ namespace FMT
             DataContext = this;
 
             IsVisibleChanged += MainWindow_IsVisibleChanged;
+
+
+            Loaded += MainWindow_Loaded;
+        }
+
+        private void InitializeOfSelectedGame(string filePath)
+        {
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                AppSettings.Settings.GameInstallEXEPath = filePath;
+
+                if (GameInstanceSingleton.InitializeSingleton(filePath, false))
+                {
+                    DialogResult = true;
+                }
+                else
+                {
+                    throw new FileNotFoundException($"Unable to initialise against {filePath}");
+                }
+            }
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (App.StartupArgs.Length == 0)
+                return;
+
+            for (int i = 0; i < App.StartupArgs.Length; ++i)
+            {
+                FileLogger.WriteLine($"Arg {i}: {App.StartupArgs[i]}");
+
+                if (App.StartupArgs[i].Contains("Game="))
+                {
+                    var splitArg = App.StartupArgs[i].Split("=");
+                    if (splitArg.Length == 2)
+                    {
+                        var gameProfile = splitArg[1];
+                        if (!string.IsNullOrEmpty(gameProfile) && ProfilesWithEditor.Any(x => x.Name == gameProfile))
+                        {
+                            var SelectedProfile = ProfilesWithEditor.Single(x => x.Name == gameProfile);
+                            ProfileManager.Initialize(SelectedProfile.Name);
+                            if (App.StartupArgs.Contains("Editor"))
+                            {
+                                var bS = new FindGameEXEWindow().ShowDialog();
+                                if (bS.HasValue && bS.Value == true && !string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
+                                {
+                                    foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+                                    {
+                                        var t = a.GetTypes().FirstOrDefault(x => x.Name.Contains(SelectedProfile.EditorScreen, StringComparison.OrdinalIgnoreCase));
+                                        if (t != null)
+                                        {
+                                            App.MainEditorWindow = (Window)Activator.CreateInstance(t, this);
+                                            App.MainEditorWindow.Show();
+                                            // Empty the Args so we don't do this again once the App has loaded
+                                            App.StartupArgs = new string[0];
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                OpenGame(SelectedProfile);
+                            }
+                        }
+                        
+                    }
+                }
+            }
         }
 
         private void MainWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -163,7 +236,11 @@ namespace FMT
         {
             Profile profile = (Profile)((Tile)sender).Tag;
             ProfileManager.LoadedProfile = profile;
+            OpenGame(profile);
+        }
 
+        private void OpenGame(Profile profile)
+        {
             var bS = new FindGameEXEWindow().ShowDialog();
             if (bS.HasValue && bS.Value == true && !string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
             {

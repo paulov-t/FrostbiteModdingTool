@@ -293,8 +293,11 @@ namespace FrostySdk.Frostbite
 
         public static bool DoesCacheNeedsRebuilding()
         {
+            if (GameInstanceSingleton.Instance == null)
+                throw new ArgumentNullException("Game Instance Singleton has not been setup");
+
             if (!GameInstanceSingleton.Instance.INITIALIZED)
-                throw new ArgumentNullException("Game has not been selected");
+                throw new ArgumentNullException("Game Instance Singleton - Game has not been selected");
 
             if (ProfileManager.RequiresKey)
             {

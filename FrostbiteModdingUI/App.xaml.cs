@@ -1,6 +1,8 @@
 ﻿using FMT.FileTools;
 using FrostbiteSdk;
+using FrostySdk;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -9,6 +11,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using static FrostySdk.ProfileManager;
 
 //namespace FIFAModdingUI
 namespace FMT
@@ -43,9 +46,27 @@ namespace FMT
             }
         }
 
+        private List<Profile> profiles;
+
+        public List<Profile> ProfilesWithEditor
+        {
+            get
+            {
+
+                if (profiles == null || !profiles.Any())
+                    profiles = ProfileManager.EditorProfiles.ToList();
+                return profiles;
+
+            }
+            set { profiles = value; }
+        }
+
+        public static string[] StartupArgs { get; set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            StartupArgs = e.Args;
+            
             FileLogger.WriteLine("FMT:OnStartup");
 
             AppDomain currentDomain = AppDomain.CurrentDomain;
@@ -118,7 +139,7 @@ namespace FMT
         {
             Exception e = (Exception)args.ExceptionObject;
 
-            FileLogger.WriteLine($"{e.Message}");
+            FileLogger.WriteLine($"{e}");
 
             if (File.Exists("ErrorLogging.txt"))
                 File.Delete("ErrorLogging.txt");
