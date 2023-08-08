@@ -49,7 +49,8 @@ namespace FMT.Windows
 
         private void btnReset_Click(object sender, RoutedEventArgs e)
         {
-            AssetManager.Instance.LocaleINIMod = new FrostySdk.Frostbite.IO.LocaleINIMod();
+            //AssetManager.Instance.LocaleINIMod = new FrostySdk.Frostbite.IO.LocaleINIMod();
+            AssetManager.Instance.LocaleINIMod.Reset();
             this.DataContext = null;
             this.DataContext = this;
         }

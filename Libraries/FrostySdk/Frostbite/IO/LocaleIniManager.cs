@@ -1,6 +1,9 @@
 ﻿namespace FrostySdk.Frostbite.IO
 {
-    public class LocaleINIMod
+    /// <summary>
+    /// A place for the sole locale ini modification
+    /// </summary>
+    public class LocaleIniManager
     {
         public byte[] OriginalData { get; set; }
 
@@ -19,12 +22,12 @@
         }
 
 
-        public LocaleINIMod()
+        public LocaleIniManager()
         {
             Load();
         }
 
-        public LocaleINIMod(in byte[] data) : this()
+        public LocaleIniManager(in byte[] data) : this()
         {
             UserData = data;
         }
@@ -41,9 +44,14 @@
             return UserData;
         }
 
-        public byte[] Save(in byte[] inData)
+        public void Save(in byte[] inData)
         {
-            return null; ;
+            UserData = inData;
+        }
+
+        public void Reset()
+        {
+            UserData = null;
         }
     }
 }

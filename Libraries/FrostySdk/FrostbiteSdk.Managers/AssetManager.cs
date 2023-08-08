@@ -80,7 +80,10 @@ namespace FrostySdk.Managers
 
         public List<EmbeddedFileEntry> EmbeddedFileEntries { get; private set; } = new List<EmbeddedFileEntry>();
 
-        public LocaleINIMod LocaleINIMod;
+        public LocaleIniManager LocaleINIMod { get; private set; }
+
+
+        public InitFSManager InitFSManager { get; private set; }
 
         public AssetManager()
         {
@@ -92,22 +95,14 @@ namespace FrostySdk.Managers
             Chunks = new ConcurrentDictionary<Guid, ChunkAssetEntry>();
             Instance = this;
 
-            LocaleINIMod = new LocaleINIMod();
+            LocaleINIMod = new LocaleIniManager();
+            InitFSManager = new InitFSManager();
         }
 
         public AssetManager(in ILogger inLogger) : this()
         {
             Logger = inLogger;
         }
-
-        //public AssetManager(in FileSystem inFs)
-        //{
-        //    fs = inFs;
-
-        //    Instance = this;
-
-        //    LocaleINIMod = new LocaleINIMod();
-        //}
 
         // To detect redundant calls
         private bool _disposed = false;
@@ -652,7 +647,7 @@ namespace FrostySdk.Managers
             EmbeddedFileEntries.Clear();// = new List<EmbeddedFileEntry>();
 
             ChunkFileManager2022.CleanUpChunks(true);
-            LocaleINIMod = new LocaleINIMod();
+            LocaleINIMod = new LocaleIniManager();
 
         }
 
@@ -2726,6 +2721,12 @@ namespace FrostySdk.Managers
 
             if (entry is ChunkAssetEntry chunkEntry)
                 return ModifyChunk(chunkEntry, d2);
+
+            if (entry is EmbeddedFileEntry embeddedFileEntry)
+            {
+                if(!Instance.EmbeddedFileEntries.Any(x=>x.Name == embeddedFileEntry.Name))
+                    Instance.EmbeddedFileEntries.Add(embeddedFileEntry);
+            }
 
             return false;
         }

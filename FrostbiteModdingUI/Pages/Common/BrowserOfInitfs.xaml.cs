@@ -1,6 +1,7 @@
 ﻿using AvalonDock.Layout;
 using FIFAModdingUI.Pages.Common;
 using FrostySdk;
+using FrostySdk.Frostbite.IO;
 using FrostySdk.Managers;
 using System.Collections.Generic;
 using System.IO;
@@ -46,14 +47,14 @@ namespace FMT.Pages.Common
             {
                 get
                 {
-                    if (FileSystem.Instance.MemoryFileSystemModifiedItems.ContainsKey(this.FileName))
-                        return FileSystem.Instance.MemoryFileSystemModifiedItems[FileName];
+                    if (AssetManager.Instance.InitFSManager.DataModifications.ContainsKey(this.FileName))
+                        return AssetManager.Instance.InitFSManager.DataModifications[FileName];
 
                     return FileSystem.Instance.memoryFs[FileName];
                 }
             }
 
-            public bool IsModified => FileSystem.Instance.MemoryFileSystemModifiedItems.ContainsKey(this.FileName);
+            public bool IsModified => AssetManager.Instance.InitFSManager.DataModifications.ContainsKey(this.FileName);
 
             public FileEntry(string fileName)
             {
@@ -261,10 +262,10 @@ namespace FMT.Pages.Common
 
         private void ModifyFileWithBytes(string fileName, byte[] bytes)
         {
-            if (!FileSystem.Instance.MemoryFileSystemModifiedItems.ContainsKey(fileName))
-                FileSystem.Instance.MemoryFileSystemModifiedItems.Add(fileName, bytes);
+            if (!AssetManager.Instance.InitFSManager.DataModifications.ContainsKey(fileName))
+                AssetManager.Instance.InitFSManager.DataModifications.Add(fileName, bytes);
 
-            FileSystem.Instance.MemoryFileSystemModifiedItems[fileName] = bytes;
+            AssetManager.Instance.InitFSManager.DataModifications[fileName] = bytes;
 
             RefreshList();
         }

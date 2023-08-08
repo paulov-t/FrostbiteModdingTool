@@ -30,8 +30,6 @@ namespace FrostySdk
 
         public Dictionary<string, byte[]> MemoryFileSystem => memoryFs;
 
-        public Dictionary<string, byte[]> MemoryFileSystemModifiedItems { get; set; } = new Dictionary<string, byte[]>();
-
         private List<string> casFiles { get; } = new List<string>();
 
         private string basePath;
@@ -615,9 +613,33 @@ namespace FrostySdk
             MemoryStream msInitFs = new MemoryStream(fsInitfs.ReadToEnd());
             fsInitfs.Dispose();
 
+            dbObject = ReadInitfs(msInitFs, key);
+
+            if (memoryFs.ContainsKey("__fsinternal__"))
+            {
+                DbObject dbObject2 = null;
+                using (DbReader dbReader3 = new DbReader(new MemoryStream(memoryFs["__fsinternal__"]), null))
+                {
+                    dbObject2 = dbReader3.ReadDbObject();
+                }
+                memoryFs.Remove("__fsinternal__");
+                if (dbObject2.GetValue("inheritContent", defaultValue: false))
+                {
+                    ReadInitfs(key, false);
+                }
+            }
+
+            return dbObject;
+
+        }
+
+        public DbObject ReadInitfs(Stream initfsStream, byte[] key)
+        {
+            DbObject dbObject = null;
+
             // Go down to 556 (like TOC) using Deobfuscator
             //using (DbReader dbReader = new DbReader(msInitFs, CreateDeobfuscator()))
-            using (DbReader dbReader = DbReader.GetDbReader(msInitFs, true))
+            using (DbReader dbReader = DbReader.GetDbReader(initfsStream, true))
             {
                 // Read the Object (encrypted)
                 dbObject = dbReader.ReadDbObject();
@@ -637,9 +659,9 @@ namespace FrostySdk
                         aes.Key = key;
                         aes.IV = key;
                         ICryptoTransform transform = aes.CreateDecryptor(aes.Key, aes.IV);
-                        using (MemoryStream stream = new MemoryStream(encryptedData))
+                        using (MemoryStream encStream = new MemoryStream(encryptedData))
                         {
-                            using (CryptoStream cryptoStream = new CryptoStream(stream, transform, CryptoStreamMode.Read))
+                            using (CryptoStream cryptoStream = new CryptoStream(encStream, transform, CryptoStreamMode.Read))
                             {
                                 cryptoStream.CopyTo(decryptedData);
                                 //cryptoStream.Read(encryptedData, 0, encryptedData.Length);
@@ -655,7 +677,6 @@ namespace FrostySdk
                 foreach (DbObject item in dbObject)
                 {
                     DbObject fileItem = item.GetValue<DbObject>("$file");
-                    //string payload = System.Text.Encoding.Default.GetString(value2.GetValue<byte[]>("payload")); 
                     string nameOfItem = fileItem.GetValue<string>("name");
                     if (!memoryFs.ContainsKey(nameOfItem))
                     {
@@ -664,35 +685,10 @@ namespace FrostySdk
                             nameOfFile = nameOfItem.Split('/')[nameOfItem.Split('/').Length - 1];
 
                         var payloadOfBytes = fileItem.GetValue<byte[]>("payload");
-                        //using (NativeWriter nativeWriter = new NativeWriter(new FileStream("Debugging/" + nameOfFile, FileMode.OpenOrCreate)))
-                        //{
-                        //	nativeWriter.Write(payloadOfBytes);
-                        //}
-
-
                         memoryFs.Add(nameOfItem, payloadOfBytes);
                     }
                 }
 
-                //using (DbWriter dbWriter = new DbWriter(new FileStream("decrypted_initfs_" + (patched ? "patch" : "data"), FileMode.Create), inWriteHeader: true))
-                //{
-                //	dbWriter.Write(dbObject);
-                //}
-
-
-            }
-            if (memoryFs.ContainsKey("__fsinternal__"))
-            {
-                DbObject dbObject2 = null;
-                using (DbReader dbReader3 = new DbReader(new MemoryStream(memoryFs["__fsinternal__"]), null))
-                {
-                    dbObject2 = dbReader3.ReadDbObject();
-                }
-                memoryFs.Remove("__fsinternal__");
-                if (dbObject2.GetValue("inheritContent", defaultValue: false))
-                {
-                    ReadInitfs(key, patched: false);
-                }
             }
 
             return dbObject;
@@ -1079,6 +1075,7 @@ namespace FrostySdk
                     ManifestFileInfo fi = new ManifestFileInfo()
                     {
                         file = reader.ReadInt(),
+                        OffsetPosition = reader.Position,
                         offset = reader.ReadUInt(),
                         size = reader.ReadLong(),
                         isChunk = false
