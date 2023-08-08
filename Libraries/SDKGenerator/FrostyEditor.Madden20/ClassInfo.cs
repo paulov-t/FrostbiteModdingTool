@@ -6,7 +6,6 @@ namespace SdkGenerator.Madden20
 {
     public class ClassInfo : BaseInfo.ClassInfo, IClassInfo
     {
-        public long nextOffset { get; set; }
         ITypeInfo IClassInfo.typeInfo { get; set; }
         ushort IClassInfo.id { get; set; }
         ushort IClassInfo.isDataContainer { get; set; }

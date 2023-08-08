@@ -5,8 +5,6 @@ namespace SdkGenerator.FIFA18
 {
     public class FieldInfo : BaseInfo.FieldInfo
     {
-        private uint nameHash;
-
         public override void Read(MemoryReader reader)
         {
             name = reader.ReadNullTerminatedString();

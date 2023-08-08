@@ -6,7 +6,6 @@ namespace SdkGenerator.Madden20
 {
     public class FieldInfo : BaseInfo.FieldInfo, IFieldInfo
     {
-        public uint nameHash { get; set; }
         string IFieldInfo.name { get; set; }
         ushort IFieldInfo.flags { get; set; }
         uint IFieldInfo.offset { get; set; }

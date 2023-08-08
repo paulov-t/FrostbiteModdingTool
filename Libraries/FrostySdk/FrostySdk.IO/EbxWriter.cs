@@ -30,8 +30,6 @@ namespace FrostySdk.IO
 
         private List<EbxImportReference> imports = new List<EbxImportReference>();
 
-        private List<string> strings = new List<string>();
-
         private byte[] data;
 
         private List<EbxInstance> instances = new List<EbxInstance>();
@@ -41,8 +39,6 @@ namespace FrostySdk.IO
         private List<byte[]> arrayData = new List<byte[]>();
 
         private List<BoxedValueRef> boxedValueRefs = new List<BoxedValueRef>();
-
-        private uint stringsLength;
 
         private ushort uniqueClassCount;
 

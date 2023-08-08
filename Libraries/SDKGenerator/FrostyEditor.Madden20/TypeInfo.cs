@@ -8,10 +8,7 @@ namespace SdkGenerator.Madden20
 {
     public class TypeInfo : BaseInfo.TypeInfo, ITypeInfo
     {
-        public uint nameHash { get; set; }
-
         string ITypeInfo.name { get; set; }
-
         ushort ITypeInfo.flags { get; set; }
         uint ITypeInfo.size { get; set; }
         Guid ITypeInfo.guid { get; set; }

@@ -5,8 +5,6 @@ namespace SdkGenerator.FIFA18
 {
     public class TypeInfo : BaseInfo.TypeInfo
     {
-        private uint nameHash = 0;
-
         public override void Read(MemoryReader reader)
         {
             bool flag = false;
