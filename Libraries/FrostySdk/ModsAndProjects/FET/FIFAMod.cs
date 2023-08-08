@@ -55,6 +55,8 @@ namespace FrostbiteSdk
 
         public static IFrostbiteMod CurrentFIFAModInstance = null;
 
+        public FIFAModReader ModReader { get; set; }
+
         public FIFAMod(string gameName, string filename)
         {
             if (filename == null)
@@ -65,25 +67,22 @@ namespace FrostbiteSdk
             Filename = fileInfo.Name;
             Path = filename;
 
-            //using (var mbReader = new NativeReader(new FileStream(filename, FileMode.Open)))
-            //	ModBytes = mbReader.ReadToEnd();
-
             using (FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
-                FIFAModReader modReader = new FIFAModReader(fileStream);
-                if (!modReader.IsValid)
+                ModReader = new FIFAModReader(fileStream);
+                if (!ModReader.IsValid)
                 {
                     throw new InvalidDataException("The file is not a valid mod.");
                 }
                 NewFormat = true;
-                GameVersion = modReader.GameVersion;
-                Game = modReader.Game;
-                ModDetails = modReader.ReadModDetails();
-                Resources = modReader.ReadResources();
-                ModDetails.SetIcon(modReader.GetResourceData(Resources.First()));
+                GameVersion = ModReader.GameVersion;
+                Game = ModReader.Game;
+                ModDetails = ModReader.ReadModDetails();
+                Resources = ModReader.ReadResources();
+                ModDetails.SetIcon(ModReader.GetResourceData(Resources.First()));
                 for (int i = 0; i < ModDetails.ScreenshotsCount; i++)
                 {
-                    byte[] resourceData = modReader.GetResourceData(Resources.ElementAt(i + 1));
+                    byte[] resourceData = ModReader.GetResourceData(Resources.ElementAt(i + 1));
                     if (resourceData != null)
                     {
                         ModDetails.AddScreenshot(resourceData);
