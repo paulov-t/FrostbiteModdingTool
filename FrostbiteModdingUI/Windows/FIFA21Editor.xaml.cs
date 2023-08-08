@@ -43,7 +43,7 @@ namespace FIFAModdingUI.Windows
     /// <summary>
     /// Interaction logic for FIFA21Editor.xaml
     /// </summary>
-    public partial class FIFA21Editor : MetroWindow, IEditorWindow, INotifyPropertyChanged
+    public partial class FIFA21Editor : MetroWindow, IEditorWindow
     {
         public Window OwnerWindow { get; set; }
 
@@ -210,10 +210,7 @@ namespace FIFAModdingUI.Windows
             this.DataContext = this;
             //this.UpdateLayout();
             await loadingDialog.UpdateAsync("", "");
-
-                EnableEditor();
-
-            //});
+            EnableEditor();
 
             await loadingDialog.UpdateAsync("", "");
 
@@ -276,62 +273,6 @@ namespace FIFAModdingUI.Windows
         }
 
         LauncherOptions LauncherOptions { get; set; }
-
-        private void btnBrowseFIFADirectory_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new OpenFileDialog();
-            dialog.Title = "Find your FIFA exe";
-            dialog.Multiselect = false;
-            dialog.Filter = "exe files (*.exe)|*.exe";
-            dialog.FilterIndex = 0;
-            dialog.ShowDialog(this);
-            var filePath = dialog.FileName;
-            if (!string.IsNullOrEmpty(filePath))
-            {
-
-
-
-                //BuildTextureBrowser(null);
-
-                //Dispatcher.BeginInvoke((Action)(() =>
-                //{
-                //    GameplayMain.Initialize();
-                //}));
-
-            }
-
-
-            //_ = Start();
-        }
-
-        //private void btnLaunchFIFAMods(object sender, RoutedEventArgs e)
-        //{
-        //    ProjectManagement.FrostyProject.Save("test_gp_speed_change.fbproject");
-        //    ProjectManagement.FrostyProject.WriteToMod("test_gp_speed_change.fbmod"
-        //        , new ModSettings() { Author = "paulv2k4", Category = "Gameplay", Description = "Gameplay Test", Title = "Gameplay Test", Version = "1.00" });
-
-        //    paulv2k4ModdingExecuter.FrostyModExecutor frostyModExecutor = new paulv2k4ModdingExecuter.FrostyModExecutor();
-        //    frostyModExecutor.Run(AssetManager.Instance.fs, this, "", "", new System.Collections.Generic.List<string>() { @"test_gp_speed_change.fbmod" }.ToArray()).Wait();
-
-        //}
-
-        private static System.Windows.Media.Imaging.BitmapImage LoadImage(byte[] imageData)
-        {
-            if (imageData == null || imageData.Length == 0) return null;
-            var image = new System.Windows.Media.Imaging.BitmapImage();
-            using (var mem = new MemoryStream(imageData))
-            {
-                mem.Position = 0;
-                image.BeginInit();
-                image.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat;
-                image.CacheOption = BitmapCacheOption.OnLoad;
-                image.UriSource = null;
-                image.StreamSource = mem;
-                image.EndInit();
-            }
-            image.Freeze();
-            return image;
-        }
 
         public bool DoNotLog { get; set; }
 
@@ -742,12 +683,13 @@ namespace FIFAModdingUI.Windows
                                 "Please always give credit to other's work!", "EXPERIMENTAL");
                             if (mbFIFAMod == MessageBoxResult.OK)
                             {
-                                using (FIFAModReader reader = new FIFAModReader(new FileStream(fiFile.FullName, FileMode.Open)))
-                                {
+                                FIFAMod fifaMod = new FIFAMod("", fiFile.FullName);
+                                //using (FIFAModReader reader = new FIFAModReader(new FileStream(fiFile.FullName, FileMode.Open)))
+                                //{
                                     ProjectManagement.Project = new FrostbiteProject();
-                                    ProjectManagement.Project.Load(reader);
+                                    ProjectManagement.Project.Load(fifaMod);
                                     ProjectManagement.Project.ModSettings.MergedModList.Add(ProjectManagement.Project.ModSettings);
-                                }
+                                //}
                             }
                             break;
                         case ".fbmod":
@@ -966,8 +908,6 @@ namespace FIFAModdingUI.Windows
 
         private readonly string LegacyProjectExportedFolder = App.ApplicationDirectory + "\\TEMPLEGACYPROJECT";
         private readonly string LegacyTempFolder = App.ApplicationDirectory + "\\TEMP";
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         private async Task<bool> CompileLegacyModFromFolder(string legacyDirectory)
         {

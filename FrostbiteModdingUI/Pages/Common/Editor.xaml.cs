@@ -22,7 +22,7 @@ namespace FIFAModdingUI.Pages.Common
     /// <summary>
     /// Interaction logic for Editor.xaml
     /// </summary>
-    public partial class Editor : UserControl, INotifyPropertyChanged
+    public partial class Editor : UserControl
     {
 
         public static readonly DependencyProperty AssetEntryProperty;
@@ -42,8 +42,6 @@ namespace FIFAModdingUI.Pages.Common
         public object RootObject { get { return asset.RootObject; } }
 
         private List<ModdableEntity> _rootObjProps;
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public List<ModdableEntity> RootObjectProperties
         {
@@ -124,7 +122,6 @@ namespace FIFAModdingUI.Pages.Common
             )
         {
             InitializeComponent();
-            PropertyChanged += Editor_PropertyChanged;
             // intialise objs
             Asset = ebx;
             this.DataContext = this;
@@ -165,7 +162,6 @@ namespace FIFAModdingUI.Pages.Common
             CurrentEditorInstance = this;
 
             _rootObjProps = null;
-            PropertyChanged += Editor_PropertyChanged;
             AssetEntry = inAssetEntry;
             Asset = inAsset;
             EditorWindow = inEditorWindow;
