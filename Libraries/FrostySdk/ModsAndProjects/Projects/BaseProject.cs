@@ -116,8 +116,10 @@ namespace FrostySdk.ModsAndProjects.Projects
                 //fileInInitfs.ModifyFile(fileInInitfs.Description, fileInInitfs.Contents);
             }
             var localeini = fifaMod.ModReader.LocaleIniModifications;
-            AssetManager.LocaleINIMod.Save(Encoding.UTF8.GetBytes(localeini.LocaleIniFiles[0].Contents));
-
+            if (localeini != null && localeini.LocaleIniFiles.Count > 0)
+            {
+                AssetManager.LocaleINIMod.Save(Encoding.UTF8.GetBytes(localeini.LocaleIniFiles[0].Contents));
+            }
             return modifiedEntries.Any();
         }
 
