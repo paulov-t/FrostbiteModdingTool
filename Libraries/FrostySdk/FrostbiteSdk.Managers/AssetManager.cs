@@ -1844,8 +1844,10 @@ namespace FrostySdk.Managers
             if (entry.ModifiedEntry != null)
                 return entry.ModifiedEntry.Data;
 
-            return GetResourceData2(entry.ExtraData.CasPath, entry.ExtraData.DataOffset, entry.Size, entry);// GetChunkData(chunkEntry);
-                                                                                                            //return ((MemoryStream)GetAsset(entry)).ToArray();
+            if(entry.ExtraData != null)
+                return GetResourceData2(entry.ExtraData.CasPath, entry.ExtraData.DataOffset, entry.Size, entry);// GetChunkData(chunkEntry);
+            else
+                return ((MemoryStream)GetAsset(entry)).ToArray();
         }
 
         public FMT.FileTools.Sha1 GetBaseSha1(FMT.FileTools.Sha1 sha1)
