@@ -25,6 +25,7 @@ using System.Dynamic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +33,7 @@ using System.Windows;
 using System.Windows.Controls;
 using v2k4FIFAModding.Frosty;
 using v2k4FIFAModdingCL;
+using static FrostySdk.ProfileManager.Tools;
 
 namespace FrostbiteModdingUI.Windows
 {
@@ -180,21 +182,58 @@ namespace FrostbiteModdingUI.Windows
                 ProjectManagement = new ProjectManagement(filePath, loadingDialog);
                 ProjectManagement.StartNewProject();
                 InitialiseBrowsers();
+            });
 
-                Dispatcher.Invoke(() =>
+
+            await Dispatcher.InvokeAsync(() =>
+            {
+                miProject.IsEnabled = true;
+
+                if (
+                ProfileManager.LoadedProfile.Tools.Internal != null &&
+                ProfileManager.LoadedProfile.Tools.Internal.Count > 0)
                 {
-                    miProject.IsEnabled = true;
-                    miMod.IsEnabled = true;
+                    MenuItem toolsMenuItem = new MenuItem();
+                    toolsMenuItem.Header = new StackPanel();
+                    var spToolsMenuItemHeader = (StackPanel)toolsMenuItem.Header;
+                    spToolsMenuItemHeader.Children.Add(new Label() { Content = "Tools", FontWeight = FontWeights.Bold, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 });
+                    topMenu.Items.Add(toolsMenuItem);
+                    foreach(var internalTool in ProfileManager.LoadedProfile.Tools.Internal)
+                    {
+                        MenuItem toolItem = new MenuItem();
+                        toolItem.Header = new Label() { Content = internalTool.Name, FontSize = 10 };
+                        toolItem.Click += (object sender, RoutedEventArgs e) => {
 
-                    this.DataContext = null;
-                    this.DataContext = this;
-                    this.UpdateLayout();
+                            foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+                            {
+                                var t = a.GetTypes().FirstOrDefault(x => x.Name.Contains(internalTool.Window, StringComparison.OrdinalIgnoreCase));
+                                if (t != null)
+                                {
+                                    var toolWindow = (Window)Activator.CreateInstance(t);
+                                    toolWindow.Show();
+                                    return;
+                                }
+                            }
+                        
+                        };
 
-                    btnLaunchEditor.IsEnabled = ProfileManager.LoadedProfile.CanLaunchMods;
+                        toolsMenuItem.Items.Add(toolItem);
+                    }
+                }
 
-                });
+                this.DataContext = null;
+                this.DataContext = this;
+                this.UpdateLayout();
 
-                loadingDialog.Update("", "");
+                btnLaunchEditor.IsEnabled = ProfileManager.LoadedProfile.CanLaunchMods;
+
+            });
+
+            await Task.Run(
+              () =>
+              {
+
+                  loadingDialog.Update("", "");
 
                 ProjectManagement.Logger = this;
                 EnableEditor();
@@ -220,8 +259,6 @@ namespace FrostbiteModdingUI.Windows
             EnableEditor();
 
         }
-
-
 
         public static readonly DependencyProperty ProfileSupportsLegacyModsProperty = DependencyProperty.Register(
             "CanUseLiveLegacyMods", typeof(bool),
