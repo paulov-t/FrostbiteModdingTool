@@ -18,8 +18,6 @@ namespace FMT.FileTools
 
         protected char[] charBuffer { get; private set; }
 
-        protected long streamLength;
-
         protected Encoding wideDecoder;
 
         public Stream BaseStream => stream;
@@ -43,7 +41,7 @@ namespace FMT.FileTools
             }
         }
 
-        public virtual long Length => streamLength;
+        public virtual long Length => stream.Length;
 
         public int ErrorCount { get; } = 0;
 
@@ -60,10 +58,6 @@ namespace FMT.FileTools
         {
 
             stream = inStream;
-            if (stream != null)
-            {
-                streamLength = stream.Length;
-            }
             wideDecoder = new UnicodeEncoding();
             buffer = new byte[1024];
             //buffer = new byte[20];
@@ -74,6 +68,8 @@ namespace FMT.FileTools
         public NativeReader(byte[] data)
         {
             stream = new MemoryStream(data);
+            wideDecoder = new UnicodeEncoding();
+            buffer = new byte[1024];
         }
 
         public NativeReader Skip(int numberOfBytesToSkip)

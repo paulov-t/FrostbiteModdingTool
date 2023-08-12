@@ -37,7 +37,7 @@ namespace FrostySdk.FrostySdk.IO
                     stream?.Dispose();
 
                     stream = patchedStream;
-                    streamLength = stream.Length;
+                    //streamLength = stream.Length;
                 }
                 bundleOffset = 0;
             }

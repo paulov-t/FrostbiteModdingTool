@@ -31,7 +31,7 @@ namespace FrostySdk.Frostbite.IO
             long num = deobfuscator.Initialize(this);
             if (num != -1)
             {
-                streamLength = num;
+                //streamLength = num;
             }
         }
     }
