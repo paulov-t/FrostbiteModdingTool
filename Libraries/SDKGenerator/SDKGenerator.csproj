@@ -50,11 +50,6 @@
     <ProjectReference Include="..\FrostySdk\FrostySdk.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="FrostyEditor.IO\" />
-    <Folder Include="NewFolder\" />
-  </ItemGroup>
-
   
 
 </Project>

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+	"FMTXPlat.Windows (Package)": {
+	  "commandName": "MsixPackage"
+	},
+	"FMTXPlat.Windows (Unpackaged)": {
+	  "commandName": "Project"
+	}
+  }
+}
