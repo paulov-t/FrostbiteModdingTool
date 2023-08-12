@@ -67,7 +67,16 @@
   "SteamId": null,
   "HasAntiCheat": false,
   "Tools": {
-    "Internal": null,
+    "Internal": [
+      {
+        "Name": "Initfs Editor",
+        "Window": "InitfsEditor"
+      },
+      {
+        "Name": "Locale.ini Editor",
+        "Window": "LocaleINIEditor"
+      }
+    ],
     "External": null
   }
 }
