@@ -312,10 +312,11 @@ namespace FrostySdk
             for (int i = 0; i < count; i++)
             {
                 string description = ReadLengthPrefixedString();
+
                 int filesInModification = Read7BitEncodedInt();
                 InitFSModification modification = new InitFSModification
                 {
-                    Description = description
+                    Description = !string.IsNullOrEmpty(description) ? description : string.Empty
                 };
                 settings.AddInitFsModification(modification);
                 for (int j = 0; j < filesInModification; j++)
