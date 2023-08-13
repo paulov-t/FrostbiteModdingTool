@@ -1,3 +1,4 @@
+using FMT.Logging;
 using FrostySdk;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;

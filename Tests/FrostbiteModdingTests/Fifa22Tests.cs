@@ -1,4 +1,5 @@
-﻿using FrostySdk.Frostbite;
+﻿using FMT.Logging;
+using FrostySdk.Frostbite;
 using FrostySdk.Frostbite.IO.Output;
 using FrostySdk.Interfaces;
 using FrostySdk.IO;
@@ -381,6 +382,11 @@ namespace FrostbiteModdingTests
                     exporter1.Export(AssetManager.Instance, skinnedMeshEbx.RootObject, "test.fbx", "FBX_2012", "Meters", true, "content/character/rig/skeleton/player/skeleton_player", "fbx", meshSet);
                 }
             }
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
         }
     }
 }

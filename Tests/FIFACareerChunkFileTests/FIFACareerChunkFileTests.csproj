@@ -38,7 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FrostbiteModdingUI\FrostbiteModdingUI.csproj" />
     <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" />
   </ItemGroup>
 

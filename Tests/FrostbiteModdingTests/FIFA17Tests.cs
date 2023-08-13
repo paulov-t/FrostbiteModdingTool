@@ -1,4 +1,5 @@
-﻿using FrostySdk.Frostbite.FIFA;
+﻿using FMT.Logging;
+using FrostySdk.Frostbite.FIFA;
 using FrostySdk.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Win32;
@@ -59,6 +60,11 @@ namespace FrostbiteModdingTests
 
         public void LogWarning(string text, params object[] vars)
         {
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
         }
     }
 }

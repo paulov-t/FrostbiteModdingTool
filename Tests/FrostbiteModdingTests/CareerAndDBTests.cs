@@ -1,4 +1,5 @@
-﻿using FrostbiteModdingUI.CEM;
+﻿using FMT.Logging;
+using FrostbiteModdingUI.CEM;
 using FrostySdk.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Win32;
@@ -123,6 +124,11 @@ namespace FrostbiteModdingTests
             var finances = cem.GetFinances().Result;
             sw1.Stop();
             Debug.WriteLine($"Time taken to get finances : {sw1.Elapsed}");
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,5 +1,6 @@
 using CSharpImageLibrary;
 using FMT.FileTools;
+using FMT.Logging;
 using Frostbite.FileManagers;
 using Frostbite.Textures;
 using FrostbiteSdk;

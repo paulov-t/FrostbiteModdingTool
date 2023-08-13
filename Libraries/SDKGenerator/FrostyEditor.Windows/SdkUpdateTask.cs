@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace FrostyEditor.Windows
+namespace SdkGenerator
 {
     public class SdkUpdateTask : INotifyPropertyChanged
     {

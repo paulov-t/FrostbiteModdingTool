@@ -1,5 +1,6 @@
 using FMT.FileTools;
 using FMT.FileTools.Modding;
+using FMT.Logging;
 using FrostbiteSdk;
 using FrostbiteSdk.FrostbiteSdk.Managers;
 using FrostySdk.IO;

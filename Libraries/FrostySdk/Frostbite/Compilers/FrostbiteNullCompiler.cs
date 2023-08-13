@@ -1,4 +1,5 @@
-﻿using FrostySdk.Frostbite.PluginInterfaces;
+﻿using FMT.Logging;
+using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Interfaces;
 using ModdingSupport;
 

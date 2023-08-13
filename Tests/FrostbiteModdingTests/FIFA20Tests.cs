@@ -1,4 +1,5 @@
-﻿using FrostySdk.Frostbite;
+﻿using FMT.Logging;
+using FrostySdk.Frostbite;
 using FrostySdk.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
@@ -43,6 +44,11 @@ namespace FrostbiteModdingTests
         {
             var buildCache = new CacheManager();
             buildCache.LoadData("FIFA20", GamePath, this, true, true);
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

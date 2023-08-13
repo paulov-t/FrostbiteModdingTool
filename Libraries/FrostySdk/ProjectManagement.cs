@@ -1,4 +1,5 @@
-﻿using FrostbiteSdk;
+﻿using FMT.Logging;
+using FrostbiteSdk;
 using FrostySdk;
 using FrostySdk.Frostbite;
 using FrostySdk.Interfaces;
@@ -198,5 +199,9 @@ namespace v2k4FIFAModding.Frosty
             return Project;
         }
 
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

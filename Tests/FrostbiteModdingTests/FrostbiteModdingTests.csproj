@@ -61,10 +61,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FrostbiteModdingUI\FrostbiteModdingUI.csproj" />
     <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" />
     <ProjectReference Include="..\..\Libraries\SDKGenerator\SDKGenerator.csproj" />
     <ProjectReference Include="..\..\Plugins\FIFA23Plugin\FIFA23Plugin.csproj" />
+    <ProjectReference Include="..\..\UI\FMT\FrostbiteModdingUI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

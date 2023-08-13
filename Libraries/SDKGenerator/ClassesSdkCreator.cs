@@ -1,6 +1,5 @@
 ﻿using FrostbiteSdk;
 using FrostbiteSdk.SdkGenerator;
-using FrostyEditor.Windows;
 using FrostySdk;
 using FrostySdk.IO;
 using FrostySdk.Managers;

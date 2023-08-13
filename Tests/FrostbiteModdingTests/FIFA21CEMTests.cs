@@ -1,6 +1,7 @@
 ﻿//using CareerExpansionMod.CEM;
 //using CareerExpansionMod.CEM.FIFA;
 //using FrostbiteModdingUI.CEM;
+using FMT.Logging;
 using FrostySdk.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -167,6 +168,9 @@ namespace FrostbiteModdingTests
             return FlipHexString(number.ToString("X8"));
         }
 
-
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FMT.FileTools;
+using FMT.Logging;
 using Frostbite.Deobfuscators;
 using FrostyModManager;
 using FrostySdk;

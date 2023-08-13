@@ -157,5 +157,9 @@ namespace FrostbiteModdingTests
             var ebx = AssetManager.Instance.GetEbx(ebxEntry);
         }
 
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

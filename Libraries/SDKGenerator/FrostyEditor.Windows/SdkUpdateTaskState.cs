@@ -1,4 +1,4 @@
-namespace FrostyEditor.Windows
+namespace SdkGenerator
 {
     public enum SdkUpdateTaskState
     {
