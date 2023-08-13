@@ -178,42 +178,18 @@ namespace FrostySdk
                     return;
 
                 compressedArray = Utils.CompressFile(decompressedArray, null, ResourceType.Invalid, compressionOverride);
-                //if(name.Contains("gp_") && (ebxBaseWriter is EbxWriterV2 || ebxBaseWriter is EbxWriter2021 || ))
-                //if (name.Contains("gp_"))
-                //if (name.Contains("fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime"))
+
 #if DEBUG
-                //if (name.Contains("fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime"))
-                //{
-                //    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                //}
-                //if (name.Contains("gp_positioning_zonal_defense_attribute", StringComparison.OrdinalIgnoreCase))
-                //{
-                //    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                //}
-                //if (name.Contains("cpuaiballhandler", StringComparison.OrdinalIgnoreCase))
-                //{
-                //    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                //}
-                //if (name.Contains("cpuaithroughpass", StringComparison.OrdinalIgnoreCase))
-                //{
-                //    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                //}
-                if (name.Contains("default/settings"))
+                if (
+                    name.Contains("default/settings")
+                    || name.Contains("head_")
+                    || name.Contains("fifa/attribulator/gameplay/groups/gp_cpuai/gp_cpuai_crossingdecision_runtime")
+                    || name.Contains("fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime")
+                    )
                 {
-                    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
+                    //File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
+                    DebugBytesToFileLogger.Instance.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray, "EBX");
                 }
-                if (name.Contains("head_"))
-                {
-                    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                }
-                if(name.Contains("fifa/attribulator/gameplay/groups/gp_cpuai/gp_cpuai_crossingdecision_runtime"))
-                {
-                    File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                }
-                //            if (name.Contains("hotspot"))
-                //            {
-                //                File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                //            }
 #endif
 
                 if (compressedArray.Length > 0)

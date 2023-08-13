@@ -12,13 +12,17 @@ namespace FMT.Logging
 
         public static string GetFileLoggerPath()
         {
-            var fmtLogPath = $"FMT.Log.{LoggerStartDateTime.ToString("yyyy-MM-dd.HH-mm")}.log";
+            Directory.CreateDirectory(LoggingConstants.LoggingPath);
+
+            var fmtLogPath = Path.Combine(LoggingConstants.LoggingPath, $"FMT.Log.{LoggerStartDateTime.ToString("yyyy-MM-dd.HH-mm")}.log");
             return fmtLogPath;
         }
 
         public FileLogger()
         {
-            foreach(var oldFile in Directory.GetFiles(AppContext.BaseDirectory, "FMT.Log.*").Select(x=> new FileInfo(x)))
+            Directory.CreateDirectory(LoggingConstants.LoggingPath);
+
+            foreach (var oldFile in Directory.GetFiles(AppContext.BaseDirectory, "FMT.Log.*").Select(x=> new FileInfo(x)))
             {
                 if (!oldFile.Exists)
                     continue;
