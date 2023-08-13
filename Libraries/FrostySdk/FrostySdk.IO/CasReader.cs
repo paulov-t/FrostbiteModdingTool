@@ -176,12 +176,12 @@ namespace FrostySdk.IO
             byte[] array2 = new byte[decompressedSize];
             GCHandle gCHandle2 = GCHandle.Alloc(array2, GCHandleType.Pinned);
             ulong num = 0uL;
-            if (useDictionary)
+            if (useDictionary && ZStd.GetDictionary() != null)
             {
                 byte[] dictionary = ZStd.GetDictionary();
                 IntPtr intPtr = ZStd.Create();
                 GCHandle gCHandle3 = GCHandle.Alloc(dictionary, GCHandleType.Pinned);
-                if (gCHandle3 != null)
+                //if (gCHandle3 != null)
                 {
                     IntPtr dict = ZStd.CreateDigestedDict(gCHandle3.AddrOfPinnedObject(), dictionary.Length);
                     num = ZStd.DecompressUsingDict(intPtr, gCHandle2.AddrOfPinnedObject(), (ulong)array2.Length, gCHandle.AddrOfPinnedObject(), (ulong)array.Length, dict);
@@ -227,6 +227,9 @@ namespace FrostySdk.IO
 
         private byte[] DecompressBlockLZ4(int bufferSize, int decompressedSize)
         {
+            if (ProfileManager.Game == FMT.FileTools.Modding.EGame.FC24)
+                return null;
+
             GCHandle gCHandle = GCHandle.Alloc(ReadBytes(bufferSize), GCHandleType.Pinned);
             byte[] array = new byte[decompressedSize];
             GCHandle gCHandle2 = GCHandle.Alloc(array, GCHandleType.Pinned);

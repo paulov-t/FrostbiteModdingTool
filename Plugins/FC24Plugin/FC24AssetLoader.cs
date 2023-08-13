@@ -111,6 +111,18 @@ namespace FC24Plugin
                 if (string.IsNullOrEmpty(tocFileLocation) || !File.Exists(tocFileLocation))
                     continue;
 
+                if (sbName.Contains("presprematchsba"))
+                    continue;
+
+                if (sbName.Contains("storycharsb"))
+                    continue;
+
+                if (sbName.Contains("storyingamesba"))
+                    continue;
+
+                if (sbName.Contains("storysba"))
+                    continue;
+
                 assetManager.Logger.Log($"Loading data ({tocFileRAW})");
                 using FC24TOCFile tocFile = new FC24TOCFile(tocFileRAW, true, true, false, sbIndex, false);
                 sbIndex++;
