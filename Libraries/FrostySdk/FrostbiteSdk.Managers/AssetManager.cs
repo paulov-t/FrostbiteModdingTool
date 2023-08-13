@@ -466,10 +466,10 @@ namespace FrostySdk.Managers
 
         public void UpdateEbxListItem(EbxAssetEntry ebx)
         {
-            //if(ProfileManager.DataVersion == 20230922)
-            //{
-            //    return;
-            //}
+            if (ProfileManager.DataVersion == 20230922)
+            {
+                return;
+            }
 
 
             if (string.IsNullOrEmpty(ebx.Type))
