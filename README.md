@@ -1,6 +1,6 @@
 <div align=center>
 
-![image](https://github.com/paulov-t/FrostbiteModdingTool/assets/7080439/deb7c279-7069-4a4c-b8e3-a36c898295df)
+![image](https://github.com/paulov-t/FrostbiteModdingTool/assets/7080439/e678e18f-849e-49a4-befe-e63a25e94e85)
 
 </div>
 
@@ -31,7 +31,7 @@ The Frostbite Modding Tool (FMT) was born out of necessity when the "Frosty Tool
 The original `code` for this tool was developed from using ILSpy to dump the badly decompiled "Frosty" `code` into a .NET Framework 4.5 library. 
 This code was then cleaned up, fixed and converted into the `FrostySdk` library. However, all the "Frosty" User Interface was unusable!
 
-FMT in its infancy was the first tool available to create some fairly simple mods for FIFA 21 and developed completely separately from (and unaware of) FIFA Editor Tool. After about three months FIFA Editor Tool (which seems to have the original code for Frosty) surpassed this tool in almost every way and much more feature rich. 
+FMT in its infancy was the first tool available to create some fairly simple mods for FIFA 21.
 
 This tool is used & developed for a hobby. It is a great suite of code to learn new C# .NET features and best practices. 
 
