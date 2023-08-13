@@ -4,6 +4,7 @@ using FMT;
 using FMT.Controls.Pages;
 using FMT.FileTools;
 using FMT.FileTools.Modding;
+using FMT.Logging;
 using FMT.Pages.Common;
 using FMT.Windows;
 using FolderBrowserEx;

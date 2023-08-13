@@ -1,6 +1,7 @@
 ﻿using FIFAModdingUI.Windows;
 using FMT.FileTools;
 using FMT.FileTools.Modding;
+using FMT.Logging;
 using FMT.Windows;
 using FrostbiteModdingUI.Models;
 using FrostbiteModdingUI.Windows;

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace FMT.FileTools
+namespace FMT.Logging
 {
     public class FileLogger
     {
@@ -35,14 +35,11 @@ namespace FMT.FileTools
         {
             try
             {
-                using (var nw = new NativeWriter(new FileStream(GetFileLoggerPath(), FileMode.Open)))
-                {
-                    nw.Position = nw.Length;
-                    if (prefixDateTime)
-                        nw.WriteLine($"[{DateTime.Now.ToString()}]: {text}");
-                    else
-                        nw.WriteLine(text);
-                }
+                using var streamWriter = File.AppendText(GetFileLoggerPath());
+                if (prefixDateTime)
+                    streamWriter.WriteLine($"[{DateTime.Now.ToString()}]: {text}");
+                else
+                    streamWriter.WriteLine(text);
             }
             catch
             {

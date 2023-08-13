@@ -1,5 +1,6 @@
 ﻿using FMT.Controls.Models;
 using FMT.FileTools;
+using FMT.Logging;
 using FMT.Models;
 using FrostbiteModdingUI.Windows;
 using FrostbiteSdk;
