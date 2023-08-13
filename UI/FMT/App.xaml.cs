@@ -2,6 +2,7 @@
 using FMT.Logging;
 using FrostbiteSdk;
 using FrostySdk;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -67,7 +68,7 @@ namespace FMT
         protected override void OnStartup(StartupEventArgs e)
         {
             StartupArgs = e.Args;
-            
+
             FileLogger.WriteLine("FMT:OnStartup");
 
             AppDomain currentDomain = AppDomain.CurrentDomain;
@@ -88,6 +89,10 @@ namespace FMT
             // --------------------------------------------------------------
             // Language Settings
             LoadLanguageFile();
+
+            // --------------------------------------------------------------
+            // Associate Application with file types
+            AssociateExtension(".fmtproj", "FMT", Path.Combine(ApplicationDirectory, "FMT.exe"), true);
 
             base.OnStartup(e);
 
@@ -215,13 +220,39 @@ namespace FMT
                  new ResourceDictionary { Source = new Uri(String.Concat(filename), UriKind.Relative) }
                 );
 
-               
+
 
             }
             catch (Exception ex)
             {
                 FileLogger.WriteLine(ex.ToString());
                 //throw ex;
+            }
+        }
+
+        public static void AssociateExtension(string extension, string progID, string exePath, bool makeDefault)
+        {
+            using RegistryKey extensionKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Classes\\" + extension, writable: true);
+            using RegistryKey openWithKey = extensionKey.CreateSubKey("OpenWithProgids", writable: true);
+            if (openWithKey.GetValue(progID) as string != string.Empty)
+            {
+                openWithKey.SetValue(progID, string.Empty);
+            }
+            if (makeDefault && extensionKey.GetValue(null) as string != progID)
+            {
+                extensionKey.SetValue(null, progID);
+            }
+            using RegistryKey programKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Classes\\" + progID, writable: true);
+            using RegistryKey defaultIconKey = programKey.CreateSubKey("DefaultIcon", writable: true);
+            using RegistryKey openCommandKey = programKey.CreateSubKey("shell\\open\\command", writable: true);
+            if (defaultIconKey.GetValue(null) as string != exePath)
+            {
+                defaultIconKey.SetValue(null, exePath ?? "");
+            }
+            string openCommandValue = "\"" + exePath + "\" \"%1\"";
+            if (openCommandKey.GetValue(null) as string != openCommandValue)
+            {
+                openCommandKey.SetValue(null, "\"" + exePath + "\" \"%1\"");
             }
         }
     }

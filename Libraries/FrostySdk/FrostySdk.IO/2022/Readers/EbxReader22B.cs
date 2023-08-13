@@ -50,7 +50,7 @@ namespace FrostySdk.IO._2022.Readers
 
         }
 
-        private void LoadRiffEbx()
+        protected virtual void LoadRiffEbx()
         {
             classGuids.Clear();
             fieldTypes.Clear();
@@ -83,12 +83,14 @@ namespace FrostySdk.IO._2022.Readers
                 fsDump.Close();
                 fsDump.Dispose();
 #endif
-                 throw new InvalidDataException("Incorrectly formatted RIFF detected.");
+                //throw new InvalidDataException("Incorrectly formatted RIFF detected.");
+                return;
             }
             chunkName = base.ReadUInt32LittleEndian();
             if (chunkName != 1146634821)
             {
-                throw new InvalidDataException("Incorrectly formatted RIFF detected. Expected EBXD.");
+                return;
+                //throw new InvalidDataException("Incorrectly formatted RIFF detected. Expected EBXD.");
             }
             chunkSize = base.ReadUInt32LittleEndian();
             chunkSizeRelativeToPosition = base.Position;

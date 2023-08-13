@@ -230,7 +230,14 @@ namespace FrostySdk.IO
             GCHandle gCHandle = GCHandle.Alloc(ReadBytes(bufferSize), GCHandleType.Pinned);
             byte[] array = new byte[decompressedSize];
             GCHandle gCHandle2 = GCHandle.Alloc(array, GCHandleType.Pinned);
-            LZ4.Decompress(gCHandle.AddrOfPinnedObject(), gCHandle2.AddrOfPinnedObject(), array.Length);
+            try
+            {
+                LZ4.Decompress(gCHandle.AddrOfPinnedObject(), gCHandle2.AddrOfPinnedObject(), array.Length);
+            }
+            catch
+            {
+
+            }
             gCHandle.Free();
             gCHandle2.Free();
             return array;

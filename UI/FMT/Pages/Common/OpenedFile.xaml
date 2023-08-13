@@ -86,7 +86,18 @@
                                     </TextBox>
                                 </Grid>
                             </LayoutDocument>
-                          
+                            <LayoutDocument x:Name="layoutUnknownDocument" CanClose="False" Title="Hex Viewer">
+                                <DockingManager Grid.Row="1" x:Name="UnknownFileViewer">
+                                    <LayoutRoot>
+                                        <LayoutPanel>
+                                            <LayoutDocumentPaneGroup x:Name="unknownFileDocumentsGroup">
+                                                <LayoutDocumentPane x:Name="unknownFileDocumentsPane">
+                                                </LayoutDocumentPane>
+                                            </LayoutDocumentPaneGroup>
+                                        </LayoutPanel>
+                                    </LayoutRoot>
+                                </DockingManager>
+                            </LayoutDocument>
                         </LayoutDocumentPane>
                     </LayoutDocumentPaneGroup>
                   
@@ -105,18 +116,6 @@
                                         </xctk:PropertyGrid>-->
         <!--<local2:FMTPropertyGrid x:Name="BackupEBXViewer" Grid.Row="1" Visibility="Collapsed">
                                     </local2:FMTPropertyGrid>-->
-
-
-        <DockingManager Grid.Row="1" x:Name="UnknownFileViewer" Visibility="Collapsed">
-            <LayoutRoot>
-                <LayoutPanel>
-                    <LayoutDocumentPaneGroup x:Name="unknownFileDocumentsGroup">
-                        <LayoutDocumentPane x:Name="unknownFileDocumentsPane">
-                        </LayoutDocumentPane>
-                    </LayoutDocumentPaneGroup>
-                </LayoutPanel>
-            </LayoutRoot>
-        </DockingManager>
 
 
         <Grid  Grid.Row="1" x:Name="ModelDockingManager" Visibility="Hidden"   >

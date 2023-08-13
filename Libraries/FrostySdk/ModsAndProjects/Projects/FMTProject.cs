@@ -32,6 +32,7 @@ namespace FrostySdk.ModsAndProjects.Projects
         private string projectFilePath { get; set; }
 
         public int ProjectVersion { get; private set; } = 2;
+        public int GameDataVersion { get; private set; }
 
         public FileInfo projectFileInfo { get { return new FileInfo(projectFilePath); } }
 
@@ -133,7 +134,7 @@ namespace FrostySdk.ModsAndProjects.Projects
             using (NativeReader nr = new NativeReader(filePath))
             {
                 project.ProjectVersion = nr.ReadInt();
-                var gameDataVersion = nr.ReadInt();
+                project.GameDataVersion = nr.ReadInt();
                 project.ModSettings = JsonConvert.DeserializeObject<ModSettings>(nr.ReadLengthPrefixedString());
 
                 var assetManagerPositions = new Dictionary<string, long>();
