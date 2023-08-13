@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using static Frostbite.FileManagers.ChunkFileManager2022;
 using System.Reflection;
+using FMT.Logging;
 
 namespace FrostbiteSdk.Frostbite.FileManagers
 {

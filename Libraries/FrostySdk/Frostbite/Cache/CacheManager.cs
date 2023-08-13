@@ -1,4 +1,5 @@
 ﻿using FMT.FileTools;
+using FMT.Logging;
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;
@@ -332,5 +333,9 @@ namespace FrostySdk.Frostbite
             return false;
         }
 
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

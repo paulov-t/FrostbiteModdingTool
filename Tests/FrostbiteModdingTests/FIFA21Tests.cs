@@ -1,4 +1,5 @@
 using FMT.FileTools;
+using FMT.Logging;
 using Frostbite.FileManagers;
 using FrostySdk;
 using FrostySdk.Frostbite;
@@ -809,6 +810,11 @@ namespace FrostbiteModdingTests
             //Log($"Records Ignored: {NotFoundPK.Count}");
             //Log($"Records Inserted: {PKInserted.Count}");
 
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
         }
     }
 }

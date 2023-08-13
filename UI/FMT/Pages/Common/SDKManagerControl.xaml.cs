@@ -1,4 +1,5 @@
-﻿using FrostySdk.Interfaces;
+﻿using FMT.Logging;
+using FrostySdk.Interfaces;
 using SdkGenerator;
 using System;
 using System.Collections.Generic;
@@ -43,7 +44,7 @@ namespace FMT.Pages.Common
             await SDKBuilder.Build();
         }
 
-        private void SDKBuilder_TaskChanged(object sender, FrostyEditor.Windows.SdkUpdateTask e)
+        private void SDKBuilder_TaskChanged(object sender, SdkUpdateTask e)
         {
             Dispatcher.Invoke(() => { 
             
@@ -54,15 +55,15 @@ namespace FMT.Pages.Common
 
             switch(e.Stage)
             {
-                case FrostyEditor.Windows.SdkUpdateTask.SdkUpdateTaskStage.Process:
+                case SdkUpdateTask.SdkUpdateTaskStage.Process:
                     break;
-                case FrostyEditor.Windows.SdkUpdateTask.SdkUpdateTaskStage.TypeInfo:
+                case SdkUpdateTask.SdkUpdateTaskStage.TypeInfo:
                     break;
-                case FrostyEditor.Windows.SdkUpdateTask.SdkUpdateTaskStage.TypeDump:
+                case SdkUpdateTask.SdkUpdateTaskStage.TypeDump:
                     break;
-                case FrostyEditor.Windows.SdkUpdateTask.SdkUpdateTaskStage.CrossReference:
+                case SdkUpdateTask.SdkUpdateTaskStage.CrossReference:
                     break;
-                case FrostyEditor.Windows.SdkUpdateTask.SdkUpdateTaskStage.CompileSdk:
+                case SdkUpdateTask.SdkUpdateTaskStage.CompileSdk:
                     break;
             }
         }
@@ -97,6 +98,11 @@ namespace FMT.Pages.Common
         {
             Debug.WriteLine("[ERROR] " + text);
             _ = LogAsync("[ERROR] " + text);
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
         }
     }
 }

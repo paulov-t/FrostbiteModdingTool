@@ -1,4 +1,5 @@
-﻿using FrostySdk.Interfaces;
+﻿using FMT.Logging;
+using FrostySdk.Interfaces;
 
 namespace FrostbiteModdingTests
 {

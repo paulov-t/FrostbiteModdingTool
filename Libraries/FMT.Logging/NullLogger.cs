@@ -1,7 +1,6 @@
-﻿using FrostySdk.Interfaces;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
-namespace FrostySdk.Frostbite
+namespace FMT.Logging
 {
     public class NullLogger : ILogger
     {
@@ -18,6 +17,10 @@ namespace FrostySdk.Frostbite
         public void LogWarning(string text, params object[] vars)
         {
             Debug.WriteLine(text);
+        }
+
+        public void LogProgress(int progress)
+        {
         }
     }
 }

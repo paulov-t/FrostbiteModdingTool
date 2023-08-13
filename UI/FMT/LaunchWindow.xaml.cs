@@ -3,6 +3,7 @@ using FIFAModdingUI.Windows;
 using FIFAModdingUI.Windows.Profile;
 using FMT.FileTools;
 using FMT.FileTools.Modding;
+using FMT.Logging;
 using FMT.Mods;
 using FrostbiteModdingUI.Models;
 using FrostbiteModdingUI.Windows;
@@ -954,6 +955,11 @@ namespace FMT
         private void switchAutoCloseAfterLaunch_Toggled(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
         }
     }
 

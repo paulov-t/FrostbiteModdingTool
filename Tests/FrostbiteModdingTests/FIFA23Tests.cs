@@ -1,4 +1,5 @@
 ﻿using FifaLibrary;
+using FMT.Logging;
 using FrostbiteModdingUI.CEM;
 using FrostySdk;
 using FrostySdk.Frostbite;
@@ -1057,6 +1058,10 @@ namespace FrostbiteModdingTests
 
         }
 
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

@@ -1,4 +1,5 @@
 ﻿using FMT;
+using FMT.Logging;
 using FrostbiteModdingUI.Models;
 using FrostySdk;
 using FrostySdk.Interfaces;
@@ -137,6 +138,11 @@ namespace FrostbiteModdingUI.Windows
 
         public void LogError(string text, params object[] vars)
         {
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
         }
     }
 }

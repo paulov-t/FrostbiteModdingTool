@@ -12,7 +12,7 @@
         <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
         <Company>Paulv2k4 / V / Paulov</Company>
         <ApplicationManifest>app.manifest</ApplicationManifest>
-        <ApplicationIcon>paulv2k4.ico</ApplicationIcon>
+        <ApplicationIcon>FMTIcon24.ico</ApplicationIcon>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <Deterministic>false</Deterministic>
         <AssemblyName>FMT</AssemblyName>
@@ -44,6 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="FMTIcon24.ico" />
     <Content Include="FrostySdk.Profiles.bin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>

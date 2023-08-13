@@ -1,4 +1,4 @@
-namespace FrostySdk.Interfaces
+namespace FMT.Logging
 {
     public interface ILogger
     {
@@ -7,5 +7,7 @@ namespace FrostySdk.Interfaces
         void LogWarning(string text, params object[] vars);
 
         void LogError(string text, params object[] vars);
+
+        void LogProgress(int progress);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FMT.FileTools;
+using FMT.Logging;
 using Frostbite.FileManagers;
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Interfaces;

@@ -1378,5 +1378,10 @@ namespace FIFAModdingUI.Windows
             LTUEditor ltuEditor = new LTUEditor();
             ltuEditor.ShowDialog();
         }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

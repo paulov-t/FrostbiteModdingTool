@@ -1101,5 +1101,9 @@ namespace FrostbiteModdingUI.Windows
             loadingDialog.Update("", "");
         }
 
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

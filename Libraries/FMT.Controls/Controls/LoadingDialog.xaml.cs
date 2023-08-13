@@ -1,4 +1,5 @@
-﻿using FrostySdk.Interfaces;
+﻿using FMT.Logging;
+using FrostySdk.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
@@ -102,6 +103,11 @@ namespace FMT.Controls.Controls
         public void LogError(string text, params object[] vars)
         {
             Update(lblLoadingSubtitle.Text.ToString(), text);
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
         }
     }
 }

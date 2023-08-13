@@ -1,4 +1,5 @@
-﻿using Frostbite.Textures;
+﻿using FMT.Logging;
+using Frostbite.Textures;
 using FrostySdk;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;
@@ -248,6 +249,11 @@ namespace FMT.Windows
         public void LogError(string text, params object[] vars)
         {
             txtLog.Text += text + Environment.NewLine;
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
         }
     }
 }

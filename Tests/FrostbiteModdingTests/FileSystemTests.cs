@@ -1,4 +1,5 @@
-﻿using FrostySdk.Interfaces;
+﻿using FMT.Logging;
+using FrostySdk.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,11 @@ namespace FrostbiteModdingTests
         }
 
         public void LogError(string text, params object[] vars)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LogProgress(int progress)
         {
             throw new NotImplementedException();
         }

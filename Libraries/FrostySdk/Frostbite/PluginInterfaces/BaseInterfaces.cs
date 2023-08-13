@@ -1,4 +1,5 @@
 ﻿using FMT.FileTools;
+using FMT.Logging;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;
 using FrostySdk.Resources;

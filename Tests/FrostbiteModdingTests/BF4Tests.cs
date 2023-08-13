@@ -1,4 +1,5 @@
-﻿using FrostySdk.Frostbite;
+﻿using FMT.Logging;
+using FrostySdk.Frostbite;
 using FrostySdk.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SdkGenerator;
@@ -58,6 +59,9 @@ namespace FrostbiteModdingTests
             buildSDK.Build().Wait();
         }
 
-
+        public void LogProgress(int progress)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

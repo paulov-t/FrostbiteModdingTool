@@ -1,4 +1,5 @@
-﻿using FrostySdk.Frostbite;
+﻿using FMT.Logging;
+using FrostySdk.Frostbite;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -69,6 +70,11 @@ namespace FrostbiteModdingTests
             var resItems = AssetManager.Instance.EnumerateRes().ToList();
             var chunkItems = AssetManager.Instance.EnumerateChunks().ToList();
             var legacyItems = AssetManager.Instance.EnumerateCustomAssets("legacy").ToList();
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

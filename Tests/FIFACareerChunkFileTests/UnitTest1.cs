@@ -1,3 +1,4 @@
+using FMT.Logging;
 using FrostySdk;
 using FrostySdk.Frostbite;
 using FrostySdk.Interfaces;
@@ -46,6 +47,11 @@ namespace FIFACareerChunkFileTests
 
         public void LogError(string text, params object[] vars)
         {
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new System.NotImplementedException();
         }
 
         public void LogWarning(string text, params object[] vars)

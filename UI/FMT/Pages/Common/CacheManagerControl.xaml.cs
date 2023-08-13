@@ -1,4 +1,5 @@
-﻿using FrostySdk;
+﻿using FMT.Logging;
+using FrostySdk;
 using FrostySdk.Frostbite;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;
@@ -144,6 +145,11 @@ namespace FMT.Pages.Common
         private async void btnRebuild_Click(object sender, RoutedEventArgs e)
         {
             await Rebuild(forceRebuild: true);
+        }
+
+        public void LogProgress(int progress)
+        {
+            throw new NotImplementedException();
         }
     }
 }
