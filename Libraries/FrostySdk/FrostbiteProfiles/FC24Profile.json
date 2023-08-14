@@ -32,16 +32,16 @@
   // --------------------------------------------------------
   // SDK Generating Info
   //
-  "SDKFilename": "FIFA23SDK",
+  "SDKFilename": "FC24SDK",
   "SDKAOBScan": "48 39 1D ?? ?? ?? ?? ?? ?? 48 8b 43 10",
   "SDKClassesFile": "FIFA23.Classes.txt",
-  "SDKGeneratorClassInfoType": "SdkGenerator.Fifa23.ClassInfo",
+  "SDKGeneratorClassInfoType": "SdkGenerator.FC24.ClassInfo",
   "EBXTypeDescriptor": "EBXSharedTypeDescriptorV2",
 
   // Supported Launcher Filetypes
   "SupportedLauncherFileTypes": [ "fbmod", "fifamod", "zip" ],
   // Will the Launcher support this Game?
-  "CanLaunchMods": true,
+  "CanLaunchMods": false,
   // Can this Application Edit this Game?
   "CanEdit": true,
 
@@ -58,7 +58,7 @@
   "SharedBundles": {},
   "IgnoredResTypes": [],
   "CanImportMeshes": false,
-  "CanExportMeshes": true,
+  "CanExportMeshes": false,
   // GeometryDeclarationDesc stream count
   "GDDMaxStreams": 16,
   "CompressedFormatEBX": "Oodle", // Checked on GP files. FIFA 23 only uses Oodle!
