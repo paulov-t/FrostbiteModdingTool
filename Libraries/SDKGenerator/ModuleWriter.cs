@@ -211,19 +211,29 @@ namespace SdkGenerator
 
             var parsedSyntaxTree = SyntaxFactory.ParseSyntaxTree(codeString, options);
 
-            var dotnetcore_directory = Directory.GetParent(typeof(object).Assembly.Location);
+            var dotnetDirectories = Directory.GetDirectories("C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\").Where(x => !x.Contains("preview"));
+            if (!dotnetDirectories.Any())
+                throw new NullReferenceException("Unable to find .NET Sdk Install. You must install a version of .NET (not preview) before you can compile a Dll.");
+            
+            var dotnetDirectory = dotnetDirectories.Last();
 
-            var dotnetcore_files = Directory.GetFiles(dotnetcore_directory.FullName, "*.dll", SearchOption.AllDirectories);
+            //var objectAssemblyLocation = typeof(object).Assembly.Location;
+            var objectAssemblyLocation = Path.Combine(dotnetDirectory, "System.Private.CoreLib.dll");
+            if (string.IsNullOrEmpty(objectAssemblyLocation))
+                throw new NullReferenceException("Unable to find Object Assembly Location. (.net file system)");
 
-            var objectAssemblyLocation = typeof(object).Assembly.Location;
+            //Console.WriteLine(objectAssemblyLocation);
+
+            //var dotnet_files = Directory.GetFiles(dotnet_directory.FullName, "*.dll", SearchOption.AllDirectories);
+
             //var systemRuntimeAssemblyLocation = typeof(System.Runtime.Serialization.DataContractSerializer).Assembly.Location;
 
 
             var references = new MetadataReference[]
             {
                     MetadataReference.CreateFromFile(objectAssemblyLocation),
-                    MetadataReference.CreateFromFile(dotnetcore_directory + @"\netstandard.dll"),
-                    MetadataReference.CreateFromFile(dotnetcore_directory + @"\System.Runtime.dll"),
+                    MetadataReference.CreateFromFile(Path.Combine(dotnetDirectory, "netstandard.dll")),
+                    MetadataReference.CreateFromFile(Path.Combine(dotnetDirectory, "System.Runtime.dll")),
                     MetadataReference.CreateFromFile("FrostySdk.dll"),
                     MetadataReference.CreateFromFile("FMT.FileTools.dll"),
             };

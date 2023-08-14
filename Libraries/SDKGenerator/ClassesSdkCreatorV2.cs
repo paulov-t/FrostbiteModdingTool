@@ -68,9 +68,9 @@ namespace SDKGenerator
             classList = DumpClasses(task);
             if (classList != null)
             {
-                Trace.WriteLine("Classes Dumped");
-                Debug.WriteLine("Classes Dumped");
-                Console.WriteLine("Classes Dumped");
+                Trace.WriteLine($"{classList.Count} Classes Dumped");
+                Debug.WriteLine($"{classList.Count} Classes Dumped");
+                Console.WriteLine($"{classList.Count} Classes Dumped");
 
                 return classList.Count > 0;
             }
@@ -91,7 +91,7 @@ namespace SDKGenerator
                 if (!string.IsNullOrEmpty(ProfileManager.EBXTypeDescriptor))
                 {
                     std = (IEbxSharedTypeDescriptor)AssetManager.LoadTypeByName(ProfileManager.EBXTypeDescriptor
-                            , FileSystem.Instance, f, f.Contains("patch", StringComparison.OrdinalIgnoreCase));
+                            , f, f.Contains("patch", StringComparison.OrdinalIgnoreCase));
                 }
                 std.ReflectionTypeDescripter = true;
                 std.Read(FileSystem.Instance.GetFileFromMemoryFs(f), f.Contains("patch", StringComparison.OrdinalIgnoreCase));

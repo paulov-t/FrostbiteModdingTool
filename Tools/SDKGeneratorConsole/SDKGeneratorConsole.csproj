@@ -17,7 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" />
+	  <ProjectReference Include="..\..\Libraries\FMT.FileTools\FMT.FileTools.csproj" >
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
+	  <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" >
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
     <ProjectReference Include="..\..\Libraries\SDKGenerator\SDKGenerator.csproj" />
   </ItemGroup>
 

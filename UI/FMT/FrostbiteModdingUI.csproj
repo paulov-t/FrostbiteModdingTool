@@ -91,9 +91,15 @@
 
   <ItemGroup>
 	<ProjectReference Include="..\..\Libraries\CSIL\CSIL.csproj" />
+	  <ProjectReference Include="..\..\Libraries\FMT.FileTools\FMT.FileTools.csproj" >
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
     <ProjectReference Include="..\..\Libraries\FifaLibrary\FifaLibrary.csproj" />
     <ProjectReference Include="..\..\Libraries\FMT.Controls\FMT.Controls.csproj" />
-	<ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" />
+	  
+	  <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" >
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
     <ProjectReference Include="..\..\Libraries\SDKGenerator\SDKGenerator.csproj" />
   </ItemGroup>
 

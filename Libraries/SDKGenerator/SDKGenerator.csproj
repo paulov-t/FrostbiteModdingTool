@@ -2,6 +2,7 @@
 
   <PropertyGroup>
 	  <TargetFramework>net7.0-windows</TargetFramework>
+	  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -47,7 +48,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FrostySdk\FrostySdk.csproj" />
+	  <ProjectReference Include="..\FrostySdk\FrostySdk.csproj" >
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
   </ItemGroup>
 
   

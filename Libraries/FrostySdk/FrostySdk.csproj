@@ -8,6 +8,8 @@
 	  <Optimize>false</Optimize>
 
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+
   </PropertyGroup>   
   
 	<!--<PropertyGroup>
