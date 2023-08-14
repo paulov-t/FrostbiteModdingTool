@@ -197,7 +197,7 @@ namespace FrostySdk.Frostbite.IO.Output
         private void FBXCreateMesh(FbxScene scene, MeshSetLod lod, List<FbxNode> boneNodes)
         {
             int indexSize = lod.IndexUnitSize / 8;
-            FbxNode fbxNode = (flattenHierarchy ? scene.RootNode : new FbxNode(scene, lod.String03));
+            FbxNode fbxNode = (flattenHierarchy ? scene.RootNode : new FbxNode(scene, lod.MeshName));
             foreach (MeshSetSection section in lod.Sections)
             {
                 if (section.Name == "")
@@ -240,7 +240,7 @@ namespace FrostySdk.Frostbite.IO.Output
                 FbxNode fbxNode2 = FBXExportSubObject(scene, section, lod.VertexBufferSize, indexSize, reader);
                 if (flattenHierarchy)
                 {
-                    fbxNode2.Name = lod.String03 + ":" + section.Name;
+                    fbxNode2.Name = lod.MeshName + ":" + section.Name;
                     //fbxNode2.Name = lod.MeshName + ":" + section.materialName;
                 }
                 fbxNode.AddChild(fbxNode2);
