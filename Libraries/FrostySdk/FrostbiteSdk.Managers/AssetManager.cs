@@ -379,6 +379,7 @@ namespace FrostySdk.Managers
             //	return;
             //}
             List<EbxAssetEntry> prePatchCache = new List<EbxAssetEntry>();
+            bool writtenToCache = false;
             if (!CacheRead(out prePatchCache))
             {
                 Logger.Log($"Cache Needs to Built/Updated");
@@ -393,13 +394,18 @@ namespace FrostySdk.Managers
                 }
                 GC.Collect();
                 CacheWrite();
+                writtenToCache = true;
             }
 
             if (!additionalStartup || TypeLibrary.ExistingAssembly == null)
             {
                 return;
             }
-            DoEbxIndexing();
+
+            if(!writtenToCache && !ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.FC24))
+                DoEbxIndexing();
+            else if (writtenToCache)
+                DoEbxIndexing();
 
             // Load these when you need them!
             //         foreach (ICustomAssetManager value in CustomAssetManagers.Values)
@@ -466,10 +472,10 @@ namespace FrostySdk.Managers
 
         public void UpdateEbxListItem(EbxAssetEntry ebx)
         {
-            if (ProfileManager.DataVersion == 20230922)
-            {
-                return;
-            }
+            //if (ProfileManager.DataVersion == 20230922)
+            //{
+            //    return;
+            //}
 
 
             if (string.IsNullOrEmpty(ebx.Type))
@@ -1759,26 +1765,19 @@ namespace FrostySdk.Managers
 
             if (!string.IsNullOrEmpty(ProfileManager.EBXReader))
             {
-                //            if (ProfilesLibrary.EBXReader.Contains("V3", StringComparison.OrdinalIgnoreCase))
-                //            {
-                //	return new EbxReaderV3(asset, inPatched).ReadAsset();
-                //}
-                ebxReader = (EbxReader)LoadTypeByName(ProfileManager.EBXReader, asset, inPatched);
+                //ebxReader = (EbxReader)LoadTypeByName(ProfileManager.EBXReader, asset, inPatched);
+                ebxReader = EbxReader.GetEbxReader(asset, inPatched);
             }
             else
             {
 
                 if (ProfileManager.IsFIFA21DataVersion())
                 {
-                    //ebxReader = new EbxReader_F21(asset, inPatched);
-                    //ebxReader = new EbxReaderV2(asset, inPatched);
                     ebxReader = new EbxReaderV3(asset, inPatched);
 
                 }
                 else if (ProfileManager.IsMadden21DataVersion(ProfileManager.Game))
                 {
-                    //ebxReader = new EbxReader_F21(asset, inPatched);
-                    //ebxReader = new EbxReaderV2(asset, inPatched);
                     ebxReader = new EbxReaderV3(asset, inPatched);
 
                 }
@@ -1793,6 +1792,7 @@ namespace FrostySdk.Managers
                     ebxReader = new EbxReader(asset);
                 }
             }
+
 
             return ebxReader.ReadAsset();
         }
