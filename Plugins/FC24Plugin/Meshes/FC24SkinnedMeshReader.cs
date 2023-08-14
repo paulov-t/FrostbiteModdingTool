@@ -30,10 +30,9 @@ namespace FC24Plugin.Meshes
             long offsetNameLong = nativeReader.ReadLong();
             long offsetNameShort = nativeReader.ReadLong();
             meshSet.nameHash = nativeReader.ReadUInt();
-            meshSet.Type = (MeshType)nativeReader.ReadUInt();
-            //meshSet.Type = (MeshType)nativeReader.ReadByte();
-            //meshSet.FC24_Type2 = (MeshType)nativeReader.ReadByte();
-            //meshSet.FC24_TypeUnknownBytes = nativeReader.ReadBytes(18);
+            meshSet.Type = (MeshType)nativeReader.ReadByte();
+            meshSet.FIFA23_Type2 = (MeshType)nativeReader.ReadByte();
+            meshSet.FIFA23_TypeUnknownBytes = nativeReader.ReadBytes(10);
 
             for (int n = 0; n < MaxLodCount * 2; n++)
             {
@@ -41,27 +40,34 @@ namespace FC24Plugin.Meshes
             }
             meshSet.MeshLayout = (EMeshLayout)nativeReader.ReadByte();
             nativeReader.Position -= 1;
+            var meshLayoutFlags = (MeshSetLayoutFlags)nativeReader.ReadByte();
+            meshSet.unknownUInts.Add(nativeReader.ReadUInt());
+            meshSet.unknownUInts.Add(nativeReader.ReadUInt());
+            nativeReader.Position -= 1;
             meshSet.ShaderDrawOrder = (ShaderDrawOrder)nativeReader.ReadByte();
-            var meshLayoutFlags = (MeshSetLayoutFlags)nativeReader.ReadInt();
             meshSet.ShaderDrawOrderUserSlot = (ShaderDrawOrderUserSlot)nativeReader.ReadByte();
             meshSet.ShaderDrawOrderSubOrder = (ShaderDrawOrderSubOrder)nativeReader.ReadUShort();
-            ushort lodsCount = 0;
-            lodsCount = nativeReader.ReadUShort();
+            ushort lodsCount = nativeReader.ReadUShort();
             meshSet.MeshCount = nativeReader.ReadUShort();
             meshSet.boneCount = 0;
             // useful for resetting when live debugging
             var positionBeforeMeshTypeRead = nativeReader.Position;
             nativeReader.Position = positionBeforeMeshTypeRead;
+            //for (int n = 0; n < MaxLodCount * 2; n++)
+            //{
+            //    meshSet.LodFade.Add(nativeReader.ReadUInt16LittleEndian());
+            //}
+            //positionBeforeMeshTypeRead = nativeReader.Position;
+            //nativeReader.Position = positionBeforeMeshTypeRead;
 
             if (meshSet.Type == MeshType.MeshType_Skinned)
             {
 
-                meshSet.unknownBytes.Add(nativeReader.ReadBytes(14));
+                meshSet.FIFA23_SkinnedUnknownBytes = nativeReader.ReadBytes(12);
                 meshSet.boneCount = nativeReader.ReadUInt16LittleEndian();
                 meshSet.CullBoxCount = nativeReader.ReadUInt16LittleEndian();
                 if (meshSet.CullBoxCount != 0)
                 {
-                    nativeReader.ReadUShort();
                     long cullBoxBoneIndicesOffset = nativeReader.ReadInt64LittleEndian();
                     long cullBoxBoundingBoxOffset = nativeReader.ReadInt64LittleEndian();
                     long position = nativeReader.Position;
@@ -145,7 +151,7 @@ namespace FC24Plugin.Meshes
             }
             //nativeReader.Pad(16);
             if (meshSetLayoutSize.HasValue && meshSetVertexSize.HasValue)
-            { 
+            {
                 nativeReader.Position = meshSetLayoutSize.Value;
                 foreach (MeshSetLod lod in meshSet.Lods)
                 {

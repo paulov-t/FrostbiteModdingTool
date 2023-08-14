@@ -29,7 +29,7 @@ namespace FC24Plugin.Meshes
             meshSet.nameHash = nativeReader.ReadUInt();
             meshSet.Type = (MeshType)nativeReader.ReadByte();
             meshSet.FIFA23_Type2 = (MeshType)nativeReader.ReadByte();
-            meshSet.FIFA23_TypeUnknownBytes = nativeReader.ReadBytes(18);
+            meshSet.FIFA23_TypeUnknownBytes = nativeReader.ReadBytes(10);
 
             for (int n = 0; n < MaxLodCount * 2; n++)
             {

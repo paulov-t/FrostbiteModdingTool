@@ -21,20 +21,21 @@ namespace FC24Plugin.Meshes
 
             section.SectionIndex = index;
             section.Offset1 = nativeReader.ReadInt64LittleEndian();
+            if (section.Offset1 != 0)
+                return;
             section.Name = nativeReader.ReadNullTerminatedString(offset: nativeReader.ReadInt64LittleEndian());
             ReadBonesAtPosition(nativeReader, nativeReader.ReadInt64LittleEndian());
-            //long namePosition = nativeReader.ReadInt64LittleEndian();
-            section.BoneCount = nativeReader.ReadUInt16LittleEndian();
-            section.BonesPerVertex = (byte)nativeReader.ReadByte();
-            _ = nativeReader.ReadByte();
-            section.MaterialId = nativeReader.ReadUShort();
-            section.VertexStride = nativeReader.ReadByte(); 
-            section.PrimitiveType = (PrimitiveType)nativeReader.ReadByte(); 
+            section.BoneCount = nativeReader.ReadUInt16LittleEndian(); //438
+            section.BonesPerVertex = (byte)nativeReader.ReadByte(); // 8
+            section.MaterialId = nativeReader.ReadUShort(); // 28
+            section.StartIndex = nativeReader.ReadByte(); // 0 ? 
+            section.VertexStride = nativeReader.ReadByte(); // 68
+            section.PrimitiveType = (PrimitiveType)nativeReader.ReadByte(); // 3
             section.PrimitiveCount = (uint)nativeReader.ReadUInt32LittleEndian();
-            section.StartIndex = nativeReader.ReadUInt32LittleEndian();
-            section.VertexOffset = nativeReader.ReadUInt32LittleEndian();
-            section.VertexCount = (uint)nativeReader.ReadUInt32LittleEndian(); 
-            section.UnknownInt = nativeReader.ReadUInt();
+            section.StartIndex = nativeReader.ReadUInt32LittleEndian(); // 0
+            section.VertexOffset = nativeReader.ReadUInt32LittleEndian(); // 0
+            section.VertexCount = (uint)nativeReader.ReadUInt32LittleEndian(); // 3157
+            section.UnknownInt = nativeReader.ReadUInt(); // 0
 
             for (int i = 0; i < 6; i++)
             {
@@ -74,7 +75,7 @@ namespace FC24Plugin.Meshes
                 nativeReader.ReadBytes(2); // padding
             }
 
-            section.UnknownData = nativeReader.ReadBytes(48);
+            section.UnknownData = nativeReader.ReadBytes(80);
         }
 
         private void ReadBonesAtPosition(NativeReader nativeReader, long position)
