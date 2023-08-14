@@ -73,7 +73,7 @@ namespace FrostySdk.Resources
 
         public string String02 => name;
 
-        public string String03 => shortName;
+        public string MeshName => shortName;
 
         public int BoneCount => BoneIndexArray.Count;
 
@@ -173,10 +173,12 @@ namespace FrostySdk.Resources
             if (ProfileManager.IsLoaded(
                 FMT.FileTools.Modding.EGame.FIFA23
                 , FMT.FileTools.Modding.EGame.NFSUnbound
-                , FMT.FileTools.Modding.EGame.DeadSpace))
+                , FMT.FileTools.Modding.EGame.DeadSpace
+                , FMT.FileTools.Modding.EGame.FC24
+                ))
             {
                 UnknownChunkPad = reader.ReadBytes(8);
-                if (ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.DeadSpace))
+                if (ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.DeadSpace, FMT.FileTools.Modding.EGame.FC24))
                     _ = reader.ReadBytes(4);
             }
 
