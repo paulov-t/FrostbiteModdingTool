@@ -44,7 +44,91 @@ namespace FC24Plugin
 
         protected override void ReadChunkData(NativeReader nativeReader)
         {
+#if DEBUG
+          
+            if (NativeFileLocation.Contains("win32/fc/fcgame/fcgame"))
+            {
+
+            }
+
+#endif
             //base.ReadChunkData(nativeReader);
+            nativeReader.Position = 556 + MetaData.ChunkFlagOffsetPosition;
+            if (MetaData.ChunkCount > 0)
+            {
+                for (int chunkIndex = 0; chunkIndex < MetaData.ChunkCount; chunkIndex++)
+                {
+                    ListTocChunkFlags.Add(nativeReader.ReadInt(Endian.Big));
+                }
+                nativeReader.Position = 556 + MetaData.ChunkGuidOffset;
+                TocChunkGuids = new Guid[MetaData.ChunkCount];
+
+                var TOCChunkByOffset = new Dictionary<uint, ChunkAssetEntry>();
+
+                for (int chunkIndex = 0; chunkIndex < MetaData.ChunkCount; chunkIndex++)
+                {
+                    //Guid tocChunkGuid = nativeReader.ReadGuidReverse();
+                    //int origIndex = nativeReader.ReadInt(Endian.Big);
+                    //var actualIndex = origIndex & 0xFFFFFF;
+                    //var actualIndexDiv3 = actualIndex / 3;
+                    //TocChunkGuids[chunkIndex] = tocChunkGuid;
+                    //ChunkIndexToChunkId.Add(origIndex, tocChunkGuid);
+                    Guid guid = nativeReader.ReadGuidReverse();
+                    uint decodeAndOffset = nativeReader.ReadUInt(Endian.Big);
+                    uint order = decodeAndOffset & 0xFFFFFFu;
+                    (Guid, uint) superBundleChunk = new (guid, decodeAndOffset);
+                    while (TocChunks.Count <= order / 3u)
+                    {
+                        TocChunks.Add(null);
+                    }
+                    TocChunks[(int)(order / 3u)] = new ChunkAssetEntry
+                    {
+                        Id = guid
+                    };
+                    TOCChunkByOffset.Add(order, TocChunks[(int)(order / 3u)]);
+                }
+
+
+                // -----------------------------------------------
+                var foundCatalog = 0;
+                var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
+                var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace(".toc", "");
+                var singleCatalog = allCatalogs.Single(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
+                foundCatalog = allCatalogs.IndexOf(singleCatalog);
+                ///
+
+                nativeReader.Position = 556 + MetaData.DataOffset;
+                for (int chunkIndex = 0; chunkIndex < MetaData.ChunkCount; chunkIndex++)
+                {
+                    uint chunkIdentificationOffset = (uint)(nativeReader.Position - 556 - MetaData.DataOffset) / 4u;
+                    ChunkAssetEntry tocChunk = TOCChunkByOffset[chunkIdentificationOffset];
+
+                    nativeReader.ReadByte();
+                    nativeReader.ReadByte();
+                    nativeReader.ReadBytes(4); // magic
+                    nativeReader.ReadByte();
+                    var cas = nativeReader.ReadByte(); // cas
+                    var catalog = foundCatalog;
+                    tocChunk.SB_CAS_Offset_Position = (int)nativeReader.Position;
+                    var offset = nativeReader.ReadUInt(Endian.Big);
+                    tocChunk.SB_CAS_Size_Position = (int)nativeReader.Position;
+                    var size = nativeReader.ReadUInt(Endian.Big);
+                    tocChunk.Sha1 = Sha1.Create(Encoding.ASCII.GetBytes(tocChunk.Id.ToString()));
+
+                    tocChunk.LogicalOffset = offset;
+                    tocChunk.OriginalSize = (tocChunk.LogicalOffset & 0xFFFF) | size;
+                    tocChunk.Size = size;
+                    tocChunk.Location = AssetDataLocation.CasNonIndexed;
+                    tocChunk.ExtraData = new AssetExtraData();
+                    tocChunk.ExtraData.Unk = 0;
+                    tocChunk.ExtraData.Catalog = (ushort)catalog;
+                    tocChunk.ExtraData.Cas = cas;
+                    tocChunk.ExtraData.IsPatch = false;
+                    //tocChunk.ExtraData.CasPath = FileSystem.Instance.GetFilePath(catalog, cas, fa);
+                    tocChunk.ExtraData.DataOffset = offset;
+                    tocChunk.Bundles.Add(ChunkDataBundleId);
+                }
+            }
         }
 
         protected override void ReadBundleData(NativeReader nativeReader)
@@ -87,6 +171,10 @@ namespace FC24Plugin
         {
 
 #if DEBUG
+            if (NativeFileLocation.Contains("loc"))
+            {
+
+            }
             if (NativeFileLocation.Contains("/en"))
             {
 
@@ -99,6 +187,11 @@ namespace FC24Plugin
             {
 
             }
+            if (NativeFileLocation.Contains("contentlaunchsb"))
+            {
+
+            }
+
 #endif
             var remainingByteLength = nativeReader.Length - nativeReader.Position;
             if (remainingByteLength > 0)
@@ -113,6 +206,21 @@ namespace FC24Plugin
                 var catObjs = fs.CatalogObjects;
                 var sbs = fs.SuperBundles;
 #endif
+
+                var foundCatalog = 0;
+                var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
+                var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace(".toc", "");
+                var singleCatalog = allCatalogs.Single(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
+                foundCatalog = allCatalogs.IndexOf(singleCatalog);
+                //for (var indexCatalog = 0; indexCatalog < allCatalogs.Count; indexCatalog++)
+                //{
+                //    var cat = allCatalogs[indexCatalog];
+                //    if (cat.SuperBundles.ContainsKey(keyToFindSb) && !cat.SuperBundles[keyToFindSb])
+                //    {
+                //        foundCatalog = (byte)indexCatalog;
+                //        break;
+                //    }
+                //}
 
                 for (int i = 0; i < MetaData.BundleCount; i++)
                 {
@@ -137,38 +245,121 @@ namespace FC24Plugin
                     }
                     bundle.unk4 = nativeReader.ReadInt(Endian.Big);
                     bundle.unk5 = nativeReader.ReadInt(Endian.Big);
+
+                    var actualFlagsOffset = startPosition + bundle.FlagsOffset;
+                    nativeReader.Position = actualFlagsOffset;
+                    bundle.Flags = nativeReader.ReadBytes(bundle.EntriesCount);
+                    ////var actualEntriesOffset = startPosition + bundle.EntriesOffset;
+                    ////nativeReader.Position = actualEntriesOffset;
+                    ////var sum = 0;
+                    //for (int flagEntryIndex = 0; flagEntryIndex < bundle.EntriesCount; flagEntryIndex++)
+                    //{
+                    //    var unkFlagByte = nativeReader.ReadByte();
+                    //    if (unkFlagByte == 128)
+                    //    {
+                    //        bundle.Flags[flagEntryIndex] = 0x1;
+                    //    }
+
+                    //    throw new NotImplementedException();
+                    //    //    bool hasCasIdentifier = bundle.Flags[j2] == 1;
+                    //    //    if (hasCasIdentifier)
+                    //    //    {
+                    //    //        unk = nativeReader.ReadByte();
+                    //    //        isInPatch = nativeReader.ReadBoolean();
+                    //    //        catalog = nativeReader.ReadByte();
+                    //    //        cas = nativeReader.ReadByte();
+                    //    //        sum += 4;
+
+                    //    //    }
+                    //    //    long locationOfOffset = nativeReader.Position;
+                    //    //    uint bundleOffsetInCas = nativeReader.ReadUInt(Endian.Big);
+                    //    //    long locationOfSize = nativeReader.Position;
+                    //    //    uint bundleSizeInCas = nativeReader.ReadUInt(Endian.Big);
+                    //    //    sum += 8;
+                    //    //    if (j2 == 0)
+                    //    //    {
+                    //    //        bundle.Unk = unk;
+                    //    //        bundle.BundleOffset = bundleOffsetInCas;
+                    //    //        bundle.BundleSize = bundleSizeInCas;
+                    //    //        bundle.Cas = cas;
+                    //    //        bundle.Catalog = catalog;
+                    //    //        bundle.Patch = isInPatch;
+                    //    //    }
+                    //    //    else
+                    //    //    {
+                    //    //        bundle.TOCOffsets.Add(locationOfOffset);
+                    //    //        bundle.Offsets.Add(bundleOffsetInCas);
+
+                    //    //        bundle.TOCSizes.Add(locationOfSize);
+                    //    //        bundle.Sizes.Add(bundleSizeInCas);
+
+                    //    //        bundle.TOCCas.Add(cas);
+                    //    //        bundle.TOCCatalog.Add(catalog);
+                    //    //        bundle.TOCPatch.Add(isInPatch);
+                    //    //    }
+
+                    //}
+
+                    var actualEntriesOffset = startPosition + bundle.EntriesOffset;
+                    nativeReader.Position = actualEntriesOffset;
+
                     byte unk = 0;
                     bool isInPatch = false;
                     byte catalog = 0;
                     byte cas = 0;
 
-                    // 8 bytes of something? 
-                    var unkBytes = nativeReader.ReadBytes(6);
-                    var unkShortCas = nativeReader.ReadUShort(Endian.Big);
-                    //catalog = (byte)unkShortCas;
-                    cas = (byte)unkShortCas;
-                    catalog = 0;
 
-                    var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
-                    for (var indexCatalog = 0; indexCatalog < allCatalogs.Count; indexCatalog++)
-                    {
-                        var cat = allCatalogs[indexCatalog];
-                        if (cat.SuperBundles.ContainsKey(NativeFileLocation.Replace("native_data/", "").Replace(".toc", "")))
-                        {
-                            catalog = (byte)indexCatalog;
-                            break;
-                        }
-                    }
+
+
+
+
+                    
+                    //var unkByte1 = nativeReader.ReadByte(); // 00 Unknown
+                    //var unkByte2 = nativeReader.ReadByte(); //  00 Unknown
+                    //var unkMagic = nativeReader.ReadUInt(Endian.Big); //  A3 A0 0D E1 MAGIC?
+                    //if (unkMagic != 2745175521 && unkMagic != 2745175526)
+                    //    throw new InvalidDataException($"unkMagic is {unkMagic} when 2745175521/2745175526 is expected");
+                    ////var unkShortCas = nativeReader.ReadUShort(Endian.Big);
+                    //isInPatch = nativeReader.ReadBoolean(); // Unknown (assumed patch?)
+                    //cas = nativeReader.ReadByte(); // Cas number
+                    //                               //catalog = (byte)unkShortCas;
+                    //                               //cas = (byte)unkShortCas;
+                    //                               //catalog = 0;
 
                     //bundle.BundleSize = nativeReader.ReadUInt(Endian.Big);
                     //bundle.BundleOffset = nativeReader.ReadUInt(Endian.Big);
                     for (int j2 = 0; j2 < bundle.EntriesCount; j2++)
                     {
+                        bool hasCasIdentifier = bundle.Flags[j2] == 128;
+                        if (hasCasIdentifier)
+                        {
+                            // 8 bytes of something? 
+                            var unkByte1 = nativeReader.ReadByte(); // 00 Unknown
+                            var unkByte2 = nativeReader.ReadByte(); //  00 Unknown
+                            var unkMagic1 = nativeReader.ReadBytes(4); //  A3 A0 0D E1 MAGIC?
+                            nativeReader.Position -= 4;
+                            var unkIdentifier = nativeReader.ReadUInt(Endian.Big); //  A3 A0 0D identifier?
+                            nativeReader.Position -= 2;
+                            var lastIdentifier = nativeReader.ReadShort(Endian.Big);
+                            var somethingelse = lastIdentifier & 0xFFu;
+                            var somethingelse2 = lastIdentifier & 0xFF;
+                            //if (unkMagic != 2745175521 && unkMagic != 2745175526)
+                            //    throw new InvalidDataException($"unkMagic is {unkMagic} when 2745175521/2745175526 is expected");
+                            //var unkShortCas = nativeReader.ReadUShort(Endian.Big);
+                            isInPatch = nativeReader.ReadBoolean(); // Unknown (assumed patch?)
+                            cas = nativeReader.ReadByte(); // Cas number
+                                                           //catalog = (byte)unkShortCas;
+                                                           //cas = (byte)unkShortCas;
+                                                           //catalog = 0;
+                            catalog = (byte)foundCatalog;
+                        }
+
                         long locationOfOffset = nativeReader.Position;
                         uint bundleOffsetInCas = nativeReader.ReadUInt(Endian.Big);
                         long locationOfSize = nativeReader.Position;
                         uint bundleSizeInCas = nativeReader.ReadUInt(Endian.Big);
-                        if(j2 == 0)
+
+                        if (j2 == 0)
                         {
                             bundle.Unk = unk;
                             bundle.BundleOffset = bundleOffsetInCas;
@@ -203,57 +394,7 @@ namespace FC24Plugin
                         );
                         }
                     }
-                    var actualFlagsOffset = startPosition + bundle.FlagsOffset;
-                    nativeReader.Position = actualFlagsOffset;
-                    //bundle.Flags = nativeReader.ReadBytes(bundle.EntriesCount);
-                    //var actualEntriesOffset = startPosition + bundle.EntriesOffset;
-                    //nativeReader.Position = actualEntriesOffset;
-                    //var sum = 0;
-                    for (int j2 = 0; j2 < bundle.EntriesCount; j2++)
-                    {
-                        var unkFlagByte = nativeReader.ReadByte();
-                        if (unkFlagByte == 128)
-                            break;
-
-                        throw new NotImplementedException();
-                        //    bool hasCasIdentifier = bundle.Flags[j2] == 1;
-                        //    if (hasCasIdentifier)
-                        //    {
-                        //        unk = nativeReader.ReadByte();
-                        //        isInPatch = nativeReader.ReadBoolean();
-                        //        catalog = nativeReader.ReadByte();
-                        //        cas = nativeReader.ReadByte();
-                        //        sum += 4;
-
-                        //    }
-                        //    long locationOfOffset = nativeReader.Position;
-                        //    uint bundleOffsetInCas = nativeReader.ReadUInt(Endian.Big);
-                        //    long locationOfSize = nativeReader.Position;
-                        //    uint bundleSizeInCas = nativeReader.ReadUInt(Endian.Big);
-                        //    sum += 8;
-                        //    if (j2 == 0)
-                        //    {
-                        //        bundle.Unk = unk;
-                        //        bundle.BundleOffset = bundleOffsetInCas;
-                        //        bundle.BundleSize = bundleSizeInCas;
-                        //        bundle.Cas = cas;
-                        //        bundle.Catalog = catalog;
-                        //        bundle.Patch = isInPatch;
-                        //    }
-                        //    else
-                        //    {
-                        //        bundle.TOCOffsets.Add(locationOfOffset);
-                        //        bundle.Offsets.Add(bundleOffsetInCas);
-
-                        //        bundle.TOCSizes.Add(locationOfSize);
-                        //        bundle.Sizes.Add(bundleSizeInCas);
-
-                        //        bundle.TOCCas.Add(cas);
-                        //        bundle.TOCCatalog.Add(catalog);
-                        //        bundle.TOCPatch.Add(isInPatch);
-                        //    }
-                        
-                    }
+                    
                     CasBundles.Add(bundle);
 
                 }
