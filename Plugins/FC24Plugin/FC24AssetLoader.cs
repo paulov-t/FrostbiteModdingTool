@@ -123,6 +123,9 @@ namespace FC24Plugin
                 if (sbName.Contains("storysba"))
                     continue;
 
+                if (tocFileRAW.Contains("/cs/"))
+                    continue;
+
                 assetManager.Logger.Log($"Loading data ({tocFileRAW})");
                 using FC24TOCFile tocFile = new FC24TOCFile(tocFileRAW, true, true, false, sbIndex, false);
                 sbIndex++;
