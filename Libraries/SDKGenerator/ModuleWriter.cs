@@ -203,9 +203,10 @@ namespace SdkGenerator
             //File.Delete("temp.cs");
         }
 
-        public void WriteFromTempCS(uint version)
+        public void WriteFromTempCS(uint version, string in_PathToTempCs = null)
         {
-            var codeString = SourceText.From(File.ReadAllText("temp.cs"));
+            var tempcsPath = in_PathToTempCs == null ? "temp.cs" : in_PathToTempCs;
+            var codeString = SourceText.From(File.ReadAllText(tempcsPath));
             var options = CSharpParseOptions.Default
                 .WithLanguageVersion(LanguageVersion.LatestMajor);
 
@@ -255,6 +256,15 @@ namespace SdkGenerator
                         )).Emit(stream);
                 if (!result.Success)
                 {
+                    if (File.Exists("CompiledSdkErrorList.txt"))
+                        File.Delete("CompiledSdkErrorList.txt");
+
+                    using var sw = File.AppendText("CompiledSdkErrorList.txt");
+                    foreach(var d in result.Diagnostics)
+                    {
+                        sw.WriteLine(d);
+                    }
+
                     throw new Exception(result.Diagnostics.Length + " errors");
                 }
                 else

@@ -3,6 +3,7 @@ using FMT.Logging;
 using FrostbiteSdk;
 //using FrostyEditor.Windows;
 using FrostySdk;
+using SDKGenerator;
 //using FrostySdk;
 //using FrostySdk.Frostbite;
 //using FrostySdk.Interfaces;
@@ -367,6 +368,16 @@ namespace SdkGenerator
             Debug.WriteLine("OnCreateSdk:: " + flag);
             ResultState = flag;
             return flag;
+        }
+
+        /// <summary>
+        /// If a temp.cs exists. This will build and Sdk.
+        /// </summary>
+        /// <param name="pathToTempCs">If not null, then this method will attempt to compile from this file</param>
+        public void BuildSdkFromTempCS(string pathToTempCs = null)
+        {
+            ClassesSdkCreatorV2 Creator = new ClassesSdkCreatorV2(null);
+            Creator.CreateSDKFromTempCS(pathToTempCs);
         }
     }
 }

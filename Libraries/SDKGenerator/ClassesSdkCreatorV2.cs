@@ -318,5 +318,30 @@ namespace SDKGenerator
             Console.WriteLine("Failed to produce SDK");
             return false;
         }
+
+        public bool CreateSDKFromTempCS(string pathToTempCs = null)
+        {
+            Debug.WriteLine("Creating SDK");
+            using (ModuleWriter moduleWriter = new ModuleWriter("EbxClasses.dll", classList))
+            {
+                moduleWriter.WriteFromTempCS(FileSystem.Instance != null ? FileSystem.Instance.Head : 0, pathToTempCs);
+            }
+            if (File.Exists("EbxClasses.dll"))
+            {
+                FileInfo fileInfo = new FileInfo(".\\TmpProfiles\\" + ProfileManager.SDKFilename + ".dll");
+                if (!fileInfo.Directory.Exists)
+                {
+                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                }
+                if (fileInfo.Exists)
+                {
+                    File.Delete(fileInfo.FullName);
+                }
+                File.Move("EbxClasses.dll", fileInfo.FullName);
+                return true;
+            }
+            Console.WriteLine("Failed to produce SDK");
+            return false;
+        }
     }
 }

@@ -44,5 +44,12 @@ namespace FrostbiteModdingTests
             var buildSDK = new BuildSDK();
             buildSDK.Build().Wait();
         }
+
+        [TestMethod]
+        public void BuildSDKFromTempCs()
+        {
+            var buildSDK = new BuildSDK();
+            buildSDK.BuildSdkFromTempCS("G:\\Work\\FIFA Modding\\temp.cs");
+        }
     }
 }
