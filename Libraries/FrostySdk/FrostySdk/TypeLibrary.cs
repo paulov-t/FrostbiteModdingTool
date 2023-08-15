@@ -757,7 +757,10 @@ namespace FrostySdk
             PropertyInfo[] properties = obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
             foreach (PropertyInfo propertyInfo in properties)
             {
-                if (propertyInfo.PropertyType.Namespace == "FrostySdk.Ebx" && propertyInfo.PropertyType.BaseType != typeof(Enum))
+                if (
+                    (propertyInfo.PropertyType.Namespace == "FrostySdk.Ebx" 
+                    || propertyInfo.PropertyType.Namespace == "FrostySdk.Ebx")
+                    && propertyInfo.PropertyType.BaseType != typeof(Enum))
                 {
                     object value = propertyInfo.GetValue(obj);
                     InitializeArrays(value);

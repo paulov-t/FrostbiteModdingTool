@@ -24,6 +24,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -137,11 +138,11 @@ namespace FrostySdk.Managers
 
                 CustomAssetManagers.Clear();
                 ChunkFileManager.Instance = null;
-                if (AllSdkAssemblyTypes != null)
-                {
-                    AllSdkAssemblyTypes.Clear();
-                    AllSdkAssemblyTypes = null;
-                }
+                //if (AllSdkAssemblyTypes != null)
+                //{
+                //    AllSdkAssemblyTypes.Clear();
+                //    AllSdkAssemblyTypes = null;
+                //}
                 if(CachedTypes != null && CachedTypes.Any())
                 {
                     CachedTypes.Clear();
@@ -329,12 +330,35 @@ namespace FrostySdk.Managers
             if (currentAssemblies == null)
                 throw exc;
 
-            var assembly = currentAssemblies.FirstOrDefault(x => x.GetTypes().Any(x => x.FullName.Contains(className, StringComparison.OrdinalIgnoreCase)));
-            if(assembly == null)
-                throw exc;
+            Type t = null;
+            foreach(var assm in currentAssemblies)
+            {
+                if (assm.FullName.Contains("EbxClasses"))
+                    continue;
 
-            var t = assembly.GetTypes().FirstOrDefault(x => x.FullName.EndsWith(className, StringComparison.OrdinalIgnoreCase));
-            //var t = assembly.GetTypes().FirstOrDefault(x => x.FullName.Contains(className, StringComparison.OrdinalIgnoreCase));
+                Type[] tps;
+                try
+                {
+                    tps = assm.GetTypes();
+                }
+                catch
+                {
+                    continue;
+                }
+                for (var iT = 0; iT < tps.Length; iT++)
+                {
+                    var ty = tps[iT];
+                    if (ty.FullName.EndsWith(className, StringComparison.OrdinalIgnoreCase))
+                    {
+                        t = ty;
+                        break;
+                    }
+                }
+
+                if (t != null)
+                    break;
+            }
+
             if (t != null)
             {
                 if (!CachedTypes.ContainsKey(className))
@@ -433,7 +457,7 @@ namespace FrostySdk.Managers
         public static event AssetManagerModifiedHandler AssetManagerModified;
 
 
-        private List<Type> AllSdkAssemblyTypes { get; set; }
+        //private List<Type> AllSdkAssemblyTypes { get; set; }
 
         private List<EbxAssetEntry> _EbxItemsWithNoType;
         private List<EbxAssetEntry> EbxItemsWithNoType
@@ -541,8 +565,8 @@ namespace FrostySdk.Managers
                 return;
             }
 
-            if (AllSdkAssemblyTypes == null)
-                AllSdkAssemblyTypes = TypeLibrary.ExistingAssembly.GetTypes().ToList();
+            //if (AllSdkAssemblyTypes == null)
+            //    AllSdkAssemblyTypes = TypeLibrary.ExistingAssembly.GetTypes().ToList();
 
             //ResourceManager.UseLastCasPath = true;
 
