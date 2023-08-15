@@ -13,5 +13,7 @@ namespace FrostbiteModdingUI.Windows
 
         public void UpdateAllBrowsers();
 
+        public void ShowLoadingDialog(string message, string title, int progress);
+
     }
 }

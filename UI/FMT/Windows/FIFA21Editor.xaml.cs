@@ -1384,5 +1384,9 @@ namespace FIFAModdingUI.Windows
         {
             throw new NotImplementedException();
         }
+
+        public void ShowLoadingDialog(string message, string title, int progress)
+        {
+        }
     }
 }
