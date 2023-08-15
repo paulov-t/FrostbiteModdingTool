@@ -1,0 +1,87 @@
+{
+  "Name": "Madden24",
+  "DisplayName": "Madden 24",
+  "DataVersion": 20230815,
+  "CacheName": "Madden24",
+  "Deobfuscator": "NullDeobfuscator",
+  "AssetLoader": "Madden24AssetLoader",
+  "AssetCompiler": "Madden24AssetCompilerV1",
+  "EditorScreen": "DefaultEditor",
+  "TextureImporter": "Madden24TextureImporter",
+  "TextureExporter": "TextureExporter",
+  "EBXReader": "EbxReader22B",
+  "EBXWriter": "EbxWriter2023",
+  "EBXImporter": null,
+  "EBXExporter": null,
+
+  "ProjectEbxWriter": "EbxWriter2023",
+  "ProjectEbxReader": "EbxReader22B",
+
+
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+
+  // --------------------------------------------------------
+  // SDK Generating Info
+  //
+  "SDKFilename": "Madden24SDK",
+  "SDKAOBScan": "48 39 1D ?? ?? ?? ?? ?? ?? 48 8b 43 10",
+  "SDKClassesFile": "FIFA23.Classes.txt",
+  "SDKGeneratorClassInfoType": "SdkGenerator.Madden24.ClassInfo",
+  "EBXTypeDescriptor": "EBXSharedTypeDescriptorV2",
+
+  // Supported Launcher Filetypes
+  "SupportedLauncherFileTypes": [ "fbmod", "fifamod", "zip" ],
+  // Will the Launcher support this Game?
+  "CanLaunchMods": true,
+  // Can this Application Edit this Game?
+  "CanEdit": true,
+
+  // Custom .cache file Writer - Write these exclusively (example - Madden22CacheWriter)
+  "CacheWriter": "Madden24CacheWriter",
+  // Custom .cache file Reader - Write these exclusively (example - Madden22CacheReader)
+  "CacheReader": "Madden24CacheReader",
+
+  "Banner": "",
+  "EbxVersion": 4,
+  "RequiresKey": true,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "SharedBundles": {},
+  "IgnoredResTypes": [],
+  "CanImportMeshes": false,
+  "CanExportMeshes": true,
+  // GeometryDeclarationDesc stream count
+  "GDDMaxStreams": 16,
+  "CompressedFormatEBX": "Oodle", // Checked on GP files. FIFA 23 only uses Oodle!
+  "CompressedFormatRES": "Oodle",
+  "CompressedFormatChunk": "Oodle",
+  "CompressedFormatLegacy": "Oodle",
+  "LegacyFileManager": "ChunkFileManager2022",
+  "CanUseModData": true,
+  "ForceUseModData": true,
+  "SupportLowMemoryFootprint": true,
+  "GameIdentifier": 16115019,
+  "UseACBypass": false, // Can only be used with TU2 or below
+  "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0004970",
+  "SteamId": "2140330",
+  "HasAntiCheat": true,
+  "Tools": {
+    "Internal": [
+      {
+        "Name": "Initfs Editor",
+        "Window": "InitfsEditor"
+      }
+    ],
+    "External": []
+  }
+
+}
