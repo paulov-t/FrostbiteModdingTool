@@ -38,7 +38,7 @@ namespace SdkGenerator.FC24
             ReadSuccessfully = true;
             int maxLength = 999;
             name = reader.ReadNullTerminatedString(maxLength);
-            if (string.IsNullOrEmpty(name) || name.Length == maxLength)
+            if (string.IsNullOrEmpty(name) || name.Length >= maxLength - 1)
             {
                 name = parentTypeInfo.name + "_UnkField_" + RandomEmpty.Next().ToString();
                 ReadSuccessfully = false;

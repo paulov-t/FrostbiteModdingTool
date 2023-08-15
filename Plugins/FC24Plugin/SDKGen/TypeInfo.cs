@@ -5,6 +5,7 @@ using FrostySdk.IO;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing.Text;
 using System.Text.RegularExpressions;
 
 namespace SdkGenerator.FC24
@@ -110,6 +111,8 @@ namespace SdkGenerator.FC24
                 reader.Position++;
             }
 
+
+
             array = new long[32];
             for (int i = 0; i < 7; i++)
             //for (int i = 0; i < 32; i++)
@@ -135,50 +138,74 @@ namespace SdkGenerator.FC24
 
             }
 
+            
+
             if (hasFields)
             {
-
+                var fieldsPosition = 0L;
                 if (Type == 2)
                 {
-                    reader.Position = array[6];
+                    fieldsPosition = array[6];
                 }
                 else if (Type == 3)
                 {
-                    reader.Position = array[1];
+                    fieldsPosition = array[1];
                 }
                 else if (Type == 8 || FieldType == EbxFieldType.Enum)
                 {
                     parentClass = 0L;
-                    reader.Position = array[0];
-                    //if (name.Equals("ShaderDrawOrder", System.StringComparison.OrdinalIgnoreCase))
-                    //{
-                    //    reader.Position = 1600605792;
-                    //    var finderIt = reader.scan("53 68 61 64 65 72 44 72 61 77 4F 72 64 65 72 5F 49 6E 76 61 6C 69 64");
-                    //    reader.Position = 1600605792;
-                    //}
+                    fieldsPosition = array[0];
                 }
                 else
                 {
-                    reader.Position = array[5];
+                    fieldsPosition = array[5];
                 }
 
+                if (FieldType == EbxFieldType.Enum)
+                {
+                    // TODO when full release
+                    //Console.WriteLine($"{name} is an Enum, reading char*");
+                    //reader.ReadNullTerminatedStringAtCurPosition();
+                    //throw new Exception("TODO");
+                }
 
+                var resultOfFieldRead = ReadFieldsAtPosition(fieldsPosition);
+                if (!resultOfFieldRead)
+                {
+                    for (var i = 0; i < array.Length; i++)
+                    {
+                        if (array[i] == 0L)
+                            continue;
+
+                        if (ReadFieldsAtPosition(array[i]))
+                            break;
+                    }
+                }
+
+            }
+
+            bool ReadFieldsAtPosition(long position)
+            {
+                if (position == 0L)
+                    return true;
+
+                fields = new List<IFieldInfo>();
+                reader.Position = position;
+
+                bool success = true;
                 for (int j = 0; j < fieldCount; j++)
                 {
                     FieldInfo fieldInfo = new FieldInfo(this);
-                    if (name.Equals("AppearanceSetVolumePreservationFactorScale", System.StringComparison.OrdinalIgnoreCase))
-                    {
-                        //var finderIt = reader.scan("53 68 61 64 65 72 44 72 61 77 4F 72 64 65 72 5F 49 6E 76 61 6C 69 64");
-                        //reader.Position = finderIt[0];
-                        //fieldInfo.name = reader.ReadNullTerminatedStringAtCurPosition();
-                    }
 
                     fieldInfo.Read(reader);
                     fieldInfo.index = j;
                     if (fieldInfo.name.Contains("UnkField"))
                         fieldInfo.name = this.name + "_" + j;
                     if (!fieldInfo.ReadSuccessfully)
+                    {
                         Debug.WriteLine($"Unable to read {FieldType}:{this.name}:{j}");
+                        success = false;
+                    }
 
                     if (FieldType == EbxFieldType.Function)
                     {
@@ -190,11 +217,7 @@ namespace SdkGenerator.FC24
                     fields.Add(fieldInfo);
 
                 }
-
-
-                foreach (var f in fields)
-                {
-                }
+                return success;
             }
         }
 
