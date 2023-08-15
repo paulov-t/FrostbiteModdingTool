@@ -44,7 +44,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="FMTIcon24.ico" />
+    <Content Include="FMTIcon24.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="FrostySdk.Profiles.bin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -91,13 +93,13 @@
 
   <ItemGroup>
 	<ProjectReference Include="..\..\Libraries\CSIL\CSIL.csproj" />
-	  <ProjectReference Include="..\..\Libraries\FMT.FileTools\FMT.FileTools.csproj" >
+	  <ProjectReference Include="..\..\Libraries\FMT.FileTools\FMT.FileTools.csproj">
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </ProjectReference>
     <ProjectReference Include="..\..\Libraries\FifaLibrary\FifaLibrary.csproj" />
     <ProjectReference Include="..\..\Libraries\FMT.Controls\FMT.Controls.csproj" />
 	  
-	  <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" >
+	  <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj">
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </ProjectReference>
     <ProjectReference Include="..\..\Libraries\SDKGenerator\SDKGenerator.csproj" />
@@ -164,6 +166,12 @@
     <None Update="Resources\images\DeadSpaceCover.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\images\EASFC24Cover.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\images\FC24Cover.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\images\FIFA17Cover.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -198,6 +206,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	</None>
+    <None Update="Resources\images\Madden24Cover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\images\NeedForSpeedUnboundCover.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -245,10 +256,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
-    <None Update="SDK\FIFA23SDK.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </None>
+    
     <None Update="SDK\MADDEN22SDK.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -258,11 +266,23 @@
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 
 	  </None>
+	  <None Update="SDK\MADDEN24SDK.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
+	  <None Update="SDK\MADDEN24SDK.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
 	  <None Update="SDK\NeedForSpeedUnboundSDK.dll">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
 	  <None Update="SDK\MADDEN23SDK.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
+	  <None Update="SDK\MADDEN24SDK.dll">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
@@ -311,6 +331,10 @@
 	  </None>
 	  <None Include="..\..\Plugins\Madden23Plugin\bin\Debug\net7.0-windows\Madden23Plugin.dll" Link="Plugins\Madden23Plugin.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
+	  <None Include="..\..\Plugins\Madden24Plugin\bin\Debug\net7.0-windows\Madden24Plugin.dll" Link="Plugins\Madden24Plugin.dll">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
 	  <None Include="..\..\Plugins\NFSUnboundPlugin\bin\Debug\net7.0-windows\NeedForSpeedUnboundPlugin.dll" Link="Plugins\NeedForSpeedUnboundPlugin.dll">
