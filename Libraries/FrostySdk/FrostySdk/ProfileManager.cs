@@ -143,10 +143,21 @@ namespace FrostySdk
                 get
                 {
 
-                    var fi = new FileInfo(AssetManager.ApplicationDirectory + "/Resources/images/" + Name + "Cover.jpg");
-                    if (fi.Exists)
-                        return fi.FullName;
-                    return editorIcon;
+                    var nameCover = $"{Name}Cover";
+                    var path = Path.Combine(AssetManager.ApplicationDirectory, "Resources", "images", $"{nameCover}");
+                    var fiJpg = new FileInfo(path + ".jpg");
+                    if (fiJpg.Exists)
+                        return fiJpg.FullName;
+
+                    var fiPng = new FileInfo(path + ".png");
+                    if (fiPng.Exists)
+                        return fiPng.FullName;
+
+                    var fiIco = new FileInfo(path + ".ico");
+                    if (fiIco.Exists)
+                        return fiIco.FullName;
+
+                    return "FMTIcon24.ico";
 
                 }
                 set { editorIcon = value; }
@@ -564,6 +575,16 @@ namespace FrostySdk
             bool isMadden = false;
 
             isMadden = version == EGame.MADDEN23;
+
+            return isMadden;
+        }
+
+        public static bool IsMadden24DataVersion()
+        {
+
+            bool isMadden = false;
+
+            isMadden = ProfileManager.DataVersion == (int)EGame.MADDEN24;
 
             return isMadden;
         }
