@@ -354,19 +354,21 @@ namespace FIFAModdingUI.Pages.Common
                 }
                 else
                 {
-                    var ebx = AssetManager.Instance.GetEbxStream((EbxAssetEntry)assetEntry);
-                    if (ebx != null)
-                    {
-                        if (isFolder)
-                            saveLocation += ".bin";
-                        File.WriteAllBytes(saveLocation, ((MemoryStream)ebx).ToArray());
-                        MainEditorWindow.Log($"Exported {assetEntry.Filename} to {saveLocation}");
+                    AssetEntryExporter entryExporter = new AssetEntryExporter(assetEntry);
+                    File.WriteAllText(!saveLocation.EndsWith(".json") && isFolder ? saveLocation + ".json" : saveLocation , entryExporter.ExportToJson());
+                    //var ebx = AssetManager.Instance.GetEbxStream((EbxAssetEntry)assetEntry);
+                    //if (ebx != null)
+                    //{
+                    //    if (isFolder)
+                    //        saveLocation += ".bin";
+                    //    File.WriteAllBytes(saveLocation, ((MemoryStream)ebx).ToArray());
+                    //    MainEditorWindow.Log($"Exported {assetEntry.Filename} to {saveLocation}");
 
-                    }
-                    else
-                    {
-                        MainEditorWindow.Log("Failed to export file");
-                    }
+                    //}
+                    //else
+                    //{
+                    //    MainEditorWindow.Log("Failed to export file");
+                    //}
                 }
             }
         }
@@ -675,10 +677,16 @@ namespace FIFAModdingUI.Pages.Common
                     var ebxInPath = AssetManager.Instance.EnumerateEbx().Where(x => x.Name.Contains(assetPath.FullPath.Substring(1)));
                     if (ebxInPath.Any())
                     {
+                        MainEditorWindow.ShowLoadingDialog("Exporting folder", "Exporting folder", 0);
+                        var countOfItemsInEbxPath = ebxInPath.Count();
+                        var indexOfItemInEbxPath = 0;
                         foreach (var ebx in ebxInPath)
                         {
                             await ExportAsset(ebx, folder);
+                            indexOfItemInEbxPath++;
+                            MainEditorWindow.ShowLoadingDialog("Exporting file " + ebx.Name, "Exporting folder", (int)Math.Round((double)indexOfItemInEbxPath / countOfItemsInEbxPath));
                         }
+                        MainEditorWindow.ShowLoadingDialog("", "", 0);
                     }
 
                     MainEditorWindow.Log($"Exported {assetPath.FullPath} to {folder}");
