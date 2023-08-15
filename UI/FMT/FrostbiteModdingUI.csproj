@@ -46,7 +46,8 @@
   <ItemGroup>
     <Content Include="FMTIcon24.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</Content>
     <Content Include="FrostySdk.Profiles.bin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -165,19 +166,24 @@
     </None>
     <None Update="Resources\images\DeadSpaceCover.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
     <None Update="Resources\images\EASFC24Cover.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</None>
     <None Update="Resources\images\FC24Cover.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</None>
     <None Update="Resources\images\FIFA17Cover.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</None>
     <None Update="Resources\images\FIFA18Cover.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</None>
     <None Update="Resources\images\FIFA20Cover.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
