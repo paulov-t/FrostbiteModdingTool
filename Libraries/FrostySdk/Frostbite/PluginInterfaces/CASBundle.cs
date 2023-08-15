@@ -45,7 +45,10 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                     return 0;
                 }
 
-                return Sizes.Sum(x => (int)x) + BundleSize;
+                long sizes = BundleSize;
+                foreach (var s in Sizes)
+                    sizes += s;
+                return sizes;
             }
         }
 

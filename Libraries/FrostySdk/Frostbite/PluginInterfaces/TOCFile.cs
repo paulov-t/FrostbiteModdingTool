@@ -3,6 +3,7 @@ using FrostbiteSdk;
 using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
@@ -42,8 +43,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
         //public int[] ArrayOfInitialHeaderData = new int[12];
 
         public ContainerMetaData MetaData { get; } = new ContainerMetaData();
-        public BaseBundleInfo[] Bundles { get; private set; } = new BaseBundleInfo[0];
-        public int[] BundleReferences { get; private set; } = new int[0];
+        public BaseBundleInfo[] Bundles { get; protected set; } = new BaseBundleInfo[0];
+        public int[] BundleReferences { get; protected set; } = new int[0];
 
         public List<BundleEntry> BundleEntries { get; } = new List<BundleEntry>();
 
@@ -263,7 +264,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             }
         }
 
-        private void ReadChunkData(NativeReader nativeReader)
+        protected virtual void ReadChunkData(NativeReader nativeReader)
         {
             nativeReader.Position = actualInternalPos + MetaData.ChunkFlagOffsetPosition;
             if (MetaData.ChunkCount > 0)
@@ -384,7 +385,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             }
         }
 
-        private void ReadBundleData(NativeReader nativeReader)
+        protected virtual void ReadBundleData(NativeReader nativeReader)
         {
             nativeReader.Position = actualInternalPos + MetaData.BundleOffset;
             if (MetaData.BundleCount > 0 && MetaData.BundleCount != MetaData.BundleOffset)
@@ -441,7 +442,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
         public int[] CompressedStringNames { get; set; }
         public int[] CompressedStringTable { get; set; }
 
-        public void ReadCasBundles(NativeReader nativeReader)
+        protected virtual void ReadCasBundles(NativeReader nativeReader)
         {
             var remainingByteLength = nativeReader.Length - nativeReader.Position;
             if (remainingByteLength > 0)

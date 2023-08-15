@@ -14,18 +14,20 @@ namespace FrostySdk.IO
     public class EbxReader : NativeReader
     {
         public EbxVersion ebxVersion { get; set; }
-        public static EbxReader GetEbxReader(Stream stream)
+
+        public static EbxReader GetEbxReader(Stream stream, bool patched)
         {
-            EbxReader reader = new EbxReader(stream);
-            foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                Type t = a.GetTypes().FirstOrDefault(x => x.Name == ProfileManager.EBXReader);
-                if (t != null)
-                {
-                    reader = (EbxReader)Activator.CreateInstance(t, stream);
-                }
-            }
-            return reader;
+            return (EbxReader)AssetManager.LoadTypeByName(ProfileManager.EBXReader, stream, patched);
+            //EbxReader reader = new EbxReader(stream);
+            //foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+            //{
+            //    Type t = a.GetTypes().FirstOrDefault(x => x.Name == ProfileManager.EBXReader);
+            //    if (t != null)
+            //    {
+            //        reader = (EbxReader)Activator.CreateInstance(t, stream);
+            //    }
+            //}
+            //return reader;
         }
 
         public List<EbxField> fieldTypes { get; } = new List<EbxField>();

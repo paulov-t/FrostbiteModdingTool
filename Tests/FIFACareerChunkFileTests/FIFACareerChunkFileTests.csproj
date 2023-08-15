@@ -46,13 +46,4 @@
     <Folder Include="Plugins\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\..\Plugins\FIFA21Plugin\bin\Debug\net7.0-windows\FIFA21Plugin.dll" Link="Plugins\FIFA21Plugin.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="..\..\Plugins\FIFA23Plugin\bin\Debug\net7.0-windows\FIFA23Plugin.dll" Link="Plugins\FIFA23Plugin.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

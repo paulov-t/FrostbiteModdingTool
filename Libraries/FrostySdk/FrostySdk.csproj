@@ -8,6 +8,8 @@
 	  <Optimize>false</Optimize>
 
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+
   </PropertyGroup>   
   
 	<!--<PropertyGroup>
@@ -92,6 +94,10 @@
 
 	  </None>
 	  <None Update="FrostbiteProfiles\DeadSpaceProfile.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
+	  <None Update="FrostbiteProfiles\FC24Profile.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>

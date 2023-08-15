@@ -91,9 +91,15 @@
 
   <ItemGroup>
 	<ProjectReference Include="..\..\Libraries\CSIL\CSIL.csproj" />
+	  <ProjectReference Include="..\..\Libraries\FMT.FileTools\FMT.FileTools.csproj" >
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
     <ProjectReference Include="..\..\Libraries\FifaLibrary\FifaLibrary.csproj" />
     <ProjectReference Include="..\..\Libraries\FMT.Controls\FMT.Controls.csproj" />
-	<ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" />
+	  
+	  <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" >
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </ProjectReference>
     <ProjectReference Include="..\..\Libraries\SDKGenerator\SDKGenerator.csproj" />
   </ItemGroup>
 
@@ -231,6 +237,10 @@
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	
     </None>
+    <None Update="SDK\FC24SDK.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
     <None Update="SDK\FIFA23SDK.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -277,6 +287,11 @@
   <ItemGroup>
 	  <None Include="..\..\Plugins\DeadSpacePlugin\bin\Debug\net7.0-windows\DeadSpacePlugin.dll" Link="Plugins\DeadSpacePlugin.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
+	  <None Include="..\..\Plugins\FC24Plugin\bin\Debug\net7.0-windows\FC24Plugin.dll" Link="Plugins\FC24Plugin.dll">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
 	  <None Include="..\..\Plugins\FIFA20Plugin\bin\Debug\net7.0-windows\FIFA20Plugin.dll" Link="Plugins\FIFA20Plugin.dll">
 		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

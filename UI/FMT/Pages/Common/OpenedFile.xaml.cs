@@ -253,7 +253,11 @@ namespace FMT.Pages.Common
 
         private void OpenEbxTextureAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (ebxEntry.Type == "TextureAsset")
+            if (ebxEntry.Type == "TextureAsset"
+                
+                || ebxEntry.Name == "fifa/fesplash/splashscreen/splashscreen"
+
+                )
             {
                 try
                 {
@@ -322,7 +326,7 @@ namespace FMT.Pages.Common
                 }
                 else if (string.IsNullOrEmpty(ebxEntry.Type) || ebxEntry.Type == "UnknownType")
                 {
-                    //DisplayUnknownFileViewer(AssetManager.Instance.GetEbxStream(ebxEntry));
+                    DisplayUnknownFileViewer(AssetManager.Instance.GetEbxStream(ebxEntry));
                 }
                 else
                 {
@@ -360,6 +364,27 @@ namespace FMT.Pages.Common
 
             }
         }
+
+        private void DisplayUnknownFileViewer(Stream stream)
+        {
+            //btnExport.IsEnabled = true;
+            //btnImport.IsEnabled = true;
+            //btnRevert.IsEnabled = true;
+
+            //unknownFileDocumentsPane.Children.Clear();
+            var newLayoutDoc = new LayoutDocument();
+            newLayoutDoc.Title = SelectedEntry.DisplayName;
+            WpfHexaEditor.HexEditor hexEditor = new WpfHexaEditor.HexEditor();
+            hexEditor.Stream = stream;
+            newLayoutDoc.Content = hexEditor;
+            //hexEditor.BytesModified -= HexEditor_BytesModified;
+            //hexEditor.BytesModified += HexEditor_BytesModified;
+            unknownFileDocumentsPane.Children.Insert(0, newLayoutDoc);
+            unknownFileDocumentsPane.SelectedContentIndex = 0;
+
+            //UnknownFileViewer.Visibility = Visibility.Visible;
+        }
+
 
         private void OpenLTUAsset(LiveTuningUpdate.LiveTuningUpdateEntry entry)
         {

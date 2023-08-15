@@ -7,6 +7,7 @@ using FrostbiteModdingUI.Models;
 using FrostbiteModdingUI.Windows;
 using FrostySdk;
 using FrostySdk.Managers;
+using FrostySdk.ModsAndProjects.Projects;
 using MahApps.Metro.Controls;
 using System;
 using System.Collections.Generic;
@@ -104,29 +105,66 @@ namespace FMT
                             ProfileManager.Initialize(SelectedProfile.Name);
                             if (App.StartupArgs.Contains("Editor"))
                             {
-                                var bS = new FindGameEXEWindow().ShowDialog();
-                                if (bS.HasValue && bS.Value == true && !string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
-                                {
-                                    foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
-                                    {
-                                        var t = a.GetTypes().FirstOrDefault(x => x.Name.Contains(SelectedProfile.EditorScreen, StringComparison.OrdinalIgnoreCase));
-                                        if (t != null)
-                                        {
-                                            App.MainEditorWindow = (Window)Activator.CreateInstance(t, this);
-                                            App.MainEditorWindow.Show();
-                                            // Empty the Args so we don't do this again once the App has loaded
-                                            App.StartupArgs = new string[0];
-                                            return;
-                                        }
-                                    }
-                                }
+                                OpenEditorByProfile(SelectedProfile);
                             }
                             else
                             {
                                 OpenGame(SelectedProfile);
                             }
                         }
-                        
+                    }
+                    
+                }
+
+                // File Association Arguments
+                if (App.StartupArgs.Length == 1)
+                {
+
+                    var filePath = App.StartupArgs[0];
+                    var fileInfo = new FileInfo(filePath);
+                    
+                    if (!fileInfo.Exists)
+                        return;
+
+                    switch (fileInfo.Extension)
+                    {
+                        case ".fmtproj":
+                            FileLogger.WriteLine($"Load with *.fmtproj");
+                            
+                            FMTProject project = new FMTProject(filePath);
+                            if(project == null) return;
+
+                            if (!ProfilesWithEditor.Any(x => x.DataVersion == project.GameDataVersion))
+                            {
+                                FileLogger.WriteLine($"Unable to find a game profile with DataVersion={project.GameDataVersion}");
+                                return;
+                            }
+
+                            var projectGameProfile = ProfilesWithEditor.Single(x => x.DataVersion == project.GameDataVersion);
+                            OpenEditorByProfile(projectGameProfile);
+
+                            break;
+                    }
+
+                }
+            }
+        }
+
+        private void OpenEditorByProfile(Profile SelectedProfile)
+        {
+            var bS = new FindGameEXEWindow().ShowDialog();
+            if (bS.HasValue && bS.Value == true && !string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
+            {
+                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    var t = a.GetTypes().FirstOrDefault(x => x.Name.Contains(SelectedProfile.EditorScreen, StringComparison.OrdinalIgnoreCase));
+                    if (t != null)
+                    {
+                        App.MainEditorWindow = (Window)Activator.CreateInstance(t, this);
+                        App.MainEditorWindow.Show();
+                        // Empty the Args so we don't do this again once the App has loaded
+                        App.StartupArgs = new string[0];
+                        return;
                     }
                 }
             }

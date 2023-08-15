@@ -213,10 +213,10 @@ namespace FrostySdk.IO._2022.Readers
         {
             if (obj == null)
             {
-                throw new ArgumentNullException("obj");
+                //throw new ArgumentNullException("obj");
                 //base.Position += classType.Size;
                 //base.Pad(classType.Alignment);
-                //return null;
+                return null;
             }
 
             base.Position = startOffset;
