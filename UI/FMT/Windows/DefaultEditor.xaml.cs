@@ -31,6 +31,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using v2k4FIFAModding.Frosty;
 using v2k4FIFAModdingCL;
 using static FrostySdk.ProfileManager.Tools;
@@ -62,6 +63,7 @@ namespace FrostbiteModdingUI.Windows
             this.DataContext = this;
             Loaded += DefaultEditor_Loaded;
             Owner = owner;
+
         }
 
         private async void DefaultEditor_Loaded(object sender, RoutedEventArgs e)
@@ -98,8 +100,72 @@ namespace FrostbiteModdingUI.Windows
                 }
             }
 
+
+            try
+            {
+                Uri iconUri = null;
+                if (File.Exists(ProfileManager.LoadedProfile.EditorIcon))
+                {
+                    
+                    switch(new FileInfo(ProfileManager.LoadedProfile.EditorIcon).Extension)
+                    {
+                        case ".ico":
+                            break;
+                        case ".png":
+                        case ".jpg":
+                            var bmpBytes = new CSharpImageLibrary.ImageEngineImage(File.ReadAllBytes(ProfileManager.LoadedProfile.EditorIcon)).Save(
+                                new CSharpImageLibrary.ImageFormats.ImageEngineFormatDetails(CSharpImageLibrary.ImageEngineFormat.BMP)
+                                , CSharpImageLibrary.MipHandling.KeepTopOnly);
+                            if (bmpBytes == null)
+                                iconUri = new Uri("pack://application:,,,/FMT;component/FMTIcon24.ico");
+                            else
+                                Icon = BitmapFrame.Create(CreateBitmapImageFromBytes(bmpBytes));
+                            break;
+                        default:
+                            iconUri = new Uri("pack://application:,,,/FMT;component/FMTIcon24.ico");
+                            break;
+                    }
+                }
+                else
+                {
+                    iconUri = new Uri("pack://application:,,,/FMT;component/FMTIcon24.ico");
+                }
+
+                if(iconUri != null) 
+                { 
+                    Icon = BitmapFrame.Create(iconUri);
+                }
+            }
+            catch
+            {
+
+            }
+
             launcherOptions = await LauncherOptions.LoadAsync();
 
+        }
+
+        private System.Windows.Media.Imaging.BitmapImage CreateBitmapImageFromBytes(byte[] imageData)
+        {
+            BitmapImage bitmapImage = new System.Windows.Media.Imaging.BitmapImage();
+            if (imageData == null || imageData.Length == 0)
+                return null;
+
+            using (var mem = new MemoryStream(imageData))
+            {
+                mem.Position = 0;
+                bitmapImage.BeginInit();
+                bitmapImage.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat;
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.UriSource = null;
+                bitmapImage.StreamSource = mem;
+                bitmapImage.EndInit();
+            }
+            bitmapImage.Freeze();
+
+            imageData = null;
+
+            return bitmapImage;
         }
 
         protected override void OnClosing(CancelEventArgs e)

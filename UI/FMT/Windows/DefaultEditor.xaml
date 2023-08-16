@@ -132,14 +132,14 @@
                 <Trigger Property="Role" Value="TopLevelHeader">
                     <Setter Property="Background" Value="Transparent"/>
                     <Setter Property="BorderBrush" Value="Transparent"/>
-                    <Setter Property="Foreground" Value="{StaticResource Menu.Static.Foreground}"/>
+                    <Setter Property="Foreground" Value="{StaticResource MahApps.Brushes.IdealForeground}"/>
                     <Setter Property="Template" Value="{DynamicResource {ComponentResourceKey ResourceId=TopLevelHeaderTemplateKey, TypeInTargetAssembly={x:Type MenuItem}}}"/>
                     <Setter Property="Padding" Value="6,0"/>
                 </Trigger>
                 <Trigger Property="Role" Value="TopLevelItem">
-                    <Setter Property="Background" Value="{StaticResource Menu.Static.Background}"/>
-                    <Setter Property="BorderBrush" Value="{StaticResource Menu.Static.Border}"/>
-                    <Setter Property="Foreground" Value="{StaticResource Menu.Static.Foreground}"/>
+                    <Setter Property="Background" Value="{StaticResource MahApps.Brushes.Menu.Background}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.IdealForeground}"/>
+                    <Setter Property="Foreground" Value="{StaticResource MahApps.Brushes.IdealForeground}"/>
                     <Setter Property="Template" Value="{DynamicResource {ComponentResourceKey ResourceId=TopLevelItemTemplateKey, TypeInTargetAssembly={x:Type MenuItem}}}"/>
                     <Setter Property="Padding" Value="6,0"/>
                 </Trigger>
