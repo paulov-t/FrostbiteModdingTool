@@ -112,9 +112,19 @@ namespace Frostbite.Textures
                 {
                     TextureUtils.BlobData pOutData = default(TextureUtils.BlobData);
                     TextureUtils.ConvertDDSToImage(array, array.Length, imageFormat, ref pOutData);
-                    nativeWriter2.Write(pOutData.Data);
-                    nativeWriter2.BaseStream.Position = 0;
-                    return nativeWriter2.BaseStream;
+
+                    try
+                    {
+                        nativeWriter2.Write(pOutData.Data);
+                        nativeWriter2.BaseStream.Position = 0;
+                        return nativeWriter2.BaseStream;
+                    }
+                    catch (Exception ex)
+                    {
+                        var csilImage = new CSharpImageLibrary.ImageEngineImage(array);
+                        return null;
+                    }
+                 
                 }
             }
 
