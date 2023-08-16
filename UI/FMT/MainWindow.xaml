@@ -9,7 +9,7 @@
         xmlns:mwpfui="http://schemas.modernwpf.com/2019"
         mc:Ignorable="d"
         Title="{Binding WindowTitle}" Height="600" Width="600" WindowStartupLocation="CenterScreen" Background="#131317"
-        Icon="FMTIcon24.ico"         >
+                >
     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="75"></RowDefinition>

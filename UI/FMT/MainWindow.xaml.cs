@@ -17,6 +17,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using v2k4FIFAModdingCL;
 using static FrostySdk.ProfileManager;
 
@@ -63,6 +64,15 @@ namespace FMT
 
             IsVisibleChanged += MainWindow_IsVisibleChanged;
 
+            try
+            {
+                Uri iconUri = new Uri("pack://application:,,,/FMT;component/FMTIcon24.ico");
+                Icon = BitmapFrame.Create(iconUri);
+            }
+            catch
+            {
+
+            }
 
             Loaded += MainWindow_Loaded;
         }
