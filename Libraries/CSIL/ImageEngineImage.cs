@@ -196,6 +196,8 @@ namespace CSharpImageLibrary
         {
             CompressedSize = (int)stream.Length;
             Header = ImageEngine.LoadHeader(stream);
+            if (Header == null)
+                return;
 
             // DX10
             var DX10Format = DDS_Header.DXGI_FORMAT.DXGI_FORMAT_UNKNOWN;
@@ -288,6 +290,9 @@ namespace CSharpImageLibrary
                 alphaSetting = AlphaSettings.RemoveAlphaChannel;
             else if (destFormatDetails.Format == ImageEngineFormat.DDS_DXT2 || destFormatDetails.Format == ImageEngineFormat.DDS_DXT4)
                 alphaSetting = AlphaSettings.Premultiply;
+
+            if (FormatDetails == null)
+                return null;
 
             // If same format and stuff, can just return original data, or chunks of it.
             if (destFormatDetails.Format == Format)
