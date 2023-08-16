@@ -66,10 +66,12 @@ As of September 2022, Frosty Toolsuite is open source on [GitHub](https://github
 
 ### Read Only Support
 - Dead Space (Read only)
-- FIFA 17 (Read only)
-- MADDEN 23 (Read only)
-- NFS Unbound (Read only)
+- EA Sports FC 24 (Read only)
 - EA Sports PGA Tour (Read only)
+- FIFA 17 (Read only)
+- Madden NFL 23 (Read only)
+- Madden NFL 24 (Read only)
+- NFS Unbound (Read only)
 - Star Wars Squadrons (Read only)
 
 ### Potential to be supported (Plugins, SDK and Profiles may exist but not tested)
