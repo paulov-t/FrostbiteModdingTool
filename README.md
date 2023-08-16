@@ -47,7 +47,7 @@ Please refer to the [Wiki](https://github.com/paulov-t/FrostbiteModdingTool/wiki
 - Jaycensolo - Jay has been a great help in testing any mod for FIFA this tool generates
 - [@xAranaktu](https://github.com/xAranaktu) - This man is a legend of the world of FIFA / EASportsFC. Is the main reason modding is still available in FIFA 23 and beyond.
 - Somers - Made an enormous mod for FIFA 21 and really put this tool to the test
-- [Frosty Tool](https://github.com/CadeEvs/FrostyToolsuite) development team. All the `original code` for `FrostySdk`,`SDK Generator` and `Modding` came decompilation of their Toolsuite using ILSpy in 2019. 
+- [@CadeEvs / Frosty Toolsuite](https://github.com/CadeEvs/FrostyToolsuite) development team. All the `original code` for `FrostySdk`,`SDK Generator` and `Modding` came decompilation of their Toolsuite using ILSpy in 2019. 
 As of September 2022, Frosty Toolsuite is open source on [GitHub](https://github.com/CadeEvs/FrostyToolsuite)
 - [FIFA Editor Tool](https://www.fifaeditortool.com/) development team. Used for research into how to properly handle Meshes for FIFA 21. 
 - EA Sports & DICE - Without their engine and suite of games, this tool and the addiction to modding them wouldnt exist. Many thanks to all those who develop it and Frostbite!
