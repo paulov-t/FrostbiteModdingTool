@@ -38,7 +38,7 @@ namespace Madden24Plugin
 
         //public int shaCount;
 
-        int attempts = 0;
+        //int attempts = 0;
 
         public SBHeaderInformation(NativeReader nr, int additionalHeaderLength = 36)
         {
