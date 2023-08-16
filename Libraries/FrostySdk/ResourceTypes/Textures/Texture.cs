@@ -1,5 +1,6 @@
 using FMT.FileTools;
 using FMT.FileTools.Modding;
+using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
@@ -442,6 +443,13 @@ namespace FrostySdk.Resources
 
         private void ReadInStream(NativeReader nativeReader)
         {
+            var textureReader = AssetManager.Instance.LoadTypeFromPluginByInterface(typeof(ITextureResourceReader).FullName);
+            if (textureReader != null)
+            {
+                ((ITextureResourceReader)textureReader).ReadInStream(nativeReader, this);
+                return;
+            }
+
             if (ProfileManager.IsGameVersion(EGame.PGATour))
             {
                 ReadInStreamFIFA23(nativeReader);
@@ -457,7 +465,7 @@ namespace FrostySdk.Resources
                 ReadInStreamFC24(nativeReader);
                 return;
             }
-            if (ProfileManager.IsGameVersion(EGame.MADDEN23))
+            if (ProfileManager.IsLoaded(EGame.MADDEN23, EGame.MADDEN24))
             {
                 ReadInStreamMadden23(nativeReader);
                 return;
