@@ -67,23 +67,28 @@ namespace FC24Plugin
 
                 for (int chunkIndex = 0; chunkIndex < MetaData.ChunkCount; chunkIndex++)
                 {
-                    //Guid tocChunkGuid = nativeReader.ReadGuidReverse();
-                    //int origIndex = nativeReader.ReadInt(Endian.Big);
-                    //var actualIndex = origIndex & 0xFFFFFF;
-                    //var actualIndexDiv3 = actualIndex / 3;
-                    //TocChunkGuids[chunkIndex] = tocChunkGuid;
-                    //ChunkIndexToChunkId.Add(origIndex, tocChunkGuid);
-                    Guid guid = nativeReader.ReadGuidReverse();
+                    
+                    Guid guid = nativeReader.ReadGuid();
+                    nativeReader.Position -= 16;
+                    Guid guidReverse = nativeReader.ReadGuidReverse();
+
+#if DEBUG
+                    if (guidReverse.ToString() == "19104422-214d-40b9-e26c-198089f37621")
+                    {
+
+                    }
+#endif
+
                     uint decodeAndOffset = nativeReader.ReadUInt(Endian.Big);
                     uint order = decodeAndOffset & 0xFFFFFFu;
-                    (Guid, uint) superBundleChunk = new (guid, decodeAndOffset);
+                    (Guid, uint) superBundleChunk = new (guidReverse, decodeAndOffset);
                     while (TocChunks.Count <= order / 3u)
                     {
                         TocChunks.Add(null);
                     }
                     TocChunks[(int)(order / 3u)] = new ChunkAssetEntry
                     {
-                        Id = guid
+                        Id = guidReverse
                     };
                     TOCChunkByOffset.Add(order, TocChunks[(int)(order / 3u)]);
                 }
@@ -102,6 +107,7 @@ namespace FC24Plugin
                 {
                     uint chunkIdentificationOffset = (uint)(nativeReader.Position - 556 - MetaData.DataOffset) / 4u;
                     ChunkAssetEntry tocChunk = TOCChunkByOffset[chunkIdentificationOffset];
+                    tocChunk.IsTocChunk = true;
 
                     nativeReader.ReadByte();
                     nativeReader.ReadByte();
@@ -124,9 +130,9 @@ namespace FC24Plugin
                     tocChunk.ExtraData.Catalog = (ushort)catalog;
                     tocChunk.ExtraData.Cas = cas;
                     tocChunk.ExtraData.IsPatch = false;
-                    //tocChunk.ExtraData.CasPath = FileSystem.Instance.GetFilePath(catalog, cas, fa);
                     tocChunk.ExtraData.DataOffset = offset;
                     tocChunk.Bundles.Add(ChunkDataBundleId);
+                    AssetManager.Instance.AddChunk(tocChunk);
                 }
             }
         }
