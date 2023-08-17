@@ -49,7 +49,7 @@ namespace FrostySdk.FrostySdk.IO
 
         private readonly List<EbxInstance> instances = new List<EbxInstance>();
 
-        private readonly List<EbxArray> arrays = new List<EbxArray>();
+        private List<EbxArray> arrays { get; } = new List<EbxArray>();
 
         private readonly List<byte[]> arrayData = new List<byte[]>();
 
@@ -373,14 +373,22 @@ namespace FrostySdk.FrostySdk.IO
             for (var iEbxxArray = 0; iEbxxArray < ebxxArrayCount; iEbxxArray++)
             {
                 var arr = ebxxArrays[iEbxxArray];
-                Write(arr.Offset);
-                Write(arr.Count);
-                if(origEbxArrays.Count - 1 > iEbxxArray)
+                if (origEbxArrays.Count - 1 > iEbxxArray)
+                {
+                    Write(arr.Offset);
+                    Write(arr.Count);
                     Write(origEbxArrays[iEbxxArray].PathDepth);
+                    Write((ushort)origEbxArrays[iEbxxArray].TypeFlags);
+                    Write((ushort)arr.ClassRef);
+                }
                 else
-                    Write(0x00);
-                Write((ushort)origEbxArrays[iEbxxArray].TypeFlags);
-                Write((ushort)arr.ClassRef);
+                {
+                    Write(0u);
+                    Write(0u);
+                    Write(0u);
+                    WriteUInt16(0, Endian.Little);
+                    WriteUInt16(0, Endian.Little);
+                }
             }
             //}
             ebxxChunkLength = (uint)base.Position - (uint)ebxxChunkLengthOffset - 4u;
@@ -624,37 +632,49 @@ namespace FrostySdk.FrostySdk.IO
                 exportedCount += (ushort)(ebxInstance.IsExported ? 1 : 0);
             }
             nativeWriter.WritePadding(16);
-            arraysPosition = (int)nativeWriter.Position;
-            nativeWriter.WriteEmpty(32);
-            foreach (var unpatchedArray2 in unpatchedArrayInfo)
-            {
-                EbxArray arrayInfo = arrays[unpatchedArray2.arrayIndex];
-                byte[] arrayData = this.arrayData[unpatchedArray2.arrayIndex];
-                if (arrayInfo.Count == 0)
-                {
-                    uint offsetFromPayload = (arrayInfo.Offset = (uint)(arraysPosition + 16));
-                }
-                else
-                {
-                    long beforePaddingPosition = nativeWriter.Position;
-                    //nativeWriter.WritePadding(16);
-                    //if ((nativeWriter.Position - beforePaddingPosition) < 4)
-                    //               {
-                    //	nativeWriter.WriteEmpty(16);
-                    //}
-                    ////nativeWriter.Position -= 12L;
-                    //nativeWriter.Position -= 4L;
-                    nativeWriter.WriteUInt32LittleEndian(arrayInfo.Count);
-                    long beforeArrayPosition = nativeWriter.Position;
-                    nativeWriter.WriteBytes(arrayData);
-                    arrayInfo.Offset = (uint)beforeArrayPosition;
-                    nativeWriter.WritePadding(16);
-                }
-                arrays[unpatchedArray2.arrayIndex] = arrayInfo;
-            }
-            nativeWriter.WritePadding(16);
+
+            ProcessDataArray(nativeWriter);
+            //arraysPosition = (int)nativeWriter.Position;
+            //nativeWriter.WriteEmpty(32);
+
+            //var _arrays = this.arrays;
+
+            //foreach (var unpatchedArray2 in unpatchedArrayInfo)
+            //{
+            //    EbxArray arrayInfo = arrays[unpatchedArray2.arrayIndex];
+            //    byte[] arrayData = this.arrayData[unpatchedArray2.arrayIndex];
+            //    if (arrayInfo.Count == 0)
+            //    {
+            //        uint offsetFromPayload = (arrayInfo.Offset = (uint)(arraysPosition + 16));
+            //    }
+            //    else
+            //    {
+            //        long beforePaddingPosition = nativeWriter.Position;
+            //        //nativeWriter.WritePadding(16);
+            //        //if ((nativeWriter.Position - beforePaddingPosition) < 4)
+            //        //               {
+            //        //	nativeWriter.WriteEmpty(16);
+            //        //}
+            //        ////nativeWriter.Position -= 12L;
+            //        //nativeWriter.Position -= 4L;
+            //        nativeWriter.WriteUInt32LittleEndian(arrayInfo.Count);
+            //        long beforeArrayPosition = nativeWriter.Position;
+            //        nativeWriter.WriteBytes(arrayData);
+            //        arrayInfo.Offset = (uint)beforeArrayPosition;
+            //        nativeWriter.WritePadding(16);
+            //    }
+            //    arrays[unpatchedArray2.arrayIndex] = arrayInfo;
+            //}
+
+            //nativeWriter.WritePadding(16);
+
             boxedValuesPosition = (int)nativeWriter.Position;
             nativeWriter.WritePadding(16);
+
+
+
+
+
             stringTablePosition = (int)nativeWriter.Position;
             foreach (KeyValuePair<string, List<(int, int)>> stringsToCStringOffset in stringsToCStringOffsets)
             {
@@ -693,7 +713,19 @@ namespace FrostySdk.FrostySdk.IO
                 {
                     nativeWriter.Position = arrayPointerOffset;
                 }
+#if DEBUG
+                if (ebxArray.Offset == 10568)
+                {
+
+                }
+                if (ebxArray.Offset == 10564)
+                {
+
+                }
+#endif
+
                 int relativeOffset = (int)(ebxArray.Offset - nativeWriter.Position);
+
                 nativeWriter.WriteInt32LittleEndian(relativeOffset);
             }
             foreach (KeyValuePair<(int, int), int> item2 in pointerRefPositionToDataContainerIndex)
@@ -712,7 +744,18 @@ namespace FrostySdk.FrostySdk.IO
                     int realArrayIndex4 = arrayIndicesMap[containingArrayIndex4];
                     nativeWriter.Position = pointerRefPosition + arrays[realArrayIndex4].Offset;
                 }
-                nativeWriter.WriteInt32LittleEndian((int)(dataContainerOffsets[dataContainerIndex] - nativeWriter.Position));
+                int relativeOffset = (int)(dataContainerOffsets[dataContainerIndex] - nativeWriter.Position);
+#if DEBUG
+                if (relativeOffset == 10568)
+                {
+
+                }
+                if (dataContainerOffsets[dataContainerIndex] == 10564)
+                {
+
+                }
+#endif
+                nativeWriter.WriteInt32LittleEndian(relativeOffset);
             }
             foreach (var (pointerOffset, containingArrayIndex3) in pointerOffsets)
             {
@@ -722,6 +765,14 @@ namespace FrostySdk.FrostySdk.IO
                     continue;
                 }
                 int realArrayIndex3 = arrayIndicesMap[containingArrayIndex3];
+
+#if DEBUG
+                if (arrays[realArrayIndex3].Offset == 10564)
+                {
+
+                }
+#endif
+
                 patchedPointerOffsets.Add((int)(pointerOffset + arrays[realArrayIndex3].Offset));
             }
             foreach (var (resourceRefOffset, containingArrayIndex2) in resourceRefOffsets)
@@ -742,10 +793,130 @@ namespace FrostySdk.FrostySdk.IO
                     continue;
                 }
                 int realArrayIndex = arrayIndicesMap[containingArrayIndex];
+
+#if DEBUG
+                if (arrays[realArrayIndex].Offset == 10564)
+                {
+
+                }
+#endif
+
                 patchedImportOffsets.Add((int)(importOffset + arrays[realArrayIndex].Offset));
             }
             mainData = memoryStream.ToArray();
             uniqueClassCount = (ushort)uniqueTypes.Count;
+        }
+
+        protected void ProcessDataArray(FileWriter nativeWriter)
+        {
+            arraysPosition = (int)nativeWriter.Position;
+            nativeWriter.WriteEmpty(32);
+
+            _ = this.arrays;
+            _ = this.objs;
+            _ = classGuids;
+
+            foreach (var unpatchedArray in unpatchedArrayInfo)
+            {
+                EbxArray arrayInfo = arrays[unpatchedArray.arrayIndex];
+                byte[] arrayData = this.arrayData[unpatchedArray.arrayIndex];
+                if (arrayInfo.Count == 0)
+                {
+                    uint offsetFromPayload = (arrayInfo.Offset = (uint)(arraysPosition + 16));
+                }
+                else
+                {
+                    long beforePaddingPosition = nativeWriter.Position;
+                    //nativeWriter.WritePadding(16);
+                    //if ((nativeWriter.Position - beforePaddingPosition) < 4)
+                    //               {
+                    //	nativeWriter.WriteEmpty(16);
+                    //}
+                    ////nativeWriter.Position -= 12L;
+                    //nativeWriter.Position -= 4L;
+
+                    byte alignment = 0;
+                    //if (arrayInfo.ClassRef == -1)
+                    //{
+                        EbxFieldType arrayType = (EbxFieldType)((arrayInfo.TypeFlags >> 5) & 0x1F);
+                        switch (arrayType)
+                        {
+                            case EbxFieldType.Enum:
+                            case EbxFieldType.TypeRef:
+                            case EbxFieldType.String:
+                            case EbxFieldType.Boolean:
+                            case EbxFieldType.Float32:
+                            case EbxFieldType.Int8:
+                            case EbxFieldType.UInt8:
+                            case EbxFieldType.Int16:
+                            case EbxFieldType.UInt16:
+                            case EbxFieldType.Int32:
+                            case EbxFieldType.UInt32:
+                                alignment = 4; break;
+                            case EbxFieldType.Float64:
+                            case EbxFieldType.Int64:
+                            case EbxFieldType.UInt64:
+                            case EbxFieldType.CString:
+                            case EbxFieldType.FileRef:
+                            case EbxFieldType.Delegate:
+                            case EbxFieldType.Pointer:
+                            case EbxFieldType.ResourceRef:
+                            case EbxFieldType.BoxedValueRef:
+                                alignment = 8; break;
+                            default: alignment = 4; break;
+                        }
+                    //}
+                    //else
+                    //{
+                    //    EbxClass arrayClass = m_classTypes[array.ClassRef];
+                    //    switch (arrayClass.DebugCategory)
+                    //    {
+                    //        case EbxFieldCategory.EnumType:
+                    //            alignment = 4; break;
+                    //        case EbxFieldCategory.Pointer:
+                    //        case EbxFieldCategory.ArrayType:
+                    //        case EbxFieldCategory.DelegateType:
+                    //            alignment = 8; break;
+                    //        default: alignment = arrayClass.Alignment; break;
+                    //    }
+                    //}
+                    nativeWriter.WritePadding(alignment);
+                    // shift where the count is so that the array data is properly aligned
+                    long dataPos = nativeWriter.Position + 4;
+                    if (alignment != 4)
+                    {
+                        while (dataPos % alignment != 0)
+                        {
+                            nativeWriter.Write((byte)0);
+                            dataPos = nativeWriter.Position;
+                        }
+                        nativeWriter.Position -= 0x4;
+                    }
+
+
+                    nativeWriter.WriteUInt32LittleEndian(arrayInfo.Count);
+                    long beforeArrayPosition = nativeWriter.Position;
+
+#if DEBUG
+                    if (beforeArrayPosition == 10568
+                        || beforeArrayPosition == 10564 
+                        || 100-1==1
+                        ) 
+                    {
+                    
+                    }
+
+#endif
+
+
+                    nativeWriter.WriteBytes(arrayData);
+                    arrayInfo.Offset = (uint)beforeArrayPosition;
+                    nativeWriter.WritePadding(16);
+                }
+                arrays[unpatchedArray.arrayIndex] = arrayInfo;
+            }
+
+            nativeWriter.WritePadding(16);
         }
 
         protected virtual void WriteClass(object obj, Type objType, NativeWriter writer)
@@ -936,7 +1107,7 @@ namespace FrostySdk.FrostySdk.IO
         }
 
         //protected void WriteArray(object obj, EbxFieldType elementFieldType, uint fieldNameHash, byte classAlignment, NativeWriter writer, bool isReference)
-        protected void WriteArray(object obj, EbxFieldMetaAttribute fieldMetaAttribute, uint fieldNameHash, byte classAlignment, NativeWriter writer, bool isReference)
+        protected void WriteArray(object obj, EbxFieldMetaAttribute fieldMetaAttribute, uint fieldNameHash, byte classAlignment, NativeWriter mainWriter, bool isReference)
         {
             int classIndex = typesToProcess.FindIndex((Type item) => item == obj.GetType().GetGenericArguments()[0]);
             if (classIndex == -1)
@@ -946,17 +1117,16 @@ namespace FrostySdk.FrostySdk.IO
             IList typedObj = (IList)obj;
             int arrayCount = typedObj.Count;
             MemoryStream arrayMemoryStream = new MemoryStream();
-            FileWriter arrayWriter = new FileWriter(arrayMemoryStream);
+            using FileWriter arrayWriter = new FileWriter(arrayMemoryStream);
             int previousArrayIndex = currentArrayIndex;
             int localArrayIndex = (currentArrayIndex = arrayIndicesMap.Count);
             arrayIndicesMap.Add(-1);
             currentArrayDepth++;
-            long pointerPosition = writer.Position;
-            writer.WriteInt64LittleEndian(0L);
+            long pointerPosition = mainWriter.Position;
+            mainWriter.WriteInt64LittleEndian(0L);
             for (int i = 0; i < arrayCount; i++)
             {
                 object arrayElementObj = typedObj[i];
-                //WriteField(arrayElementObj, elementFieldType, classAlignment, arrayWriter, isReference);
                 WriteField(arrayElementObj, fieldMetaAttribute.ArrayType, classAlignment, arrayWriter, isReference);
             }
             int arrayIndex = arrays.Count;
