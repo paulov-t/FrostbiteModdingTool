@@ -202,11 +202,11 @@ namespace FrostySdk.Managers
 
         }
 
-        static bool PluginsInitialised { get; set; }
+        protected bool PluginsInitialised { get; set; }
 
         private static List<string> PluginAssemblies = new List<string>();
 
-        public static bool InitialisePlugins()
+        public bool InitialisePlugins()
         {
             if (PluginsInitialised)
                 return true;
