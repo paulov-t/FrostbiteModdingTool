@@ -363,7 +363,10 @@ namespace ModdingSupport
         {
             Logger = inLogger;
 
-            if (!AssetManager.InitialisePlugins())
+            if (AssetManager.Instance == null)
+                new AssetManager(Logger);
+
+            if (!AssetManager.Instance.InitialisePlugins())
             {
                 throw new Exception("Unable to initialize Plugins");
             }
