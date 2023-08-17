@@ -155,7 +155,8 @@ namespace FrostySdk.Frostbite.Compilers
         {
             // -----------------------------------------------------------
             // Only load cache when required
-            if (AssetManager.Instance == null)
+            //if (AssetManager.Instance == null)
+            if (AssetManager.Instance == null || !AssetManager.Instance.EBX.Any())
             {
                 CacheManager cacheManager = new CacheManager();
                 cacheManager.LoadData(ProfileManager.ProfileName, ModExecuter.GamePath, ModExecuter.Logger, false, true);
