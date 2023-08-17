@@ -15,6 +15,17 @@ namespace FMT.Controls.Models
     public abstract class ModdableEntity
     {
         public string PropertyName { get; set; }
+        private string displayName;
+
+        public string DisplayName
+        {
+            get 
+            {
+                return !string.IsNullOrEmpty(displayName) ? displayName : PropertyName;
+            }
+            set { displayName = value; }
+        }
+                
         public string PropertyType { get; set; }
         public string PropertyParentName { get; set; }
 
