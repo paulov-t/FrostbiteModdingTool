@@ -829,19 +829,73 @@ namespace FrostySdk.IO
             return new TypeRef(text);
         }
 
+        //public BoxedValueRef ReadBoxedValueRef()
+        //{
+        //    int num = ReadInt();
+        //    if (num > Length || num < 0)
+        //        return new BoxedValueRef();
+
+        //    Position += 12L;
+        //    long position = Position;
+        //    Position = boxedValuesOffset + num * 8;
+        //    byte[] inData = ReadBytes(8);
+        //    Position = position;
+        //    return new BoxedValueRef(num, inData);
+        //}
+
         public BoxedValueRef ReadBoxedValueRef()
         {
-            int num = ReadInt();
-            if (num > Length || num < 0)
+            int index = ReadInt();
+            Position += 12;
+
+            if (index == -1)
                 return new BoxedValueRef();
 
-            Position += 12L;
-            long position = Position;
-            Position = boxedValuesOffset + num * 8;
-            byte[] inData = ReadBytes(8);
-            Position = position;
-            return new BoxedValueRef(num, inData);
+            EbxBoxedValue boxedValue = boxedValues[index];
+            EbxFieldType subType = EbxFieldType.Inherited;
+
+            long pos = Position;
+            Position = boxedValuesOffset + boxedValue.Offset;
+
+            object value = null;
+            if ((EbxFieldType)boxedValue.Type == EbxFieldType.Array)
+            {
+                EbxClass arrayType = GetClass(null, boxedValue.ClassRef);
+                var arrayField = GetField(arrayType, arrayType.FieldIndex);
+
+                value = Activator.CreateInstance(typeof(List<>).MakeGenericType(GetTypeFromEbxField(arrayField)));
+
+                index = ReadInt();
+                EbxArray array = arrays[index];
+
+                long arrayPos = Position;
+                Position = arraysOffset + array.Offset;
+
+                for (int i = 0; i < array.Count; i++)
+                {
+                    object subValue = ReadField(arrayType, arrayField.DebugType, arrayField.ClassRef, false);
+                    value.GetType().GetMethod("Add").Invoke(value, new object[] { subValue });
+                }
+
+                subType = arrayField.DebugType;
+                Position = arrayPos;
+            }
+            else
+            {
+                value = ReadField(null, (EbxFieldType)boxedValue.Type, boxedValue.ClassRef);
+                if ((EbxFieldType)boxedValue.Type == EbxFieldType.Enum)
+                {
+                    object tmpValue = value;
+                    EbxClass enumClass = GetClass(null, boxedValue.ClassRef);
+                    value = Enum.Parse(GetType(enumClass), tmpValue.ToString());
+                }
+            }
+            Position = pos;
+
+            return new BoxedValueRef(value, (EbxFieldType)boxedValue.Type, subType);
         }
+
+        public virtual Type GetType(EbxClass classType) => TypeLibrary.GetType(classType.Name);
 
         public int HashString(string strToHash)
         {
