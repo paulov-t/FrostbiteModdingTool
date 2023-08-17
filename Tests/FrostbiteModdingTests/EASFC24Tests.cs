@@ -109,5 +109,17 @@ namespace FrostbiteModdingTests
             Debug.WriteLine($"{sw.Elapsed}");
         }
 
+
+        [TestMethod]
+        public void LoadLegacy()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
+
+            var ebxFCC = AssetManager.Instance.EBX.Keys.Where(x => x.Contains("legacy", StringComparison.OrdinalIgnoreCase));
+            var ebxFile = AssetManager.Instance.EBX.Keys.Where(x => x.Contains("file", StringComparison.OrdinalIgnoreCase));
+            var ebxCollector = AssetManager.Instance.EBX.Keys.Where(x => x.Contains("collector", StringComparison.OrdinalIgnoreCase));
+            var legacyItems = AssetManager.Instance.EnumerateCustomAssets("legacy").ToList();
+        }
+
     }
 }
