@@ -125,29 +125,29 @@ namespace FrostySdk.IO._2022.Readers
             return list;
         }
 
-        private static IEnumerable<EbxField> _AllEbxFields;
-        public static IEnumerable<EbxField> AllEbxFields
-        {
-            get
-            {
-                if (_AllEbxFields == null)
-                    _AllEbxFields = EbxSharedTypeDescriptors.patchStd.Fields.Union(EbxSharedTypeDescriptors.std.Fields);
+        //private static IEnumerable<EbxField> _AllEbxFields;
+        //public static IEnumerable<EbxField> AllEbxFields
+        //{
+        //    get
+        //    {
+        //        if (_AllEbxFields == null)
+        //            _AllEbxFields = EbxSharedTypeDescriptors.patchStd.Fields.Union(EbxSharedTypeDescriptors.std.Fields);
 
-                return _AllEbxFields;
-            }
-        }
+        //        return _AllEbxFields;
+        //    }
+        //}
 
-        private static Dictionary<uint, EbxField> NameHashToEbxField { get; } = new Dictionary<uint, EbxField>();
+        //private static Dictionary<uint, EbxField> NameHashToEbxField { get; } = new Dictionary<uint, EbxField>();
 
-        public static EbxField GetEbxFieldByNameHash(uint nameHash)
-        {
-            if (NameHashToEbxField.ContainsKey(nameHash))
-                return NameHashToEbxField[nameHash];
+        //public static EbxField GetEbxFieldByNameHash(uint nameHash)
+        //{
+        //    if (NameHashToEbxField.ContainsKey(nameHash))
+        //        return NameHashToEbxField[nameHash];
 
-            var field = AllEbxFields.Single(x => x.NameHash == nameHash);
-            NameHashToEbxField.Add(nameHash, field);
-            return field;
-        }
+        //    var field = AllEbxFields.Single(x => x.NameHash == nameHash);
+        //    NameHashToEbxField.Add(nameHash, field);
+        //    return field;
+        //}
 
         public static EbxField GetEbxFieldByProperty(EbxClass classType, PropertyInfo property)
         {
@@ -255,6 +255,11 @@ namespace FrostySdk.IO._2022.Readers
 
             }
 
+            if (type.Name.Equals("SpatialPrefabBlueprint"))
+            {
+
+            }
+
 #endif
 
             Dictionary<PropertyInfo, EbxFieldMetaAttribute> properties = new Dictionary<PropertyInfo, EbxFieldMetaAttribute>();
@@ -285,6 +290,10 @@ namespace FrostySdk.IO._2022.Readers
             {
                 base.Position = property.Value.Offset + startOffset;
 
+                if (property.Key.Name.Equals("Objects"))
+                {
+
+                }
                 var fieldMetaAttribute = property.Key.GetCustomAttribute<EbxFieldMetaAttribute>();
                 var propNameHash = property.Key.GetCustomAttribute<HashAttribute>();
                 EbxField field = default(EbxField);
@@ -327,6 +336,13 @@ namespace FrostySdk.IO._2022.Readers
 
         protected void ReadArray(object obj, PropertyInfo property, EbxClass classType, EbxField field, bool isReference)
         {
+#if DEBUG
+            if (property.Name == "Objects")
+            {
+
+            }
+#endif 
+
             var hashAttribute = property.GetCustomAttribute<HashAttribute>();
             var ebxFieldMetaAttribute = property.GetCustomAttribute<EbxFieldMetaAttribute>();
             var arrayBaseType = ebxFieldMetaAttribute.BaseType;
@@ -335,15 +351,15 @@ namespace FrostySdk.IO._2022.Readers
             base.Position = position;
 
             int arrayOffset = Read<int>(); 
-            var newPosition = base.Position + arrayOffset - 4;
+            var newPosition = base.Position + arrayOffset - 8;
 
 
             var ebxArray = arrays.Find((EbxArray a) => a.Offset == newPosition - payloadPosition);
             
             // EbxArray Offset & Payload Position (Payload seems to be always Header = 32)
-            base.Position = ebxArray.Offset + payloadPosition;
+            base.Position = ebxArray.Offset != 0 ? (ebxArray.Offset + payloadPosition - 4) : newPosition;
             // Minus 4 to get the Count from the Ebx Bytes
-            base.Position -= 4;
+            //base.Position -= 4;
 
 
             var position2 = payloadPosition + ebxFieldMetaAttribute.Offset + ebxArray.Offset;
@@ -366,15 +382,27 @@ namespace FrostySdk.IO._2022.Readers
 
             for (int i = 0; i < arrayCount; i++)
             {
+#if DEBUG
+                if(property.Name == "Objects")
+                {
+
+                }
+
+#endif 
+
                 object obj2 = this.ReadField(classType, field.InternalType, field.ClassRef, isReference);
                 if (property != null)
                 {
+                    var genericArgs = property.PropertyType.GetGenericArguments();
+                    if (genericArgs == null || genericArgs.Length < 1)
+                        continue;
+
+                    var expectedArrayProp = genericArgs[0].ToString();
+
                     var propValue = property.GetValue(obj);
                     if (propValue == null)
                     {
-
                         var genericTypeDef = property.PropertyType.GetGenericTypeDefinition();
-                        var genericArgs = property.PropertyType.GetGenericArguments();
                         Type constructed = genericTypeDef.MakeGenericType(genericArgs);
                         propValue = Activator.CreateInstance(constructed);
                     }
@@ -386,6 +414,13 @@ namespace FrostySdk.IO._2022.Readers
                     var addMethod = propValueType.GetMethod("Add");
                     if (addMethod == null)
                         continue;
+
+                    var obj2TypeString = obj2.GetType().ToString();
+                    if (expectedArrayProp != obj2TypeString)
+                    {
+                        AssetManager.Instance.Logger.LogWarning($"Unable to process Array Property {property.Name} index {i}, value types are different.");
+                        continue;
+                    }
 
                     addMethod.Invoke(propValue, new object[1] { obj2 });
                     property.SetValue(obj, propValue);
@@ -705,7 +740,8 @@ namespace FrostySdk.IO._2022.Readers
                     return base.ReadInt32LittleEndian();
                 case EbxFieldType.Pointer:
                     {
-                        int num = base.ReadInt32LittleEndian();
+                        //int num = base.ReadInt32LittleEndian();
+                        int num = (int)base.ReadLong();
                         var mutatedNum = (num & 1);
                         var mutatedNum2 = num >> 1;
                         if (num == 0)
@@ -716,7 +752,8 @@ namespace FrostySdk.IO._2022.Readers
                         {
                             return new PointerRef(base.imports[mutatedNum2]);
                         }
-                        long offset = base.Position - 4 + num - this.payloadPosition;
+                        //long offset = base.Position - 4 + num - this.payloadPosition;
+                        long offset = base.Position - 8 + num - this.payloadPosition;
 
                         int dc = this.dataContainerOffsets.IndexOf((uint)offset);
                         if (dc == -1)
