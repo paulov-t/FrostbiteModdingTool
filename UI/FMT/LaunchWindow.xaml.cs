@@ -569,7 +569,7 @@ namespace FMT
                         btnLaunch.IsEnabled = true;
                         //btnLaunchOtherTool.IsEnabled = true;
 
-                        if (switchAutoCloseAfterLaunch.IsOn)
+                        if (switchAutoCloseAfterLaunch.IsOn && launchSuccess)
                         {
                             if(Owner != null)
                             {
