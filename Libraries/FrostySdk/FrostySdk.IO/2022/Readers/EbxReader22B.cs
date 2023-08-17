@@ -406,13 +406,23 @@ namespace FrostySdk.IO._2022.Readers
             EbxClass? ebxClass = null;
             var nameHashAttribute = objType.GetCustomAttribute<HashAttribute>();
             var ebxclassmeta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
-            if (nameHashAttribute != null && ebxclassmeta != null && EbxSharedTypeDescriptors.patchStd != null)
+            if (nameHashAttribute != null && ebxclassmeta != null)
             {
-                var nHClass = EbxSharedTypeDescriptors.patchStd.Classes
-                          .Union(EbxSharedTypeDescriptors.std.Classes).FirstOrDefault(x => x.HasValue && x.Value.NameHash == nameHashAttribute.Hash);
-                if (nHClass.HasValue)
-                    return nHClass.Value;
+                if (EbxSharedTypeDescriptors.patchStd != null)
+                {
+                    var nHClass = EbxSharedTypeDescriptors.patchStd.Classes
+                              .Union(EbxSharedTypeDescriptors.std.Classes).FirstOrDefault(x => x.HasValue && x.Value.NameHash == nameHashAttribute.Hash);
+                    if (nHClass.HasValue)
+                        return nHClass.Value;
+                }
+                else if (EbxSharedTypeDescriptors.std != null)
+                {
+                    var nHClass = EbxSharedTypeDescriptors.std.Classes.FirstOrDefault(x => x.HasValue && x.Value.NameHash == nameHashAttribute.Hash);
+                    if (nHClass.HasValue)
+                        return nHClass.Value;
+                }
             }
+
 
             return ebxClass.HasValue ? ebxClass.Value : default(EbxClass);
         }
@@ -449,8 +459,8 @@ namespace FrostySdk.IO._2022.Readers
                 case "TypeRef":
                     return this.ReadTypeRef();
                 case "BoxedValueRef":
-                    throw new NotImplementedException("BoxedValueRef has not been implemented!");
-                //return this.ReadBoxedValueRef();
+                    //throw new NotImplementedException("BoxedValueRef has not been implemented!");
+                    return this.ReadBoxedValueRef();
                 case "Pointer":
                 case "PointerRef":
                     int num = base.ReadInt32LittleEndian();
