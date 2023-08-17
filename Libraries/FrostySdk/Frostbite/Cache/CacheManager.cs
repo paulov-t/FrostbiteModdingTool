@@ -18,6 +18,39 @@ namespace FrostySdk.Frostbite
     /// </summary>
     public class CacheManager : ILogger
     {
+        Dictionary<string, long> NameToPositionsEbx { get; } = new();
+
+        Dictionary<string, long> NameToPositionsResource { get; } = new();
+
+        Dictionary<Guid, long> NameToPositionsChunk { get; } = new();
+
+        public static CacheManager Instance { get; private set; }
+
+        public static string ApplicationDirectory
+        {
+            get
+            {
+                return AppContext.BaseDirectory + "\\";
+            }
+        }
+
+        public static string CacheDirectoryPath => Path.Combine(ApplicationDirectory, "_GameCaches");
+        public static string CachePath
+        {
+            get
+            {
+                return $"{CacheDirectoryPath}\\{FileSystem.Instance.CacheName}.cache";
+            }
+        }
+
+
+        public CacheManager()
+        {
+            Instance = this;
+        
+        }
+
+
         /// <summary>
         /// 
         /// </summary>
@@ -133,18 +166,28 @@ namespace FrostySdk.Frostbite
                 var ChunkDataOffset = nativeReader.ReadULong();
                 var NameToPositionOffset = nativeReader.ReadULong();
 
-                nativeReader.Position = (long)EbxDataOffset;
+                nativeReader.Position = (long)NameToPositionOffset;
                 var ebxCount = nativeReader.ReadUInt();
                 var positionOfAsset = -1L;
                 for (var i = 0; i < ebxCount; i++)
                 {
                     var ebxName = nativeReader.ReadLengthPrefixedString();
                     var ebxPositions = nativeReader.ReadLong();
-                    if (ebxName == name)
-                    {
-                        positionOfAsset = ebxPositions;
-                        break;
-                    }
+                    Instance.NameToPositionsEbx.Add(ebxName, ebxPositions);
+                }
+                var resCount = nativeReader.ReadUInt();
+                for (var i = 0; i < resCount; i++)
+                {
+                    var nameI = nativeReader.ReadLengthPrefixedString();
+                    var position = nativeReader.ReadLong();
+                    Instance.NameToPositionsResource.Add(nameI, position);
+                }
+                var chunkCount = nativeReader.ReadUInt();
+                for (var i = 0; i < ebxCount; i++)
+                {
+                    var cName = nativeReader.ReadGuid();
+                    var position = nativeReader.ReadLong();
+                    Instance.NameToPositionsChunk.Add(cName, position);
                 }
 
                 if (positionOfAsset == -1)
@@ -175,22 +218,7 @@ namespace FrostySdk.Frostbite
         public void LogWarning(string text, params object[] vars)
         {
         }
-        public static string ApplicationDirectory
-        {
-            get
-            {
-                return AppContext.BaseDirectory + "\\";
-            }
-        }
-
-        public static string CacheDirectoryPath => Path.Combine(ApplicationDirectory, "_GameCaches");
-        public static string CachePath
-        {
-            get
-            {
-                return $"{CacheDirectoryPath}\\{FileSystem.Instance.CacheName}.cache";
-            }
-        }
+       
 
         public static MemoryStream CacheDecompress()
         {
