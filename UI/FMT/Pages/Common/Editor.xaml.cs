@@ -359,15 +359,16 @@ namespace FIFAModdingUI.Pages.Common
             // Is a list / array property
             if (p.PropertyType.Contains("List`1"))
             {
-
+                var genArgsType = ((ModdableProperty)p).Property.PropertyType.GetGenericArguments()[0];
                 // get count in array
                 var countOfArray = (int)p.PropertyValue.GetPropertyValue("Count");
                 if (countOfArray == 0)
                 {
-                    propTreeViewParent.Items.Add(new TreeViewItem() { Header = "No items to display" });
+                    //propTreeViewParent.Items.Add(new TreeViewItem() { Header = "No items to display" });
                 }
                 else
                 {
+                    propTreeViewParent.Header += $" [{genArgsType}][{countOfArray}]";
                     // add buttons for array...
                     // get items in array
                     for (var i = 0; i < countOfArray; i++)
