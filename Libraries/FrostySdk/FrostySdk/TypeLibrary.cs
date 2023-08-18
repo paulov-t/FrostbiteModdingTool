@@ -1072,7 +1072,13 @@ namespace FrostySdk
                 return Activator.CreateInstance(type: cachedType, args: args);
             }
 
+            if(AssetManager.Instance == null)
+            {
+                new AssetManager();
+            }
             AssetManager.Instance.InitialisePlugins();
+            
+            
             var pluginInstance = AssetManager.LoadTypeFromPlugin2(className, args);
             if (pluginInstance != null)
             {
