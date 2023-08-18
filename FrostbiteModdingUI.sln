@@ -79,7 +79,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PGATourPlugin", "Plugins\PG
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FIFA17Plugin", "Plugins\FIFA17Plugin\FIFA17Plugin.csproj", "{059EB618-3004-402E-AFA3-C5BD918AC2A1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMT.FrostbiteGameLoader", "Libraries\FMT.FrostbiteGameLoader\FMT.FrostbiteGameLoader.csproj", "{6ED696DF-6079-4737-B3AB-94FF35AF0DF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMT.FrostbiteGameLoader", "Tools\FMT.FrostbiteGameLoader\FMT.FrostbiteGameLoader.csproj", "{6ED696DF-6079-4737-B3AB-94FF35AF0DF4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrostbiteModdingUI", "UI\FMT\FrostbiteModdingUI.csproj", "{0F35A1B9-600B-4C4C-B874-023B451EF22B}"
 	ProjectSection(ProjectDependencies) = postProject
