@@ -1,5 +1,6 @@
 ﻿using FMT.FileTools;
 using FMT.Logging;
+using FrostbiteSdk;
 using FrostySdk;
 using FrostySdk.Frostbite.Compilers;
 using FrostySdk.Frostbite.PluginInterfaces;
@@ -49,6 +50,31 @@ namespace Madden24Plugin
             return result;
         }
 
+        /// <summary>
+        /// This is purely to overcome the TOC Signature issue with Madden 24. This may break in a future patch.
+        /// </summary>
+        /// <param name="fs"></param>
+        /// <param name="logger"></param>
+        /// <param name="modExecuter"></param>
+        /// <returns></returns>
+        public override bool PostCompile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        {
+            var manifestResources = typeof(Madden24AssetCompiler).Assembly.GetManifestResourceNames();
+            foreach(var manifestR in manifestResources)
+            {
+                FileLogger.WriteLine(manifestR);
+            }
+            var launcherExeResourceStream = typeof(Madden24AssetCompiler).Assembly.GetManifestResourceStream("Madden24Plugin.Launcher.Launcher.exe");
+            // Ensure there is a backup of EAAC
+
+            var cryptBaseResourceStream = typeof(Madden24AssetCompiler).Assembly.GetManifestResourceStream("Madden24Plugin.Launcher.CryptBase.dll");
+            // Delete old versions of CryptBase first
+
+
+
+            return base.PostCompile(fs, logger, modExecuter);
+        }
+
         private bool RunModDataCompiler(ILogger logger)
         {
             if (!Directory.Exists(FileSystem.Instance.BasePath))
@@ -62,7 +88,28 @@ namespace Madden24Plugin
             logger.Log("Copying files from Patch to ModData/Patch");
             CopyDataFolder(FileSystem.Instance.BasePath + "\\Patch\\", FileSystem.Instance.BasePath + ModDirectory + "\\Patch\\", logger);
 
-            return Run();
+            bool success = true;// Run();
+            RebuildAllTOCSig();
+            RebuildAllTOCSig("native_patch/");
+            return success;
+        }
+
+        public void RebuildAllTOCSig(string folder = "native_data/")
+        {
+            var assetManager = AssetManager.Instance;
+            if (assetManager == null || assetManager.FileSystem.SuperBundles.Count() == 0)
+                return;
+
+            foreach (var sbName in assetManager.FileSystem.SuperBundles)
+            {
+                var tocFileRAW = $"{folder}{sbName}.toc";
+                string tocFileLocation = assetManager.FileSystem.ResolvePath(tocFileRAW, true);
+                if (string.IsNullOrEmpty(tocFileLocation) || !File.Exists(tocFileLocation))
+                    continue;
+
+
+                TOCFile.RebuildTOCSignatureOnly(tocFileLocation);
+            }
         }
 
 
@@ -143,6 +190,8 @@ namespace Madden24Plugin
                     FileLogger.WriteLine(entry.Key + "::" + entry.Value);
                 }
             }
+
+
 
             return result;
 
