@@ -2,13 +2,6 @@
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Managers;
 using FrostySdk.Resources;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static PInvoke.BCrypt.BCRYPT_ALGORITHM_IDENTIFIER;
-using System.Windows.Media.Media3D;
 
 namespace Madden24Plugin.Textures
 {

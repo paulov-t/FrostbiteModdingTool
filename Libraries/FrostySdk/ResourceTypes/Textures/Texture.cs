@@ -681,6 +681,13 @@ namespace FrostySdk.Resources
 
         public byte[] ToBytes()
         {
+            var textureWriter = AssetManager.Instance.LoadTypeFromPluginByInterface(typeof(ITextureResourceWriter).FullName);
+            if (textureWriter != null)
+            {
+                return ((ITextureResourceWriter)textureWriter).ToBytes(this);
+            }
+
+
             if (ProfileManager.IsGameVersion(EGame.FIFA23))
             {
                 return Texture.ToBytesFIFA23(this);
