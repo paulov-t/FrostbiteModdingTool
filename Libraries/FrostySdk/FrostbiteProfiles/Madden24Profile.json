@@ -41,7 +41,7 @@
   // Supported Launcher Filetypes
   "SupportedLauncherFileTypes": [ "fbmod", "fifamod", "zip" ],
   // Will the Launcher support this Game?
-  "CanLaunchMods": true,
+  "CanLaunchMods": false,
   // Can this Application Edit this Game?
   "CanEdit": true,
 
@@ -58,7 +58,7 @@
   "SharedBundles": {},
   "IgnoredResTypes": [],
   "CanImportMeshes": false,
-  "CanExportMeshes": true,
+  "CanExportMeshes": false,
   // GeometryDeclarationDesc stream count
   "GDDMaxStreams": 16,
   "CompressedFormatEBX": "Zstd",
