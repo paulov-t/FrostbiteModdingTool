@@ -936,6 +936,8 @@ namespace ModdingSupport
                 ConfigureInstallerDataXml(false);
             }
 
+            RemoveDXGIAndCryptBaseDll();
+
             //string modPath = fs.BasePath + modDirName + "\\";
             string modPath = "\\" + ModDirectoryName + "\\";
 
@@ -1048,7 +1050,6 @@ namespace ModdingSupport
             archiveData.Clear();
             GC.Collect();
 
-            RemoveDXGIAndCryptBaseDll();
 
             RunFIFA23Setup();
 
@@ -1152,7 +1153,7 @@ namespace ModdingSupport
 
             // --------------------------------------------------------------
             // Cryptbase.dll no longer used ------------------------------
-            if (File.Exists(FileSystem.Instance.BasePath + "CryptBase.dll"))
+            if (!ProfileManager.IsLoaded(EGame.MADDEN24) && File.Exists(FileSystem.Instance.BasePath + "CryptBase.dll"))
                 File.Delete(FileSystem.Instance.BasePath + "CryptBase.dll");
         }
 
