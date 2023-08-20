@@ -1072,32 +1072,53 @@ namespace FrostbiteModdingUI.Windows
             {
                 var camName = cam.Key;
                 var camAssets = cam.Value.EnumerateAssets(false).OrderBy(x => x.Path).Select(x => (IAssetEntry)x).ToList();
-                camTextureAssets.AddRange(camAssets.Where(x => x.Name.Contains(".DDS", StringComparison.OrdinalIgnoreCase)));
+                //camTextureAssets.AddRange(camAssets.Where(x => x.Name.Contains(".DDS", StringComparison.OrdinalIgnoreCase)));
 
                 await Dispatcher.InvokeAsync(() =>
                 {
-                    MetroTabItem camMetroTabItem = new MetroTabItem();
-                    camMetroTabItem.Header = camName.Substring(0, 1).ToUpper() + camName.Substring(1);
+                    var tabName = camName.Substring(0, 1).ToUpper() + camName.Substring(1);
+                    bool mtiExists = false;
+                    foreach (var tItem in MainViewer.Items)
+                    {
+                        if(tItem is MetroTabItem metroTabItem)
+                        {
+                            if(metroTabItem.Header.ToString() == tabName)
+                            {
+                                mtiExists = true;
+                                break;
+                            }
+                        }
+                    }
 
-                    Browser camBrowser = new Browser();
-                    camBrowser.Name = camName;
-                    camBrowser.AllAssetEntries = camAssets;
-                    camMetroTabItem.Content = camBrowser;
+                    if (!mtiExists)
+                    {
+                        MetroTabItem camMetroTabItem = new MetroTabItem();
+                        camMetroTabItem.Header = tabName;
 
-                    MainViewer.Items.Add(camMetroTabItem);
+                        Browser camBrowser = new Browser();
+                        camBrowser.Name = camName;
+                        camBrowser.AllAssetEntries = camAssets;
+                        camMetroTabItem.Content = camBrowser;
+
+                        MainViewer.Items.Add(camMetroTabItem);
+                    }
+
                 });
             }
 
             List<IAssetEntry> textureAssets = ProjectManagement.Project.AssetManager
                                 .EnumerateEbx("TextureAsset").OrderBy(x => x.Path).Select(x => (IAssetEntry)x).ToList();
 
-            List<IAssetEntry> meshAssets = AssetManager.Instance
-                             .EnumerateEbx("SkinnedMeshAsset")
-                             .Union(AssetManager.Instance.EnumerateEbx("CompositeMeshAsset"))
-                             .Union(AssetManager.Instance.EnumerateEbx("RigidMeshAsset"))
-                             .OrderBy(x => x.Path).Select(x => (IAssetEntry)x)
-                             .ToList();
-
+            List<IAssetEntry> meshAssets = new List<IAssetEntry>();
+            if (ProfileManager.CanImportMeshes || ProfileManager.CanExportMeshes)
+            {
+                meshAssets = AssetManager.Instance
+                                 .EnumerateEbx("SkinnedMeshAsset")
+                                 .Union(AssetManager.Instance.EnumerateEbx("CompositeMeshAsset"))
+                                 .Union(AssetManager.Instance.EnumerateEbx("RigidMeshAsset"))
+                                 .OrderBy(x => x.Path).Select(x => (IAssetEntry)x)
+                                 .ToList();
+            }
 
             await Dispatcher.InvokeAsync(() =>
             {
@@ -1105,7 +1126,10 @@ namespace FrostbiteModdingUI.Windows
 
                 textureBrowser.AllAssetEntries = textureAssets;
 
-                meshBrowser.AllAssetEntries = meshAssets;
+                if(meshAssets.Count == 0)
+                    TabMeshBrowser.Visibility = Visibility.Collapsed;
+                else 
+                    meshBrowser.AllAssetEntries = meshAssets;
             });
 
             UpdateAllBrowsers();
