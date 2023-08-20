@@ -185,10 +185,11 @@ namespace FrostySdk
                     || name.Contains("head_")
                     || name.Contains("fifa/attribulator/gameplay/groups/gp_cpuai/gp_cpuai_crossingdecision_runtime")
                     || name.Contains("fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime")
+                    || name.Contains("splashscreen")
                     )
                 {
                     //File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
-                    DebugBytesToFileLogger.Instance.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray, "EBX");
+                    DebugBytesToFileLogger.Instance.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray, "EBX/Write");
                 }
 #endif
 
