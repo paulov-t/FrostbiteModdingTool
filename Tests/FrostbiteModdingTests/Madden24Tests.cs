@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using v2k4FIFAModding.Frosty;
+using v2k4FIFAModdingCL;
 
 namespace FrostbiteModdingTests
 {
@@ -62,6 +64,15 @@ namespace FrostbiteModdingTests
             var resItems = AssetManager.Instance.EnumerateRes().ToList();
             var chunkItems = AssetManager.Instance.EnumerateChunks().ToList();
             var legacyItems = AssetManager.Instance.EnumerateCustomAssets("legacy").ToList();
+        }
+
+        [TestMethod]
+        public void ModSplashscreen()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE);
+            ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+            frostyModExecutor.ForceRebuildOfMods = true;
+            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "G:\\Work\\testsplashmadden24.fbmod" }.ToArray()).Wait();
         }
 
         private string prevText = string.Empty;
