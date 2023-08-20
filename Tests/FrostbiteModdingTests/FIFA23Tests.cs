@@ -496,7 +496,7 @@ namespace FrostbiteModdingTests
         [TestMethod]
         public void TestGPMod()
         {
-            var modPath = @"G:\Work\FIFA Modding\Gameplay mod\FIFA 23\V6\V Gameplay Mod - v6a5.fbmod";
+            var modPath = @"G:\Work\FIFA Modding\Gameplay mod\FIFA 23\V7\V Gameplay Mod - v7a3.fbmod";
             //GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
             GameInstanceSingleton.InitializeSingleton(GamePathEXE, logger: this);
 
