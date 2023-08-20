@@ -5,7 +5,7 @@
   "CacheName": "Madden24",
   "Deobfuscator": "NullDeobfuscator",
   "AssetLoader": "Madden24AssetLoader",
-  "AssetCompiler": "Madden24AssetCompilerV1",
+  "AssetCompiler": "Madden24AssetCompiler",
   "EditorScreen": "DefaultEditor",
   "TextureImporter": "Madden24TextureImporter",
   "TextureExporter": "TextureExporter",
@@ -61,7 +61,7 @@
   "CanExportMeshes": true,
   // GeometryDeclarationDesc stream count
   "GDDMaxStreams": 16,
-  "CompressedFormatEBX": "Oodle", // Checked on GP files. FIFA 23 only uses Oodle!
+  "CompressedFormatEBX": "Zstd",
   "CompressedFormatRES": "Oodle",
   "CompressedFormatChunk": "Oodle",
   "CompressedFormatLegacy": "Oodle",
@@ -71,7 +71,7 @@
   "SupportLowMemoryFootprint": true,
   "GameIdentifier": 16115019,
   "UseACBypass": false, // Can only be used with TU2 or below
-  "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0004970",
+  "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0005332",
   "SteamId": "2140330",
   "HasAntiCheat": true,
   "Tools": {
