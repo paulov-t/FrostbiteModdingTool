@@ -845,7 +845,7 @@ namespace FrostySdk.Frostbite.Compilers
             }
 
             var groupedByTOCSBCount = groupedByTOCSB.Values.Sum(y => y.Count);
-            var doStep1b = true;// groupedByTOCSBCount != EntriesToNewPosition.Count;
+            var doStep1b = false;// groupedByTOCSBCount != EntriesToNewPosition.Count;
 
             // ---------
             // Step 1b. Discover via Bundle Indexes
@@ -898,6 +898,11 @@ namespace FrostySdk.Frostbite.Compilers
 
                 groupedByTOCSBCount = groupedByTOCSB.Values.Sum(y => y.Count);
             }
+
+
+            if (!groupedByTOCSB.Any())
+                return true;
+
             List<Task> tasks = new List<Task>();
 
             var assetBundleToCAS = new Dictionary<string, List<(AssetEntry, DbObject)>>();
