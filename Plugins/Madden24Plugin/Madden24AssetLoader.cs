@@ -56,49 +56,6 @@ namespace Madden24Plugin
 
         public void LoadData(AssetManager assetManager, BinarySbDataHelper helper, string folder = "native_data/")
         {
-            //if (parent != null && parent.fs.Catalogs != null && parent.fs.Catalogs.Count() > 0)
-            //{
-            //	foreach (Catalog catalogInfoItem in parent.fs.EnumerateCatalogInfos().OrderBy(x=> x.PersistentIndex.HasValue ? x.PersistentIndex : 0))
-            //	{
-            //		foreach (string sbName in catalogInfoItem.SuperBundles.Where(x => !x.Value).Select(x => x.Key))
-            //		{
-            //			SuperBundleEntry superBundleEntry = parent.superBundles.Find((SuperBundleEntry a) => a.Name == sbName);
-            //			int sbIndex = -1;
-            //			if (superBundleEntry != null)
-            //			{
-            //				sbIndex = parent.superBundles.IndexOf(superBundleEntry);
-            //			}
-            //			else
-            //			{
-            //				parent.superBundles.Add(new SuperBundleEntry
-            //				{
-            //					Name = sbName
-            //					,
-            //					CatalogInfo = catalogInfoItem
-            //				});
-            //				sbIndex = parent.superBundles.Count - 1;
-            //			}
-
-            //			parent.Logger.Log($"Loading data ({sbName})");
-            //			//string tocFile = sbName.Replace("win32", catalogInfoItem.Name);
-            //			//if (parent.fs.ResolvePath(folder + tocFile + ".toc") == "")
-            //			//{
-            //			//	tocFile = sbName;
-            //			//}
-            //			string tocFile = sbName;
-            //			var tocFileRAW = $"{folder}{tocFile}.toc";
-            //			string tocFileLocation = parent.fs.ResolvePath(tocFileRAW);
-            //			if (!string.IsNullOrEmpty(tocFileLocation) && File.Exists(tocFileLocation))
-            //			{
-            //				TocSbReader_Madden24 tocSbReader = new TocSbReader_Madden24();
-            //				// TOCFile CasDataLoader automatically proceses data
-            //				tocSbReader.Read(tocFileLocation, sbIndex, sbName, true, tocFileRAW);
-
-            //			}
-            //		}
-            //	}
-            //}
-
             if (assetManager == null || assetManager.FileSystem.SuperBundles.Count() == 0)
                 return;
 
