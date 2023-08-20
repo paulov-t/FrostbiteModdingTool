@@ -729,6 +729,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             byte[] streamBuffer = new byte[writer.Length - 556];
             writer.BaseStream.Read(streamBuffer, 0, (int)writer.Length - 556);
             var newTocSig = streamBuffer.ToTOCSignature();
+            //if (!streamBuffer.ToValidateTOCSignature())
+            //    throw new Exception("TOC Signature is not Valid");
             writer.Position = 8;
             writer.Write(newTocSig);
 
@@ -752,6 +754,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             stream.Position = 556;
             stream.Read(streamBuffer, 0, (int)stream.Length - 556);
             var newTocSig = streamBuffer.ToTOCSignature();
+            //if (!streamBuffer.ToValidateTOCSignature())
+            //    throw new Exception("TOC Signature is not Valid");
             stream.Position = 8;
             stream.Write(newTocSig);
         }
