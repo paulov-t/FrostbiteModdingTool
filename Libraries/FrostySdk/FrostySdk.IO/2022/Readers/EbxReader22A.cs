@@ -2,6 +2,7 @@
 using FMT.FileTools.Modding;
 using FrostySdk.Attributes;
 using FrostySdk.Ebx;
+using FrostySdk.FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
@@ -273,7 +274,7 @@ namespace FrostySdk.IO._2022.Readers
             }
 
             var orderedProps = properties
-                .Where(x => x.Key.GetCustomAttribute<IsTransientAttribute>() == null && x.Key.GetCustomAttribute<FieldIndexAttribute>() != null)
+                .Where(x => x.Key.GetCustomAttribute<IsTransientAttribute>() == null && x.Key.GetCustomAttribute<EbxFieldMetaAttribute>() != null)
                 .OrderBy(x => x.Value.Offset)
                 //.OrderBy(x => x.Key.GetCustomAttribute<FieldIndexAttribute>().Index)
                 .ToArray();
@@ -929,25 +930,114 @@ namespace FrostySdk.IO._2022.Readers
 
         internal new BoxedValueRef ReadBoxedValueRef()
         {
-            uint value = base.ReadUInt32LittleEndian();
-            int unk = base.ReadInt32LittleEndian();
-            long offset = base.ReadInt64LittleEndian();
-            long restorePosition = base.Position;
+            //uint value = base.ReadUInt32LittleEndian();
+            //int unk = base.ReadInt32LittleEndian();
+            //long offset = base.ReadInt64LittleEndian();
+            //long restorePosition = base.Position;
+            //try
+            //{
+            //    _ = -1;
+            //    if ((value & 0x80000000u) == 2147483648u)
+            //    {
+            //        value &= 0x7FFFFFFFu;
+            //        EbxFieldType typeCode = (EbxFieldType)((value >> 5) & 0x1Fu);
+            //        base.Position += offset - 8;
+            //        return new BoxedValueRef(this.ReadField(null, typeCode, ushort.MaxValue), typeCode);
+            //    }
+            //    return new BoxedValueRef();
+            //}
+            //finally
+            //{
+            //    base.Position = restorePosition;
+            //}
+            uint type = ReadUInt();
+            Position += 4;
+            long valueOffset = ReadLong();
+            long curPos = Position;
             try
             {
-                _ = -1;
-                if ((value & 0x80000000u) == 2147483648u)
+                if (type == 0)
                 {
-                    value &= 0x7FFFFFFFu;
-                    EbxFieldType typeCode = (EbxFieldType)((value >> 5) & 0x1Fu);
-                    base.Position += offset - 8;
-                    return new BoxedValueRef(this.ReadField(null, typeCode, ushort.MaxValue), typeCode);
+                    return new BoxedValueRef();
                 }
-                return new BoxedValueRef();
+
+                if ((type & 0x80000000) != 0)
+                {
+                    type &= ~0x80000000;
+                }
+
+                long offsetToLookup = Position - 8 + valueOffset - 32;
+
+                int boxedValueIndex = boxedValues.FindIndex(boxVal => boxVal.Offset == offsetToLookup);
+                if (boxedValueIndex == -1)
+                {
+                    return new BoxedValueRef();
+                }
+
+                EbxBoxedValue boxedValue = boxedValues[boxedValueIndex];
+                EbxFieldType subType = EbxFieldType.Inherited;
+                EbxFieldType boxedValuetype = (EbxFieldType)((boxedValue.Type >> 5) & 0x1F);
+                EbxFieldCategory boxedValuecategory = (EbxFieldCategory)((boxedValue.Type >> 1) & 0xF);
+
+                // used when there isn't a type mask (0x80000000)
+                int classRef = (int)(type >> 2);
+                int unkVal = (int)(type & 3);
+
+                Position = offsetToLookup + 32;
+                object value = null;
+
+                if (boxedValuecategory == EbxFieldCategory.Array)
+                {
+                    int arrValueOffset = ReadInt();
+                    Position += arrValueOffset - 8;
+                    uint arrayCount = ReadUInt();
+
+                    int sizeOfStruct = 0;
+
+                    if (boxedValue.ClassRef != ushort.MaxValue)
+                    {
+                        EbxClass arrayType = GetClass(null, boxedValue.ClassRef);
+                        sizeOfStruct = arrayType.Size;
+
+                        EbxField arrayField = GetField(arrayType, arrayType.FieldIndex);
+                        value = Activator.CreateInstance(typeof(List<>).MakeGenericType(GetTypeFromEbxField(arrayField)));
+
+                        long startingPosition = Position;
+
+                        for (var i = 0; i < arrayCount; i++)
+                        {
+                            // If array of structs, align to the next struct size. Not all structs take up their size (because why would they??)
+                            if (sizeOfStruct > 0)
+                                Position = startingPosition + (sizeOfStruct * i);
+
+                            object subValue = ReadField(arrayType, arrayField.DebugType, arrayField.ClassRef, false);
+                            value.GetType().GetMethod("Add").Invoke(value, new object[] { subValue });
+                        }
+                        subType = arrayField.DebugType;
+                    }
+                    else
+                    {
+                        subType = boxedValuetype;
+                    }
+                }
+                else
+                {
+                    value = ReadField(null, boxedValuetype, boxedValue.ClassRef);
+                    Type objType = value.GetType();
+                    EbxClassMetaAttribute cta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
+                    if (boxedValuetype == EbxFieldType.Enum)
+                    {
+                        object tmpValue = value;
+                        EbxClass enumClass = GetClass(null, boxedValue.ClassRef);
+                        value = Enum.Parse(GetType(enumClass), tmpValue.ToString());
+                    }
+                }
+
+                return new BoxedValueRef(value, boxedValuetype, subType, boxedValuecategory);
             }
             finally
             {
-                base.Position = restorePosition;
+                Position = curPos;
             }
         }
 
