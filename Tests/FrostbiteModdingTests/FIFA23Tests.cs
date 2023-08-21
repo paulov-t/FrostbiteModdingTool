@@ -81,7 +81,7 @@ namespace FrostbiteModdingTests
                 if (_testProjects != null)
                     return _testProjects;
 
-                _testProjects = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourcesByName(new string[] { "FIFA23.", ".fbproject" });
+                _testProjects = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourcesByName(new string[] { "FIFA23.", ".fmtproj" });
                 return _testProjects;
             }
         }
@@ -1033,13 +1033,36 @@ namespace FrostbiteModdingTests
         {
             GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this, true);
             ProjectManagement projectManagement = new ProjectManagement(GamePathEXE, this);
-            projectManagement.Project = new FrostySdk.FrostbiteProject();
-            projectManagement.Project.Load(TestProjects.Single(x => x.Key.EndsWith("FIFA23.UltraSlowDribblingTest.fbproject")).Value);
+            projectManagement.Project = FMTProject.Read(TestProjects.Single(x => x.Key.EndsWith("FIFA23.UltraSlowMovementMod.fmtproj")).Value);
+            var testR = "test.fbmod";
+            projectManagement.Project.WriteToMod(testR, new FrostySdk.ModSettings() { Title = "Ultra Slow Test" });
+        }
+
+        [TestMethod]
+        public void ReadWriteTestCompareEbx()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this, true);
+            ProjectManagement projectManagement = new ProjectManagement(GamePathEXE, this);
+
+            var entryName = "Content/Common/Logic/Game/PitchColorsSelector_Prefab";
+
+            var ebxAssetVanilla = AssetManager.Instance.GetEbx(AssetManager.Instance.GetEbxEntry(entryName));
+            var ebxAssetVanillaArray = ((MemoryStream)AssetManager.Instance.GetEbxStream(AssetManager.Instance.GetEbxEntry(entryName))).ToArray();
+            DebugBytesToFileLogger.Instance.WriteAllBytes("_entryVanilla", ebxAssetVanillaArray, "EBX");
+            AssetManager.Instance.ModifyEbx(entryName, ebxAssetVanilla);
+            var ebxAssetModifiedArray = ((MemoryStream)AssetManager.Instance.GetEbxStream(AssetManager.Instance.GetEbxEntry(entryName), true)).ToArray();
+            DebugBytesToFileLogger.Instance.WriteAllBytes("_entryModified", ebxAssetModifiedArray, "EBX");
+            for(var i = 0; i <  ebxAssetVanillaArray.Length; i++)
+            {
+                if (ebxAssetVanillaArray[i] != ebxAssetModifiedArray[i])
+                {
+                    Assert.Fail();
+                }
+            }
+
             var testR = "test.fbmod";
             projectManagement.Project.WriteToMod(testR, new FrostySdk.ModSettings());
 
-            FrostySdk.ModsAndProjects.Projects.FMTProject.Create("FIFA23.UltraSlowDribblingTest");
-            FrostySdk.ModsAndProjects.Projects.FMTProject.Read("FIFA23.UltraSlowDribblingTest");
         }
 
         [TestMethod]
