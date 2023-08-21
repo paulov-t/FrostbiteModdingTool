@@ -1009,14 +1009,18 @@ namespace FrostySdk.FrostySdk.IO
                 IsTransientAttribute isTransientAttribute = propertyInfo.GetCustomAttribute<IsTransientAttribute>();
                 if (isTransientAttribute != null)
                 {
+#if DEBUG
                     writtenProperties.Add(propertyInfo);
+#endif
                     continue;
                 }
 
                 EbxFieldMetaAttribute ebxFieldMetaAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
                 if (ebxFieldMetaAttribute == null || ebxFieldMetaAttribute.Type == EbxFieldType.Inherited)
                 {
+#if DEBUG
                     writtenProperties.Add(propertyInfo);
+#endif
                     continue;
                 }
 
