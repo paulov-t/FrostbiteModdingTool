@@ -1821,9 +1821,9 @@ namespace FrostySdk.Managers
             return ebxReader.ReadAsset();
         }
 
-        public Stream GetEbxStream(EbxAssetEntry entry)
+        public Stream GetEbxStream(EbxAssetEntry entry, bool getModified = false)
         {
-            return GetAsset(entry, false);
+            return GetAsset(entry, getModified);
         }
 
         public Stream GetRes(ResAssetEntry entry)
@@ -1890,9 +1890,14 @@ namespace FrostySdk.Managers
                 throw new Exception("Failed to find Asset Entry");
             }
 
-            if (entry.ModifiedEntry != null && entry.ModifiedEntry.Data != null && getModified)
+            if (entry.ModifiedEntry != null && (entry.ModifiedEntry.Data != null || entry.ModifiedEntry.DataObject != null) && getModified)
             {
-                return GetResourceData(entry.ModifiedEntry.Data);
+                if(entry is EbxAssetEntry ebxAssetEntry)
+                {
+                    return new MemoryStream(EbxWriter.GetEbxArrayDecompressed(ebxAssetEntry));
+                }
+                else
+                    return GetResourceData(entry.ModifiedEntry.Data);
             }
 
             var entryLocation = entry.Location;
