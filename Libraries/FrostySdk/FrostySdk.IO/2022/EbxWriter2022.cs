@@ -1,4 +1,5 @@
 ﻿using FMT.FileTools;
+using FMT.Logging;
 using FrostySdk.Attributes;
 using FrostySdk.Ebx;
 using FrostySdk.IO;
@@ -346,30 +347,34 @@ namespace FrostySdk.FrostySdk.IO
             // Compare to Original? EBXX Stuff
             //
             List<EbxArray> origEbxArrays = new List<EbxArray>();
+            List<EbxBoxedValue> origEbxBoxedValues = new List<EbxBoxedValue>();
             if (stringsToCStringOffsets.Any())
             {
                 var oldEntry = AssetManager.Instance.GetEbxEntry(stringsToCStringOffsets.Keys.First());
                 if (oldEntry != null)
                 {
                     var oldEbxStream = AssetManager.Instance.GetEbxStream(oldEntry);
-                    using (var reader = new EbxReader22B(oldEbxStream, true))
+                    using (var reader = EbxReader.GetEbxReader(oldEbxStream, true)) // new EbxReader22B(oldEbxStream, true))
                     {
                         origEbxArrays.AddRange(reader.arrays.Where(x => x.Count > 0).OrderBy(x => x.Offset));
+                        origEbxBoxedValues.AddRange(reader.boxedValues.Where(x => x.Offset > 0).OrderBy(x => x.Offset));
                     }
                 }
             }
-            var ebxxArrays = arrays.Where(x => x.Count > 0).OrderBy(x => x.Offset).ToArray();
+            var ebxxArrays = 
+                arrays
+                .Where(x => x.Count > 0)
+                .OrderBy(x => x.Offset).ToArray();
             var ebxxArrayCount = ebxxArrays.Count();
-            //if (origEbxArrays.Count() <= ebxxArrayCount)
-            //{
-            //             Write(0u);
-            //             Write(0u);
-            //         }
-            //else
-            //{
+
+            var ebxxBoxedValues = 
+                boxedValues
+                .Where(x => x.Offset > 0)
+                .OrderBy(x => x.Offset).ToArray();
+            var ebxxBoxedValueCount = ebxxBoxedValues.Count();
+            
             Write(ebxxArrayCount);
-            //Write(0u);
-            Write(0u);
+            Write(ebxxBoxedValueCount);
             for (var iEbxxArray = 0; iEbxxArray < ebxxArrayCount; iEbxxArray++)
             {
                 var arr = ebxxArrays[iEbxxArray];
@@ -390,7 +395,15 @@ namespace FrostySdk.FrostySdk.IO
                     WriteUInt16(0, Endian.Little);
                 }
             }
-            //}
+            for (var iEbxBoxedValue = 0; iEbxBoxedValue < ebxxBoxedValueCount; iEbxBoxedValue++)
+            {
+                var boxedValue = ebxxBoxedValues[iEbxBoxedValue];
+                Write(boxedValue.Offset);
+                Write(1);
+                Write(0x00);
+                Write((ushort)origEbxBoxedValues[iEbxBoxedValue].Type);
+                Write((ushort)boxedValue.ClassRef);
+            }
             ebxxChunkLength = (uint)base.Position - (uint)ebxxChunkLengthOffset - 4u;
             // ----------------------------------
 
@@ -631,44 +644,10 @@ namespace FrostySdk.FrostySdk.IO
                 instances.Add(ebxInstance);
                 exportedCount += (ushort)(ebxInstance.IsExported ? 1 : 0);
             }
-            nativeWriter.WritePadding(16);
 
             ProcessDataArray(nativeWriter);
-            //arraysPosition = (int)nativeWriter.Position;
-            //nativeWriter.WriteEmpty(32);
+            ProcessDataBoxedValues(nativeWriter);
 
-            //var _arrays = this.arrays;
-
-            //foreach (var unpatchedArray2 in unpatchedArrayInfo)
-            //{
-            //    EbxArray arrayInfo = arrays[unpatchedArray2.arrayIndex];
-            //    byte[] arrayData = this.arrayData[unpatchedArray2.arrayIndex];
-            //    if (arrayInfo.Count == 0)
-            //    {
-            //        uint offsetFromPayload = (arrayInfo.Offset = (uint)(arraysPosition + 16));
-            //    }
-            //    else
-            //    {
-            //        long beforePaddingPosition = nativeWriter.Position;
-            //        //nativeWriter.WritePadding(16);
-            //        //if ((nativeWriter.Position - beforePaddingPosition) < 4)
-            //        //               {
-            //        //	nativeWriter.WriteEmpty(16);
-            //        //}
-            //        ////nativeWriter.Position -= 12L;
-            //        //nativeWriter.Position -= 4L;
-            //        nativeWriter.WriteUInt32LittleEndian(arrayInfo.Count);
-            //        long beforeArrayPosition = nativeWriter.Position;
-            //        nativeWriter.WriteBytes(arrayData);
-            //        arrayInfo.Offset = (uint)beforeArrayPosition;
-            //        nativeWriter.WritePadding(16);
-            //    }
-            //    arrays[unpatchedArray2.arrayIndex] = arrayInfo;
-            //}
-
-            //nativeWriter.WritePadding(16);
-
-            boxedValuesPosition = (int)nativeWriter.Position;
             nativeWriter.WritePadding(16);
 
 
@@ -809,6 +788,8 @@ namespace FrostySdk.FrostySdk.IO
 
         protected void ProcessDataArray(FileWriter nativeWriter)
         {
+            nativeWriter.WritePadding(16);
+
             arraysPosition = (int)nativeWriter.Position;
             nativeWriter.WriteEmpty(32);
 
@@ -911,13 +892,84 @@ namespace FrostySdk.FrostySdk.IO
 
                     nativeWriter.WriteBytes(arrayData);
                     arrayInfo.Offset = (uint)beforeArrayPosition;
-                    nativeWriter.WritePadding(16);
+                    //nativeWriter.WritePadding(16);
                 }
                 arrays[unpatchedArray.arrayIndex] = arrayInfo;
+            }
+        }
+
+
+        private void ProcessDataBoxedValues(FileWriter nativeWriter)
+        {
+            nativeWriter.WritePadding(16);
+            boxedValuesPosition = (int)nativeWriter.Position;
+
+            for (int i = 0; i < boxedValues.Count; i++)
+            {
+                EbxBoxedValue boxedValue = boxedValues[i];
+                if (boxedValue.Data == null)
+                    continue;
+
+                byte alignment = 4;
+                if (boxedValue.ClassRef == 0xFFFF)
+                {
+                    EbxFieldType boxedValType = (EbxFieldType)((boxedValue.Type >> 5) & 0x1F);
+                    switch (boxedValType)
+                    {
+                        case EbxFieldType.Boolean:
+                            alignment = 1; break;
+                        case EbxFieldType.Int8:
+                        case EbxFieldType.UInt8:
+                        case EbxFieldType.Int16:
+                        case EbxFieldType.UInt16:
+                            alignment = 2; break;
+                        case EbxFieldType.Enum:
+                        case EbxFieldType.TypeRef:
+                        case EbxFieldType.String:
+                        case EbxFieldType.Float32:
+                        case EbxFieldType.Int32:
+                        case EbxFieldType.UInt32:
+                            alignment = 4; break;
+
+                        case EbxFieldType.Float64:
+                        case EbxFieldType.Int64:
+                        case EbxFieldType.UInt64:
+                        case EbxFieldType.CString:
+                        case EbxFieldType.FileRef:
+                        case EbxFieldType.Delegate:
+                        case EbxFieldType.Pointer:
+                        case EbxFieldType.ResourceRef:
+                        case EbxFieldType.BoxedValueRef:
+                            alignment = 8; break;
+                        //case EbxFieldType.Guid: alignment = 16; break;
+
+                        default: alignment = 4; break;
+                    }
+                }
+                else
+                {
+                    //EbxClass boxedValClass = m_classTypes[boxedValue.ClassRef];
+                    //switch (boxedValClass.DebugCategory)
+                    //{
+                    //    case EbxFieldCategory.EnumType:
+                    //        alignment = 4; break;
+                    //    case EbxFieldCategory.Pointer:
+                    //    case EbxFieldCategory.ArrayType:
+                    //    case EbxFieldCategory.DelegateType:
+                    //        alignment = 8; break;
+                    //    default: alignment = boxedValClass.Alignment; break;
+                    //}
+                }
+                nativeWriter.WritePadding(alignment);
+                boxedValue.Offset = (uint)nativeWriter.Position;
+                boxedValues[i] = boxedValue;
+
+                nativeWriter.Write(boxedValue.Data);
             }
 
             nativeWriter.WritePadding(16);
         }
+
 
         protected virtual void WriteClass(object obj, Type objType, NativeWriter writer)
         {
@@ -933,7 +985,11 @@ namespace FrostySdk.FrostySdk.IO
             {
                 throw new ArgumentNullException("writer");
             }
-            if (objType.BaseType!.Namespace == "FrostySdk.Ebx")
+            if (
+                objType.BaseType!.Namespace == "FrostySdk.Ebx"
+                || objType.BaseType!.Namespace == "Sdk.Ebx"
+                || objType.BaseType!.Namespace == "FMTSdk.Ebx"
+                )
             {
                 WriteClass(obj, objType.BaseType, writer);
             }
@@ -945,22 +1001,30 @@ namespace FrostySdk.FrostySdk.IO
 #endif
 
             var classMeta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
+            var propertiesOrderedByOffset = properties.OrderBy(x => x.GetCustomAttribute<EbxFieldMetaAttribute>().Offset).ToArray();
+            var propertiesOrderedByIndex = properties.OrderBy(x => x.GetCustomAttribute<FieldIndexAttribute>().Index).ToArray();
 
-            //foreach (var propertyInfo in properties.OrderBy(x => x.GetCustomAttribute<FieldIndexAttribute>().Index))
-            foreach (var propertyInfo in properties.OrderBy(x => x.GetCustomAttribute<EbxFieldMetaAttribute>().Offset))
+            foreach (var propertyInfo in propertiesOrderedByOffset)
             {
                 IsTransientAttribute isTransientAttribute = propertyInfo.GetCustomAttribute<IsTransientAttribute>();
                 if (isTransientAttribute != null)
+                {
+                    writtenProperties.Add(propertyInfo);
                     continue;
+                }
 
                 EbxFieldMetaAttribute ebxFieldMetaAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
                 if (ebxFieldMetaAttribute == null || ebxFieldMetaAttribute.Type == EbxFieldType.Inherited)
+                {
+                    writtenProperties.Add(propertyInfo);
                     continue;
+                }
 
                 if (propertyInfo == null)
                 {
 #if DEBUG
                     Debug.WriteLine("There is a dodgy Property in here. How can there be a null property info in a list of property infos?");
+                    FileLogger.WriteLine("There is a dodgy Property in here. How can there be a null property info in a list of property infos?");
 #endif
                     continue;
                 }
@@ -986,7 +1050,7 @@ namespace FrostySdk.FrostySdk.IO
             var unwrittenProperties = properties.Where(x => !writtenProperties.Any(y => y.Name == x.Name));
             if (unwrittenProperties.Any() && obj == objsToProcess[0])
             {
-
+                throw new Exception("Some properties were not written");
             }
 #endif
             writer.WritePadding(classMeta.Alignment);
@@ -997,7 +1061,35 @@ namespace FrostySdk.FrostySdk.IO
             switch (ebxType)
             {
                 case EbxFieldType.TypeRef:
-                    throw new NotSupportedException("The asset contains a TypeRef field, which is not yet supported.");
+                    TypeRef typeRefObj = (TypeRef)obj;
+                    WriteTypeRef(typeRefObj, false, writer);
+                    break;
+                case EbxFieldType.BoxedValueRef:
+                    {
+                        BoxedValueRef value = (BoxedValueRef)obj;
+                        TypeRef typeRef = new TypeRef(value.TypeString);
+                        TypeRefOutputStruct tiPair = WriteTypeRef(typeRef, true, writer);
+
+                        int index = boxedValues.Count;
+                        EbxBoxedValue boxedValue = new EbxBoxedValue()
+                        {
+                            Offset = 0,
+                            Type = tiPair.Type,
+                            ClassRef = tiPair.ClassRef
+                        };
+                        if (value.Value != null)
+                        {
+                            boxedValue.Data = WriteBoxedValueRef(value);
+                        }
+                        else
+                        {
+                            boxedValue.Data = null;
+                        }
+                        boxedValues.Add(boxedValue);
+
+                        writer.Write((ulong)index);
+                    }
+                    break;
                 case EbxFieldType.FileRef:
                     throw new NotSupportedException("The asset contains a FileRef field, which is not yet supported.");
                 case EbxFieldType.CString:
@@ -1095,8 +1187,7 @@ namespace FrostySdk.FrostySdk.IO
                     resourceRefOffsets.Add(((int)writer.Position, currentArrayIndex));
                     writer.WriteUInt64LittleEndian((ResourceRef)obj);
                     break;
-                //case EbxFieldType.BoxedValueRef:
-                //	throw new NotSupportedException("The asset contains a BoxedValueRef field, which is not yet supported.");
+              
                 //case EbxFieldType.Delegate:
                 //	throw new NotSupportedException("The asset contains a Delegate field, which is not yet supported.");
                 //case EbxFieldType.Function:
@@ -1135,7 +1226,6 @@ namespace FrostySdk.FrostySdk.IO
                 Count = (uint)arrayCount,
                 ClassRef = classIndex,
                 PathDepth = fieldNameHash,
-                //TypeFlags = (int)elementFieldType,
                 TypeFlags = fieldMetaAttribute.ArrayFlags,
                 Offset = 0u
             });
@@ -1285,6 +1375,148 @@ namespace FrostySdk.FrostySdk.IO
             return EbxSharedTypeDescriptors.std.GetClass(parentClassType.Index + (short)field.ClassRef).Value;
 
         }
+
+        private struct TypeRefOutputStruct
+        {
+            public ushort Type { get; set; }
+            public ushort ClassRef { get; set; }
+
+            public TypeRefOutputStruct(in ushort in_type, in ushort in_classref)
+            {
+                Type = in_type;
+                ClassRef = in_classref; 
+            }
+        }
+
+        private TypeRefOutputStruct WriteTypeRef(TypeRef typeRef, bool addSignature, NativeWriter writer)
+        {
+            if (typeRef.IsNull() || typeRef.Name == "0" || typeRef.Name == "Inherited")
+            {
+                writer.Write(0x00);
+                writer.Write(0x00);
+                return new TypeRefOutputStruct(0, 0);
+            }
+
+            Type typeRefType = typeRef.GetReferencedType();
+
+            int typeIdx = FindExistingClass(typeRefType);
+            EbxClassMetaAttribute cta = typeRefType.GetCustomAttribute<EbxClassMetaAttribute>();
+
+            EbxFieldType type = EbxFieldType.Inherited;
+            EbxFieldCategory category = EbxFieldCategory.NotApplicable;
+            if (cta != null)
+            {
+                type = cta.Type;
+                category = (EbxFieldCategory)(cta.Flags & 0xF);
+            }
+            else if (typeRefType.Name.StartsWith("Delegate"))
+            {
+                type = EbxFieldType.Delegate;
+                category = EbxFieldCategory.Delegate;
+            }
+
+            TypeRefOutputStruct output = default(TypeRefOutputStruct);
+            uint typeFlags = (uint)type << 5;
+            typeFlags |= (uint)category << 1;
+            typeFlags |= 1;
+
+            output.Type = (ushort)typeFlags;
+            if (category == EbxFieldCategory.Primitive)
+            {
+                typeFlags |= 0x80000000;
+                output.ClassRef = (ushort)typeIdx;
+            }
+            else
+            {
+                if (typeIdx == -1)
+                {
+                    // boxed value type refs shouldn't end up here, as they're already handled when processing classes
+                    //typeIdx = AddClass(typeRefType.Name, typeRefType, addSignature);
+                }
+                typeFlags = (uint)(typeIdx << 2);
+                typeFlags |= 2;
+                // boxed value info in the EBXX section needs the class index
+                // the type ref just sets it to zero
+                output.ClassRef = (ushort)typeIdx;
+                typeIdx = 0;
+            }
+            writer.Write(typeFlags);
+            writer.Write(typeIdx);
+            return output;
+        }
+
+        protected new byte[] WriteBoxedValueRef(BoxedValueRef value)
+        {
+            // @todo: Does not at all handle boxed value arrays
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                object obj = value.Value;
+                switch (value.Type)
+                {
+                    case EbxFieldType.TypeRef:
+                        {
+                            TypeRef typeRefObj = (TypeRef)obj;
+                            WriteTypeRef(typeRefObj, false, writer);
+                        }
+                        break;
+
+                    case EbxFieldType.FileRef:
+                        {
+                            string str = (FileRef)obj;
+                            writer.Write((long)AddString(str));
+                        }
+                        break;
+
+                    case EbxFieldType.CString:
+                        {
+                            string str = (CString)obj;
+                            writer.Write((long)AddString(str));
+                        }
+                        break;
+
+                    case EbxFieldType.Pointer:
+                        {
+                            PointerRef pointer = (PointerRef)obj;
+                            //WritePointer(pointer, false, writer);
+                        }
+                        break;
+
+                    case EbxFieldType.Struct:
+                        {
+                            object structValue = obj;
+                            Type structType = structValue.GetType();
+                            EbxClassMetaAttribute cta = structType.GetCustomAttribute<EbxClassMetaAttribute>();
+
+                            writer.WritePadding(cta.Alignment);
+                            //WriteClass(structValue, structType, writer.Position, writer);
+                            WriteClass(structValue, structType, writer);
+                        }
+                        break;
+
+                    case EbxFieldType.Enum: writer.Write((int)obj); break;
+                    case EbxFieldType.Float32: writer.Write((float)obj); break;
+                    case EbxFieldType.Float64: writer.Write((double)obj); break;
+                    case EbxFieldType.Boolean: writer.Write((byte)(((bool)obj) ? 0x01 : 0x00)); break;
+                    case EbxFieldType.Int8: writer.Write((sbyte)obj); break;
+                    case EbxFieldType.UInt8: writer.Write((byte)obj); break;
+                    case EbxFieldType.Int16: writer.Write((short)obj); break;
+                    case EbxFieldType.UInt16: writer.Write((ushort)obj); break;
+                    case EbxFieldType.Int32: writer.Write((int)obj); break;
+                    case EbxFieldType.UInt32: writer.Write((uint)obj); break;
+                    case EbxFieldType.Int64: writer.Write((long)obj); break;
+                    case EbxFieldType.UInt64: writer.Write((ulong)obj); break;
+                    case EbxFieldType.Guid: writer.Write((Guid)obj); break;
+                    case EbxFieldType.Sha1: writer.Write((Sha1)obj); break;
+                    case EbxFieldType.String: writer.WriteFixedSizedString((string)obj, 32); break;
+                    case EbxFieldType.ResourceRef: writer.Write((ResourceRef)obj); break;
+
+                    default: throw new InvalidDataException($"Unhandled field type: {value.Type}");
+                }
+
+                return ((MemoryStream)writer.BaseStream).ToArray();
+            }
+        }
+
     }
 
 }

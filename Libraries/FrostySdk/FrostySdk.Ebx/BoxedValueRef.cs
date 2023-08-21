@@ -1,32 +1,41 @@
+using FrostySdk.Attributes;
 using FrostySdk.IO;
 using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Windows.Data;
 
 namespace FrostySdk.Ebx
 {
     public class BoxedValueRef
     {
-        private object value;
-
-        public object Value
-        {
-            get { return value; }
-            set { this.value = value; }
-        }
-
-        private byte[] data;
-
-        public byte[] Data
-        {
-            get { return data; }
-            set { data = value; }
-        }
-
-        private EbxFieldType type;
-
+        public object Value => value;
         public EbxFieldType Type => type;
+        public EbxFieldType ArrayType => subType;
+        public EbxFieldCategory Category => category;
+        public string TypeString
+        {
+            get
+            {
+                switch (type)
+                {
+                    case EbxFieldType.Array: return EbxTypeToString(subType, value.GetType().GenericTypeArguments[0]);
+                    case EbxFieldType.Enum:
+                    case EbxFieldType.Struct:
+                        return value.GetType().Name;
+                    case EbxFieldType.CString: return "CString";
+                    default: return type.ToString();
+                }
+            }
+        }
 
+        private object value;
+        private EbxFieldType type;
         private EbxFieldType subType;
+        private EbxFieldCategory category;
+
+        public byte[] Data { get; set; }
 
         public BoxedValueRef()
         {
@@ -40,80 +49,73 @@ namespace FrostySdk.Ebx
 
         public BoxedValueRef(object inval, EbxFieldType intype, EbxFieldType insubtype)
         {
-            this.Value = inval;
-            this.type = intype;
-            this.subType = insubtype;
+            value = inval;
+            type = intype;
+            subType = insubtype;
         }
 
+        public BoxedValueRef(object inval, EbxFieldType intype, EbxFieldType insubtype, EbxFieldCategory incategory)
+        {
+            value = inval;
+            type = intype;
+            subType = insubtype;
+            category = incategory;
+        }
+
+        public void SetValue(object invalue)
+        {
+            value = invalue;
+        }
 
         public override string ToString()
         {
-            if (this.Value == null)
-            {
+            if (Value == null)
                 return "BoxedValueRef '(null)'";
-            }
-            string text;
-            switch (this.Type)
+            string s = "BoxedValueRef '";
+            switch (type)
             {
-                case EbxFieldType.Array:
-                    text = "Array<" + this.EbxTypeToString(this.subType, this.Value.GetType().GenericTypeArguments[0]) + ">";
-                    break;
-                case EbxFieldType.Enum:
-                    text = this.Value.GetType().Name;
-                    break;
-                case EbxFieldType.Struct:
-                    text = this.Value.GetType().Name;
-                    break;
-                case EbxFieldType.CString:
-                    text = "CString";
-                    break;
-                default:
-                    {
-                        DefaultInterpolatedStringHandler defaultInterpolatedStringHandler = new DefaultInterpolatedStringHandler(0, 1);
-                        defaultInterpolatedStringHandler.AppendFormatted(this.Type);
-                        text = defaultInterpolatedStringHandler.ToStringAndClear();
-                        break;
-                    }
+                case EbxFieldType.Array: s += $"Array<{EbxTypeToString(subType, value.GetType().GenericTypeArguments[0])}>"; break;
+                case EbxFieldType.Enum: s += $"{value.GetType().Name}"; break;
+                case EbxFieldType.Struct: s += $"{value.GetType().Name}"; break;
+                case EbxFieldType.CString: s += "CString"; break;
+                default: s += $"{type}"; break;
             }
-            string typeString = text;
-            return "BoxedValueRef '" + typeString + "'";
+
+            return s + "'";
         }
 
         private string EbxTypeToString(EbxFieldType typeToConvert, Type actualType)
         {
             switch (typeToConvert)
             {
-                case EbxFieldType.Struct:
                 case EbxFieldType.Enum:
+                case EbxFieldType.Struct:
                     return actualType.Name;
-                case EbxFieldType.CString:
-                    return "CString";
-                default:
-                    return typeToConvert.ToString();
+                case EbxFieldType.CString: return "CString";
+                default: return typeToConvert.ToString();
             }
         }
 
-
-
-        public BoxedValueRef(int inval)
+        private string StructToString(object structValue)
         {
-            value = inval;
-        }
+            StringBuilder sb = new StringBuilder();
+            if (TypeLibrary.IsSubClassOf(structValue, "LinearTransform"))
+            {
+                IValueConverter valueConverter = (IValueConverter)Activator.CreateInstance(System.Type.GetType("Frosty.Core.Controls.Editors.LinearTransformConverter, FrostyCore"));
+                structValue = valueConverter.Convert(structValue, null, null, null);
+            }
 
-        public BoxedValueRef(int inval, byte[] inData)
-        {
-            value = inval;
-            data = inData;
-        }
+            var pis = structValue.GetType().GetProperties();
+            foreach (var pi in pis)
+            {
+                if (pi.GetCustomAttribute<IsHiddenAttribute>() != null)
+                    continue;
 
-        public void SetData(byte[] inData)
-        {
-            data = inData;
-        }
+                sb.Append(pi.GetValue(structValue).ToString() + "/");
+            }
 
-        public byte[] GetData()
-        {
-            return data;
+            sb.Remove(sb.Length - 1, 1);
+            return sb.ToString();
         }
 
         public static implicit operator int(BoxedValueRef value)
@@ -123,8 +125,19 @@ namespace FrostySdk.Ebx
 
         public static implicit operator BoxedValueRef(int inval)
         {
-            return new BoxedValueRef(inval);
+            throw new NotImplementedException();
+            //return new BoxedValueRef(inval);
+            //return new BoxedValueRef();
         }
 
+        public void SetData(byte[] inData)
+        {
+            Data = inData;
+        }
+
+        public byte[] GetData()
+        {
+            return Data;
+        }
     }
 }
