@@ -122,16 +122,19 @@ namespace FrostySdk.ModsAndProjects.Projects
             return project;
         }
 
-        public static FMTProject Read(string filePath)
+        public static FMTProject Read(Stream stream, FMTProject project = null)
         {
-            if (!filePath.EndsWith(projectExtension, StringComparison.Ordinal))
-                filePath += projectExtension;
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
 
-            if (!File.Exists(filePath))
-                throw new FileNotFoundException(filePath);
+            if (project == null)
+            {
+                project = new FMTProject("EditorProject.fmtproj");
+            }
 
-            FMTProject project = new FMTProject(filePath);
-            using (NativeReader nr = new NativeReader(filePath))
+            using (NativeReader nr = new NativeReader(stream))
             {
                 project.ProjectVersion = nr.ReadInt();
                 project.GameDataVersion = nr.ReadInt();
@@ -157,10 +160,52 @@ namespace FrostySdk.ModsAndProjects.Projects
                 EmbeddedFilesRead(nr);
                 nr.Position = assetManagerPositions["localeini"];
                 LocaleINIRead(nr);
-
-
             }
+
             return project;
+        }
+
+        public static FMTProject Read(string filePath)
+        {
+            if (!filePath.EndsWith(projectExtension, StringComparison.Ordinal))
+                filePath += projectExtension;
+
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException(filePath);
+
+            return Read(new FileStream(filePath, FileMode.OpenOrCreate), new FMTProject(filePath));
+
+            //FMTProject project = new FMTProject(filePath);
+            //using (NativeReader nr = new NativeReader(filePath))
+            //{
+            //    project.ProjectVersion = nr.ReadInt();
+            //    project.GameDataVersion = nr.ReadInt();
+            //    project.ModSettings = JsonConvert.DeserializeObject<ModSettings>(nr.ReadLengthPrefixedString());
+
+            //    var assetManagerPositions = new Dictionary<string, long>();
+            //    var countOfAssetManagers = nr.ReadInt();
+            //    for (var indexAM = 0; indexAM < countOfAssetManagers; indexAM++)
+            //    {
+            //        assetManagerPositions.Add(nr.ReadLengthPrefixedString(), nr.ReadLong());
+            //    }
+            //    // Read Data
+            //    nr.Position = assetManagerPositions["ebx"];
+            //    project.EBXAssetsRead(nr);
+            //    nr.Position = assetManagerPositions["res"];
+            //    project.ResourceAssetsRead(nr, out var textureResources);
+            //    nr.Position = assetManagerPositions["chunks"];
+            //    project.ChunkAssetsRead(nr);
+            //    nr.Position = assetManagerPositions["legacy"];
+            //    project.LegacyFilesModifiedRead(nr);
+            //    LegacyFilesAddedRead(nr);
+            //    nr.Position = assetManagerPositions["embedded"];
+            //    EmbeddedFilesRead(nr);
+            //    nr.Position = assetManagerPositions["localeini"];
+            //    LocaleINIRead(nr);
+
+
+            //}
+            //return project;
         }
 
 
@@ -617,12 +662,12 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         public override bool Load(in string inFilename)
         {
-            throw new NotImplementedException();
+            Read(inFilename); return true;
         }
 
         public override bool Load(in Stream inStream)
         {
-            throw new NotImplementedException();
+            Read(inStream); return true;
         }
 
         public override async Task<bool> SaveAsync(string overrideFilename, bool updateDirtyState)
