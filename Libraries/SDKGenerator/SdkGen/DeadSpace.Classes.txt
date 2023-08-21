@@ -1,14 +1,4 @@
-﻿BeginClass BoolChimeraValue
-EndClass
-BeginClass RawFileDataAsset
-	BeginFields 1
-		BeginField RawData
-			Editor=BlobEditor
-			HideChildren=True
-		EndField
-	EndFields
-EndClass
-BeginClass ExpressionPortData
+﻿BeginClass ExpressionPortData
 	BeginFields 4
 		BeginField NodeNameHash
 			Hidden=True
@@ -71,11 +61,13 @@ BeginClass ExpressionPortData
 	EndFields
 EndClass
 BeginClass LinearTransform
-	ValueConverter=LinearTransformConverter
 	BeginConstructor
 		_right.x = 1.0f;
 		_up.y = 1.0f;
 		_forward.z = 1.0f;
+		Rotation.x = float.MaxValue;
+		Translate.x = float.MaxValue;
+		Scale.x = float.MaxValue;
 	EndConstructor
 	BeginFunctions
 		public override string ToString()
@@ -152,32 +144,32 @@ BeginClass DataBusPeer
 		[DynamicLinkHandler("CreateInputLinks", "CreateOutputLinks")]
 	EndAttributes
 	//BeginFields 1
-	//	BeginFieldInputProps
+	//	BeginField FrostyInputProps
 	//		Transient=True
 	//		Added=True
 	//		Type=Array,None,CString
 	//	EndField
-	//	BeginField OutputProps
+	//	BeginField FrostyOutputProps
 	//		Transient=True
 	//		Added=True
 	//		Type=Array,None,CString
 	//	EndField
-	//	BeginField InputEvents
+	//	BeginField FrostyInputEvents
 	//		Transient=True
 	//		Added=True
 	//		Type=Array,None,CString
 	//	EndField
-	//	BeginField OutputEvents
+	//	BeginField FrostyOutputEvents
 	//		Transient=True
 	//		Added=True
 	//		Type=Array,None,CString
 	//	EndField
-	//	BeginField InputLinks
+	//	BeginField FrostyInputLinks
 	//		Transient=True
 	//		Added=True
 	//		Type=Array,None,CString
 	//	EndField
-	//	BeginField OutputLinks
+	//	BeginField FrostyOutputLinks
 	//		Transient=True
 	//		Added=True
 	//		Type=Array,None,CString
@@ -300,6 +292,138 @@ BeginClass EventSpec
 						return;
 					}
 					_Id=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass KitLimitationGroup
+	BeginFields 2
+		BeginField MaxCountProperty
+			Hidden=True
+		EndField
+		BeginField MaxCount
+			Added=True
+			Transient=True
+			Type=CString
+			Index=0
+			BeginAccessor
+				get 
+				{
+#if !DV_20211119
+					if (_MaxCount.IsNull())
+						_MaxCount = Utils.GetString(_MaxCountProperty);
+#endif
+					return _MaxCount; 
+				}
+				set 
+				{ 
+					_MaxCount=value; 
+					
+					string strValue = value;
+#if !DV_20211119
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_MaxCountProperty = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_MaxCountProperty=Utils.HashString(strValue); 
+#endif
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass KitLimitation
+	BeginFields 2
+		BeginField MaxCountProperty
+			Hidden=True
+		EndField
+		BeginField PriceProperty
+			Hidden=True
+		EndField
+		BeginField EnabledAtStageProperty
+			Hidden=True
+		EndField
+		BeginField MaxCount
+			Added=True
+			Transient=True
+			Type=CString
+			Index=1
+			BeginAccessor
+				get 
+				{
+					if (_MaxCount.IsNull())
+						_MaxCount = Utils.GetString(_MaxCountProperty);
+					return _MaxCount; 
+				}
+				set 
+				{ 
+					_MaxCount=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_MaxCountProperty = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_MaxCountProperty=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+		BeginField Price
+			Added=True
+			Transient=True
+			Type=CString
+			Index=2
+			BeginAccessor
+				get 
+				{
+					if (_Price.IsNull())
+						_Price = Utils.GetString(_PriceProperty);
+					return _Price; 
+				}
+				set 
+				{ 
+					_Price=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_PriceProperty = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_PriceProperty=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+		BeginField EnabledAtStage
+			Added=True
+			Transient=True
+			Type=CString
+			Index=2
+			BeginAccessor
+				get 
+				{
+					if (_EnabledAtStage.IsNull())
+						_EnabledAtStage = Utils.GetString(_EnabledAtStageProperty);
+					return _EnabledAtStage; 
+				}
+				set 
+				{ 
+					_EnabledAtStage=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_EnabledAtStageProperty = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_EnabledAtStageProperty=Utils.HashString(strValue); 
 				}
 			EndAccessor
 		EndField
@@ -479,22 +603,51 @@ BeginClass SoundGraphPluginConnection
 EndClass
 BeginClass AudioGraphData
 	BeginFields 3
-		BeginField PublicEvents
+		BeginField InputParameters
 			Reference=True
 		EndField
-		BeginField PublicParameters
+		BeginField OutputParameters
 			Reference=True
 		EndField
-		BeginField PublicAssetParameters
+		BeginField InputEvents
+			Reference=True
+		EndField
+		BeginField OutputEvents
 			Reference=True
 		EndField
 	EndFields
 EndClass
-BeginClass LocalizedStringId
-	Alignment=4
-	BeginFields 1
-		BeginField StringHash
-			Editor=LocalizedStringHashEditor
+BeginClass AudioGraphParameter
+	BeginFields 2
+		BeginField NameHash
+			Hidden=True
+		EndField
+		BeginField Name
+			Added=True
+			Transient=True
+			Type=CString
+			Index=2
+			BeginAccessor
+				get 
+				{
+					if (_Name.IsNull())
+						_Name = Utils.GetString((int)_NameHash);
+					return _Name; 
+				}
+				set 
+				{ 
+					_Name=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_NameHash = uint.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_NameHash=(uint)Utils.HashString(strValue); 
+				}
+			EndAccessor
 		EndField
 	EndFields
 EndClass
@@ -541,6 +694,18 @@ BeginClass UIElementEntityData
 	}
 	EndFunctions
 EndClass
+BeginClass GameSettingNode
+	BeginFunctions
+	protected override CString GetId()
+	{
+		if (__id != "")
+			return __id;
+		if (_SettingName != "")
+			return _SettingName.Sanitize();
+		return base.GetId();
+	}
+	EndFunctions
+EndClass
 BeginClass UIElementWidgetReferenceEntityData
 	BeginFunctions
 	protected override CString GetId()
@@ -559,7 +724,14 @@ BeginClass UIElementLayerEntityData
 	{
 		if (__id != "")
 			return __id;
-
+#if DV_20171117 || DV_20160927 || DV_20170929 || DV_20180914 || DV_20180807 || DV_20170321 || DV_20181207 || DV_20171110 || DV_20190729 || DV_20190905 || DV_20190911 || DV_20191101 || DV_20201001 || DV_20201009 || DV_20210820 || DV_20211119 || DV_20210927 || DV_20220819 || DV_20221129 || DV_20230127
+		if (_InternalLayerName != "")
+			return _InternalLayerName.Sanitize();
+#elif DV_20180628
+#else
+		if (_LayerName != "")
+			return _LayerName.Sanitize();
+#endif
 		return base.GetId();
 	}
 	EndFunctions
