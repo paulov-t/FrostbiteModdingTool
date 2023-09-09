@@ -1,4 +1,5 @@
 ﻿using FMT.FileTools;
+using FMT.Logging;
 using FrostySdk;
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Managers;
@@ -98,7 +99,12 @@ namespace FC24Plugin
                 var foundCatalog = 0;
                 var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
                 var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace(".toc", "");
-                var singleCatalog = allCatalogs.Single(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
+                if (!allCatalogs.Any(x => x.SuperBundles.ContainsKey(keyToFindSb)))
+                {
+                    FileLogger.WriteLine($"{nameof(ReadChunkData)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
+                    return;
+                }
+                var singleCatalog = allCatalogs.Last(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
                 foundCatalog = allCatalogs.IndexOf(singleCatalog);
                 ///
 
@@ -216,17 +222,19 @@ namespace FC24Plugin
                 var foundCatalog = 0;
                 var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
                 var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace(".toc", "");
-                var singleCatalog = allCatalogs.Single(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
+
+                // --------------------------------------------------------------------------------------------------
+                // Find single catalog
+                //var singleCatalog = allCatalogs.Single(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
+                if (!allCatalogs.Any(x => x.SuperBundles.ContainsKey(keyToFindSb)))
+                {
+                    FileLogger.WriteLine($"{nameof(ReadCasBundles)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
+                    return;
+                }
+
+                var singleCatalog = allCatalogs.Last(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
+
                 foundCatalog = allCatalogs.IndexOf(singleCatalog);
-                //for (var indexCatalog = 0; indexCatalog < allCatalogs.Count; indexCatalog++)
-                //{
-                //    var cat = allCatalogs[indexCatalog];
-                //    if (cat.SuperBundles.ContainsKey(keyToFindSb) && !cat.SuperBundles[keyToFindSb])
-                //    {
-                //        foundCatalog = (byte)indexCatalog;
-                //        break;
-                //    }
-                //}
 
                 for (int i = 0; i < MetaData.BundleCount; i++)
                 {
@@ -255,56 +263,6 @@ namespace FC24Plugin
                     var actualFlagsOffset = startPosition + bundle.FlagsOffset;
                     nativeReader.Position = actualFlagsOffset;
                     bundle.Flags = nativeReader.ReadBytes(bundle.EntriesCount);
-                    ////var actualEntriesOffset = startPosition + bundle.EntriesOffset;
-                    ////nativeReader.Position = actualEntriesOffset;
-                    ////var sum = 0;
-                    //for (int flagEntryIndex = 0; flagEntryIndex < bundle.EntriesCount; flagEntryIndex++)
-                    //{
-                    //    var unkFlagByte = nativeReader.ReadByte();
-                    //    if (unkFlagByte == 128)
-                    //    {
-                    //        bundle.Flags[flagEntryIndex] = 0x1;
-                    //    }
-
-                    //    throw new NotImplementedException();
-                    //    //    bool hasCasIdentifier = bundle.Flags[j2] == 1;
-                    //    //    if (hasCasIdentifier)
-                    //    //    {
-                    //    //        unk = nativeReader.ReadByte();
-                    //    //        isInPatch = nativeReader.ReadBoolean();
-                    //    //        catalog = nativeReader.ReadByte();
-                    //    //        cas = nativeReader.ReadByte();
-                    //    //        sum += 4;
-
-                    //    //    }
-                    //    //    long locationOfOffset = nativeReader.Position;
-                    //    //    uint bundleOffsetInCas = nativeReader.ReadUInt(Endian.Big);
-                    //    //    long locationOfSize = nativeReader.Position;
-                    //    //    uint bundleSizeInCas = nativeReader.ReadUInt(Endian.Big);
-                    //    //    sum += 8;
-                    //    //    if (j2 == 0)
-                    //    //    {
-                    //    //        bundle.Unk = unk;
-                    //    //        bundle.BundleOffset = bundleOffsetInCas;
-                    //    //        bundle.BundleSize = bundleSizeInCas;
-                    //    //        bundle.Cas = cas;
-                    //    //        bundle.Catalog = catalog;
-                    //    //        bundle.Patch = isInPatch;
-                    //    //    }
-                    //    //    else
-                    //    //    {
-                    //    //        bundle.TOCOffsets.Add(locationOfOffset);
-                    //    //        bundle.Offsets.Add(bundleOffsetInCas);
-
-                    //    //        bundle.TOCSizes.Add(locationOfSize);
-                    //    //        bundle.Sizes.Add(bundleSizeInCas);
-
-                    //    //        bundle.TOCCas.Add(cas);
-                    //    //        bundle.TOCCatalog.Add(catalog);
-                    //    //        bundle.TOCPatch.Add(isInPatch);
-                    //    //    }
-
-                    //}
 
                     var actualEntriesOffset = startPosition + bundle.EntriesOffset;
                     nativeReader.Position = actualEntriesOffset;
@@ -314,26 +272,6 @@ namespace FC24Plugin
                     byte catalog = 0;
                     byte cas = 0;
 
-
-
-
-
-
-                    
-                    //var unkByte1 = nativeReader.ReadByte(); // 00 Unknown
-                    //var unkByte2 = nativeReader.ReadByte(); //  00 Unknown
-                    //var unkMagic = nativeReader.ReadUInt(Endian.Big); //  A3 A0 0D E1 MAGIC?
-                    //if (unkMagic != 2745175521 && unkMagic != 2745175526)
-                    //    throw new InvalidDataException($"unkMagic is {unkMagic} when 2745175521/2745175526 is expected");
-                    ////var unkShortCas = nativeReader.ReadUShort(Endian.Big);
-                    //isInPatch = nativeReader.ReadBoolean(); // Unknown (assumed patch?)
-                    //cas = nativeReader.ReadByte(); // Cas number
-                    //                               //catalog = (byte)unkShortCas;
-                    //                               //cas = (byte)unkShortCas;
-                    //                               //catalog = 0;
-
-                    //bundle.BundleSize = nativeReader.ReadUInt(Endian.Big);
-                    //bundle.BundleOffset = nativeReader.ReadUInt(Endian.Big);
                     for (int j2 = 0; j2 < bundle.EntriesCount; j2++)
                     {
                         bool hasCasIdentifier = bundle.Flags[j2] == 128;
@@ -425,20 +363,8 @@ namespace FC24Plugin
                         {
                             continue;
                         }
-                        //var path = FileSystem.Instance.GetFilePath(bundle.Cas);
-                        //foreach(var cat in AssetManager.Instance.FileSystem.CatalogObjects)
                         if (bundle.Catalog == 0)
                         {
-                            //var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
-                            //for (var indexCatalog = 0; indexCatalog < allCatalogs.Count; indexCatalog++)
-                            //{
-                            //    var cat = allCatalogs[indexCatalog];
-                            //    if (cat.SuperBundles.ContainsKey(NativeFileLocation.Replace("native_data/", "").Replace(".toc", "")))
-                            //    {
-                            //        bundle.Catalog = (byte)indexCatalog;
-                            //        break;
-                            //    }
-                            //}
                             continue;
                         }
                         var path = FileSystem.Instance.GetFilePath(bundle.Catalog, bundle.Cas, bundle.Patch);

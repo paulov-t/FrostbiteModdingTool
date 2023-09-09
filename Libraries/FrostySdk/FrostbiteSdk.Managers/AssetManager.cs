@@ -426,9 +426,7 @@ namespace FrostySdk.Managers
                 return;
             }
 
-            if(!writtenToCache && !ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.FC24))
-                DoEbxIndexing();
-            else if (writtenToCache)
+            if (writtenToCache)
                 DoEbxIndexing();
 
             // Load these when you need them!
