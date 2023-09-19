@@ -191,7 +191,7 @@ namespace FIFAModdingUI.Windows
             new ProjectManagement(filePath, this);
             //await ProjectManagement.StartNewProjectAsync();
             //InitialiseBrowsers();
-            await UpdateAllBrowsersFull();
+            await UpdateBrowsersAllFull();
 
 
             await Dispatcher.InvokeAsync(() =>
@@ -270,7 +270,7 @@ namespace FIFAModdingUI.Windows
 
         private void InitialiseBrowsers()
         {
-            _ = UpdateAllBrowsersFull();
+            _ = UpdateBrowsersAllFull();
         }
 
         LauncherOptions LauncherOptions { get; set; }
@@ -1141,7 +1141,7 @@ namespace FIFAModdingUI.Windows
             //bootsBrowser.UpdateAssetListView();
         }
 
-        public async Task UpdateAllBrowsersFull()
+        public async Task UpdateBrowsersAllFull()
         {
             var dataBrowserData = ProjectManagement.Project.AssetManager
                                   .EnumerateEbx()

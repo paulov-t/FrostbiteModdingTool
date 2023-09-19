@@ -9,7 +9,7 @@ namespace FrostbiteModdingUI.Windows
     {
         public Window OwnerWindow { get; set; }
 
-        public Task UpdateAllBrowsersFull();
+        public Task UpdateBrowsersAllFull();
 
         public void UpdateAllBrowsers();
 

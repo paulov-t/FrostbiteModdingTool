@@ -11,6 +11,7 @@ using FrostbiteSdk;
 using FrostySdk;
 using FrostySdk.Ebx;
 using FrostySdk.Frostbite;
+using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
 using FrostySdk.ModsAndProjects.Projects;
@@ -344,7 +345,7 @@ namespace FrostbiteModdingUI.Windows
 
         private void InitialiseBrowsers()
         {
-            UpdateAllBrowsersFull();
+            UpdateBrowsersAllFull();
         }
 
         LauncherOptions LauncherOptions { get; set; }
@@ -1062,7 +1063,7 @@ namespace FrostbiteModdingUI.Windows
             //textureBrowser.UpdateAssetListView();
         }
 
-        public async Task UpdateAllBrowsersFull()
+        public async Task UpdateBrowsersAllFull()
         {
             var dataBrowserData = ProjectManagement.Project.AssetManager
                                    .EnumerateEbx().OrderBy(x => x.Path).Select(x => (IAssetEntry)x).ToList();
@@ -1118,6 +1119,52 @@ namespace FrostbiteModdingUI.Windows
                                  .Union(AssetManager.Instance.EnumerateEbx("RigidMeshAsset"))
                                  .OrderBy(x => x.Path).Select(x => (IAssetEntry)x)
                                  .ToList();
+            }
+
+            foreach(var caee in AssetManager.Instance.LoadTypesFromPluginByInterface<ICustomAssetEntryEnumerations>(nameof(ICustomAssetEntryEnumerations)))
+            {
+                if(caee == null)
+                    continue;
+
+                var customAssetsEnumerations = caee.GetCustomAssetEntriesEnumerations();
+                if (customAssetsEnumerations == null)
+                    continue;
+
+                foreach(var customAssetEntries in customAssetsEnumerations)
+                {
+                    var camName = customAssetEntries.Key;
+                    var camAssets = customAssetEntries.Value;
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        var tabName = camName.Substring(0, 1).ToUpper() + camName.Substring(1);
+                        bool mtiExists = false;
+                        foreach (var tItem in MainViewer.Items)
+                        {
+                            if (tItem is MetroTabItem metroTabItem)
+                            {
+                                if (metroTabItem.Header.ToString() == tabName)
+                                {
+                                    mtiExists = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!mtiExists)
+                        {
+                            MetroTabItem camMetroTabItem = new MetroTabItem();
+                            camMetroTabItem.Header = tabName;
+
+                            Browser camBrowser = new Browser();
+                            camBrowser.Name = camName;
+                            camBrowser.AllAssetEntries = camAssets;
+                            camMetroTabItem.Content = camBrowser;
+
+                            MainViewer.Items.Add(camMetroTabItem);
+                        }
+
+                    });
+                }
             }
 
             await Dispatcher.InvokeAsync(() =>
