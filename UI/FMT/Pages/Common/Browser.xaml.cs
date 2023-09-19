@@ -127,19 +127,21 @@ namespace FIFAModdingUI.Pages.Common
         public async Task<IEnumerable<IAssetEntry>> GetFilteredAssetEntriesAsync()
         {
             var onlymodified = false;
+            var showEAData = false;
             var filterText = "";
 
-            Dispatcher.Invoke(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
                 onlymodified = chkShowOnlyModified.IsChecked.Value;
+                showEAData = chkShowEADuplicateDataFiles.IsChecked.Value;   
                 filterText = txtFilter.Text;
             });
 
-            return await Task.FromResult(GetFilteredAssets(filterText, onlymodified));
+            return await Task.FromResult(GetFilteredAssets(filterText, onlymodified, showEAData));
 
         }
 
-        private IEnumerable<IAssetEntry> GetFilteredAssets(ReadOnlySpan<char> filterSpan, bool onlymodified)
+        private IEnumerable<IAssetEntry> GetFilteredAssets(ReadOnlySpan<char> filterSpan, bool onlymodified, bool showEAData)
         {
             var assets = allAssets ?? allAssets.ToList();
             if (assets == null)
@@ -153,9 +155,9 @@ namespace FIFAModdingUI.Pages.Common
                     );
             }
 
-            //assets = assets.Where(x => !x.Name.Contains("-False-", StringComparison.OrdinalIgnoreCase));
-            //assets = assets.Where(x => !x.Name.Contains("FMTOther", StringComparison.OrdinalIgnoreCase));
-          
+            assets = assets.Where(x => !x.Name.EndsWith("EAData") || showEAData && x.Name.EndsWith("EAData"));
+
+
             assets = assets.Where(x =>
                 (
                 onlymodified == true
@@ -740,6 +742,17 @@ namespace FIFAModdingUI.Pages.Common
         {
             _ = Update();
             RequiresRefresh = false;
+        }
+
+        private void chkShowEADuplicateDataFiles_Checked(object sender, RoutedEventArgs e)
+        {
+            _ = Update();
+
+        }
+
+        private void chkShowEADuplicateDataFiles_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _ = Update();
         }
     }
 

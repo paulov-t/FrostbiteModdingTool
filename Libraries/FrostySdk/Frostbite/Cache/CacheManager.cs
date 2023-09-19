@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using v2k4FIFAModdingCL;
 
@@ -30,7 +31,7 @@ namespace FrostySdk.Frostbite
         {
             get
             {
-                return AppContext.BaseDirectory + "\\";
+                return AppContext.BaseDirectory;
             }
         }
 
@@ -39,7 +40,7 @@ namespace FrostySdk.Frostbite
         {
             get
             {
-                return $"{CacheDirectoryPath}\\{FileSystem.Instance.CacheName}.cache";
+                return Path.Combine($"{CacheDirectoryPath}", $"{FileSystem.Instance.CacheName}.cache");
             }
         }
 
@@ -242,6 +243,8 @@ namespace FrostySdk.Frostbite
 
         public static bool CacheCompress(MemoryStream msCache)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             Directory.CreateDirectory(CacheDirectoryPath);
 
             msCache.Seek(0, SeekOrigin.Begin);

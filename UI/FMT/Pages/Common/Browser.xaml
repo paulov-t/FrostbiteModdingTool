@@ -21,29 +21,55 @@
                         </LayoutDocumentPaneGroup>
                     <LayoutAnchorablePane  DockMinWidth="400" DockWidth="400">
                        
-                                            <LayoutAnchorable Title="Folders" CanAutoHide="False" CanClose="False" CanHide="False">
-                                                <Grid Grid.Row="0" VerticalAlignment="Stretch">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="40*" ></ColumnDefinition>
-                                                        <ColumnDefinition Width="100*" ></ColumnDefinition>
-                                <ColumnDefinition Width="115*" ></ColumnDefinition>
-                                <ColumnDefinition Width="35*" ></ColumnDefinition>
-                                                    </Grid.ColumnDefinitions>
+                                            <LayoutAnchorable Title="Folders" CanAutoHide="False" CanClose="False" CanHide="False" CanFloat="False">
+                                                <Grid VerticalAlignment="Stretch">
                                                     <Grid.RowDefinitions>
-                                                        <RowDefinition MinHeight="30" Height="30" MaxHeight="30"></RowDefinition>
+                                                        <RowDefinition MinHeight="100" Height="100" MaxHeight="100"></RowDefinition>
                                                         <RowDefinition MinHeight="100" Height="*"></RowDefinition>
                                                     </Grid.RowDefinitions>
-                            <TextBlock VerticalAlignment="Center" Grid.Column="0" Text="Filter:" />
-                            <TextBox Grid.Column="1" x:Name="txtFilter"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                            <Border BorderBrush="LightBlue" BorderThickness="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="5">
+                                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40*" ></ColumnDefinition>
+                                        <ColumnDefinition Width="100*" ></ColumnDefinition>
+                                        <ColumnDefinition Width="115*" ></ColumnDefinition>
+                                        <ColumnDefinition Width="35*" ></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition></RowDefinition>
+                                        <RowDefinition></RowDefinition>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <!-- Row 0 -->
+                                    <TextBlock VerticalAlignment="Center" Grid.Column="0" Text="Search" />
+                                    <TextBox Grid.Column="1" x:Name="txtFilter" Grid.ColumnSpan="2"  VerticalAlignment="Center" HorizontalAlignment="Stretch"
                                     KeyUp="txtFilter_KeyUp"  />
-                                                    <CheckBox Grid.Column="2" x:Name="chkShowOnlyModified" 
+                                   
+                                    <Button Grid.Column="3" x:Name="btnRefresh" IsEnabled="False" Click="btnRefresh_Click" Margin="5,0,5,0" Height="20">
+                                        <StackPanel Height="30" VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal">
+                                            <MaterialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+
+
+                                    <!-- Row 1 -->
+                                    <CheckBox Grid.Row="1" Grid.ColumnSpan="2" x:Name="chkShowOnlyModified" 
                            Checked="chkShowOnlyModified_Checked" Unchecked="chkShowOnlyModified_Unchecked"
-                           Content="Show Only Modified" HorizontalAlignment="Stretch"  />
-                            <Button Grid.Column="3" x:Name="btnRefresh" IsEnabled="False" Click="btnRefresh_Click" Margin="5,0,5,0" Height="20">
-                                <StackPanel Height="30" VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal">
-                                    <MaterialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
+                           Content="Show Only Modified" HorizontalAlignment="Stretch" 
+                                             ToolTip="Show only items that you have modified in this project"
+                                              />
+
+                                
+                                <CheckBox Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" x:Name="chkShowEADuplicateDataFiles" 
+                                   Checked="chkShowEADuplicateDataFiles_Checked" Unchecked="chkShowEADuplicateDataFiles_Unchecked"
+                                   Content="Show EA Data" HorizontalAlignment="Stretch" 
+                                      ToolTip="This will display items that are duplicates of data within the EA filesystem. These are usually data that exists in both Data and Patch folder. The Data folder will always be overwritten by Patch."  
+                                      
+                                      />
+
+                                </Grid>
+                        </Border>
+                         
 
                             <TreeView VerticalAlignment="Stretch" Grid.Row="1" Grid.ColumnSpan="4" x:Name="assetTreeView" 
                       ScrollViewer.VerticalScrollBarVisibility="Visible"  

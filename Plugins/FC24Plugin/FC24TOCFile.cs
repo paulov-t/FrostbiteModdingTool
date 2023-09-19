@@ -52,6 +52,11 @@ namespace FC24Plugin
 
             }
 
+            if (NativeFileLocation.Contains("globals"))
+            {
+
+            }
+
 #endif
             //base.ReadChunkData(nativeReader);
             nativeReader.Position = 556 + MetaData.ChunkFlagOffsetPosition;
@@ -75,6 +80,12 @@ namespace FC24Plugin
 
 #if DEBUG
                     if (guidReverse.ToString() == "19104422-214d-40b9-e26c-198089f37621")
+                    {
+
+                    }
+                    if (guidReverse.ToString() == "bb78c273-1bec-eb61-5e4b-6a1390e564e9"
+                        || guid.ToString() == "bb78c273-1bec-eb61-5e4b-6a1390e564e9"
+                        )
                     {
 
                     }
@@ -116,7 +127,7 @@ namespace FC24Plugin
                     tocChunk.IsTocChunk = true;
 
                     nativeReader.ReadByte();
-                    nativeReader.ReadByte();
+                    var patch = nativeReader.ReadBoolean();
                     nativeReader.ReadBytes(4); // magic
                     nativeReader.ReadByte();
                     var cas = nativeReader.ReadByte(); // cas
@@ -135,7 +146,7 @@ namespace FC24Plugin
                     tocChunk.ExtraData.Unk = 0;
                     tocChunk.ExtraData.Catalog = (ushort)catalog;
                     tocChunk.ExtraData.Cas = cas;
-                    tocChunk.ExtraData.IsPatch = false;
+                    tocChunk.ExtraData.IsPatch = patch;
                     tocChunk.ExtraData.DataOffset = offset;
                     tocChunk.Bundles.Add(ChunkDataBundleId);
                     AssetManager.Instance.AddChunk(tocChunk);

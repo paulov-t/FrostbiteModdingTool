@@ -54,11 +54,11 @@ namespace FrostySdk.Managers
 
         public List<BundleEntry> Bundles { get; private set; } = new List<BundleEntry>(350000);
 
-        public ConcurrentDictionary<string, EbxAssetEntry> EBX { get; private set; }// = new ConcurrentDictionary<string, EbxAssetEntry>(4, 500000, StringComparer.OrdinalIgnoreCase);
+        public ConcurrentDictionary<string, EbxAssetEntry> EBX { get; private set; }
 
-        public ConcurrentDictionary<string, ResAssetEntry> RES { get; private set; }// = new ConcurrentDictionary<string, ResAssetEntry>(4, 350000);
+        public ConcurrentDictionary<string, ResAssetEntry> RES { get; private set; }
 
-        public ConcurrentDictionary<Guid, ChunkAssetEntry> Chunks { get; private set; }// = new ConcurrentDictionary<Guid, ChunkAssetEntry>(4, 1);
+        public ConcurrentDictionary<Guid, ChunkAssetEntry> Chunks { get; private set; }
 
         public ConcurrentDictionary<int, ChunkAssetEntry> SuperBundleChunks { get; private set; } = new ConcurrentDictionary<int, ChunkAssetEntry>();
 
@@ -512,7 +512,10 @@ namespace FrostySdk.Managers
             //{
             //    return;
             //}
-
+            if (string.IsNullOrEmpty(ProfileManager.EBXReader))
+            {
+                throw new Exception("EBXReader has not been set on the Profile");
+            }
 
             if (string.IsNullOrEmpty(ebx.Type))
             {
@@ -520,42 +523,32 @@ namespace FrostySdk.Managers
                 {
                     if (ebxStream != null && ebxStream.Length > 0)
                     {
-
-                        if (!string.IsNullOrEmpty(ProfileManager.EBXReader))
+                        if (EbxReaderType == null)
                         {
-                            if (EbxReaderType == null)
-                            {
-                                //                        EbxReaderInstance = (EbxReader)LoadTypeByName(ProfileManager.EBXReader, ebxStream, true);
-                                //EbxReaderType = EbxReaderInstance.GetType();
-                            }
-                            ebxStream.Position = 0;
-                            //EbxReaderInstance = (EbxReader)Activator.CreateInstance(EbxReaderType, ebxStream, true);
-                            //EbxReaderInstance.Position = 0;
-                            var readerInst = (EbxReader)LoadTypeByName(ProfileManager.EBXReader, ebxStream, true);
-                            try
-                            {
-                                if (readerInst.GetType() == typeof(EbxReader) && !readerInst.IsValid)
-                                    readerInst.InitialRead(ebxStream, false);
-                                //EbxReaderInstance.InitialRead(ebxStream, false);
-                                EBX[ebx.Name].Type = readerInst.RootType;
-                                if (EBX[ebx.Name].Type != "NewWaveAsset")
-                                {
-
-                                }
-                                EBX[ebx.Name].Id = readerInst.FileGuid;
-                            }
-                            catch (Exception)
-                            {
-
-                            }
+                            //                        EbxReaderInstance = (EbxReader)LoadTypeByName(ProfileManager.EBXReader, ebxStream, true);
+                            //EbxReaderType = EbxReaderInstance.GetType();
                         }
-                        else
-                        {
-                            throw new ArgumentNullException("EbxReader is not set against the Profile.");
-                            //ebxReader = new EbxReaderV3(ebxStream, true);
-                            //EBX[ebx.Name].Type = ebxReader.RootType;
-                            //EBX[ebx.Name].Id = ebxReader.FileGuid;
-                        }
+                        ebxStream.Position = 0;
+                        //EbxReaderInstance = (EbxReader)Activator.CreateInstance(EbxReaderType, ebxStream, true);
+                        //EbxReaderInstance.Position = 0;
+                        var readerInst = (EbxReader)LoadTypeByName(ProfileManager.EBXReader, ebxStream, true);
+                        //try
+                        //{
+                        if (readerInst.GetType() == typeof(EbxReader) && !readerInst.IsValid)
+                            readerInst.InitialRead(ebxStream, false);
+                        //EbxReaderInstance.InitialRead(ebxStream, false);
+
+                        if (!EBX.ContainsKey(ebx.Name))
+                            return;
+
+                        EBX[ebx.Name].Type = readerInst.RootType;
+                        EBX[ebx.Name].Id = readerInst.FileGuid;
+                        //}
+                        //catch (Exception)
+                        //{
+
+                        //}
+                       
                         return;
                     }
                 }
@@ -816,15 +809,10 @@ namespace FrostySdk.Managers
                 if (entry.ExtraData != null && !existingEbxEntry.ExtraData.IsPatch && entry.ExtraData.IsPatch)
                     EBX[entry.Name] = entry;
 
-                //if (ProfileManager.IsGameVersion(ProfileManager.EGame.FIFA22) 
-                //	|| ProfileManager.IsGameVersion(ProfileManager.EGame.MADDEN23))
-                //{
-                //	// Add it anyway and link to the other one?
-                //	entry.Name = $"{entry.Name}-FMTOther-{entry.ExtraData.IsPatch.ToString()}-{entry.ExtraData.Cas}-{entry.ExtraData.Catalog}";
+                entry.Name = $"{entry.Name}_{(entry.ExtraData.IsPatch ? "EAPatch" : "EAData")}";
 
-                //	if (EBX.TryAdd(entry.Name, entry))
-                //		existingEbxEntry.LinkAsset(entry);
-                //}
+                if (EBX.TryAdd(entry.Name, entry))
+                    existingEbxEntry.LinkAsset(entry);
             }
             return result;
         }
@@ -864,6 +852,12 @@ namespace FrostySdk.Managers
         /// <returns></returns>
         public void AddChunk(ChunkAssetEntry entry)
         {
+            if(entry == null)
+                throw new ArgumentNullException(nameof(entry));
+
+            if (entry.Id == Guid.Empty)
+                throw new ArgumentNullException(nameof(entry.Id));
+
             if (!Chunks.TryAdd(entry.Id, entry))
             {
                 // If it already exists, then add bundles to the entry
@@ -882,7 +876,7 @@ namespace FrostySdk.Managers
 
             if (entry.IsTocChunk)
             {
-                var hashedId = Fnv1a.HashString(entry.Id.ToString());
+                var hashedId = SuperBundleChunks.Count; //Fnv1a.HashStringByHashDepot(entry.Id.ToString());
 
                 if (!SuperBundleChunks.TryAdd(hashedId, entry))
                 {
@@ -1714,6 +1708,8 @@ namespace FrostySdk.Managers
             if (SuperBundleChunks.TryGetValue(Fnv1a.HashString(id.ToString()), out var sbChunkEntry))
                 return sbChunkEntry;
 
+            if (SuperBundleChunks.Any(x => x.Value.Id == id))
+                return SuperBundleChunks.First(x => x.Value.Id == id).Value;
 
             return null;
         }

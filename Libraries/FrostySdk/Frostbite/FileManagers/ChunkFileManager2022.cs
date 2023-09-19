@@ -177,12 +177,14 @@ namespace Frostbite.FileManagers
             LegacyChunksToParent.Clear();
             ChunkBatches.Clear();
 
-            foreach (EbxAssetEntry ebxEntry in AssetManager.EnumerateEbx("ChunkFileCollector"))
+            var chunkFileCollectorEbxEntries = AssetManager.EnumerateEbx("ChunkFileCollector");
+
+            foreach (EbxAssetEntry ebxEntry in chunkFileCollectorEbxEntries)
             {
                 AssetManager.Instance.RevertAsset(ebxEntry);
             }
 
-            foreach (EbxAssetEntry ebxEntry in AssetManager.EnumerateEbx("ChunkFileCollector"))
+            foreach (EbxAssetEntry ebxEntry in chunkFileCollectorEbxEntries)
             {
                 GetChunkAssetForEbx(ebxEntry, out ChunkAssetEntry chunkAssetEntry, out EbxAsset ebxAsset);
 
@@ -512,20 +514,34 @@ namespace Frostbite.FileManagers
         {
             chunkAssetEntry = null;
             ebxAsset = AssetManager.Instance.GetEbx(ebxAssetEntry);
-            if (ebxAsset != null)
+            if(ebxAsset == null)
             {
-                dynamic rootObject = ebxAsset.RootObject;
-                if (rootObject != null)
+                Debug.WriteLine($"Unable to find the ebxAsset for {ebxAssetEntry.Name}");
+                FileLogger.WriteLine($"Unable to find the ebxAsset for {ebxAssetEntry.Name}");
+                return;
+            }
+
+            dynamic rootObject = ebxAsset.RootObject;
+            if (rootObject == null)
+            {
+                Debug.WriteLine($"Unable to find the rootObject for {ebxAsset}:{ebxAssetEntry}");
+                FileLogger.WriteLine($"Unable to find the rootObject for {ebxAsset}:{ebxAssetEntry}");
+                return;
+            }
+
+            if (rootObject != null)
+            {
+                dynamic val = rootObject.Manifest;
+                chunkAssetEntry = AssetManager.Instance.GetChunkEntry(val.ChunkId);
+                if (chunkAssetEntry == null)
                 {
-                    dynamic val = rootObject.Manifest;
-                    chunkAssetEntry = AssetManager.Instance.GetChunkEntry(val.ChunkId);
-                    if (chunkAssetEntry == null)
-                    {
-                        var cId = ((Guid)rootObject.ParentChunkFileCollector.External.ClassGuid).ToString();
-                        var fId = ((Guid)rootObject.ParentChunkFileCollector.External.FileGuid).ToString();
-                        var parentEntry = AssetManager.Instance.GetEbxEntry(Guid.Parse(fId));
-                        var parentEntry2 = AssetManager.Instance.GetEbxEntry(Guid.Parse(cId));
-                    }
+                    var cId = ((Guid)rootObject.ParentChunkFileCollector.External.ClassGuid).ToString();
+                    var fId = ((Guid)rootObject.ParentChunkFileCollector.External.FileGuid).ToString();
+                    var parentEntry = AssetManager.Instance.GetEbxEntry(Guid.Parse(fId));
+                    var parentEntry2 = AssetManager.Instance.GetEbxEntry(Guid.Parse(cId));
+
+                    Debug.WriteLine($"Unable to find the ChunkAssetEntry for {ebxAssetEntry.Name}");
+                    FileLogger.WriteLine($"Unable to find the ChunkAssetEntry for {ebxAssetEntry.Name}");
                 }
             }
         }

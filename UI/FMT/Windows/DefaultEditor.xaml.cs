@@ -1073,7 +1073,6 @@ namespace FrostbiteModdingUI.Windows
             {
                 var camName = cam.Key;
                 var camAssets = cam.Value.EnumerateAssets(false).OrderBy(x => x.Path).Select(x => (IAssetEntry)x).ToList();
-                //camTextureAssets.AddRange(camAssets.Where(x => x.Name.Contains(".DDS", StringComparison.OrdinalIgnoreCase)));
 
                 await Dispatcher.InvokeAsync(() =>
                 {
