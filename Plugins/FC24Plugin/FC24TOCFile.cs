@@ -221,13 +221,14 @@ namespace FC24Plugin
 
                 var foundCatalog = 0;
                 var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
-                var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace(".toc", "");
+                var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace("native_patch/", "").Replace(".toc", "");
 
                 // --------------------------------------------------------------------------------------------------
                 // Find single catalog
                 //var singleCatalog = allCatalogs.Single(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
                 if (!allCatalogs.Any(x => x.SuperBundles.ContainsKey(keyToFindSb)))
                 {
+                    Debug.WriteLine($"{nameof(ReadCasBundles)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
                     FileLogger.WriteLine($"{nameof(ReadCasBundles)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
                     return;
                 }
@@ -263,6 +264,7 @@ namespace FC24Plugin
                     var actualFlagsOffset = startPosition + bundle.FlagsOffset;
                     nativeReader.Position = actualFlagsOffset;
                     bundle.Flags = nativeReader.ReadBytes(bundle.EntriesCount);
+                    nativeReader.Position = actualFlagsOffset;
 
                     var actualEntriesOffset = startPosition + bundle.EntriesOffset;
                     nativeReader.Position = actualEntriesOffset;
@@ -279,18 +281,9 @@ namespace FC24Plugin
                         {
                             // 8 bytes of something? 
                             var unkByte1 = nativeReader.ReadByte(); // 00 Unknown
-                            var unkByte2 = nativeReader.ReadByte(); //  00 Unknown
-                            var unkMagic1 = nativeReader.ReadBytes(4); //  A3 A0 0D E1 MAGIC?
-                            nativeReader.Position -= 4;
-                            var unkIdentifier = nativeReader.ReadUInt(Endian.Big); //  A3 A0 0D identifier?
-                            nativeReader.Position -= 2;
-                            var lastIdentifier = nativeReader.ReadShort(Endian.Big);
-                            var somethingelse = lastIdentifier & 0xFFu;
-                            var somethingelse2 = lastIdentifier & 0xFF;
-                            //if (unkMagic != 2745175521 && unkMagic != 2745175526)
-                            //    throw new InvalidDataException($"unkMagic is {unkMagic} when 2745175521/2745175526 is expected");
-                            //var unkShortCas = nativeReader.ReadUShort(Endian.Big);
-                            isInPatch = nativeReader.ReadBoolean(); // Unknown (assumed patch?)
+                            isInPatch = nativeReader.ReadBoolean(); // Patch?
+                            var unkMagic1 = nativeReader.ReadBytes(4); // A3 A0 0D catalog identifier?
+                            var unkByte = nativeReader.ReadByte();
                             cas = nativeReader.ReadByte(); // Cas number
                                                            //catalog = (byte)unkShortCas;
                                                            //cas = (byte)unkShortCas;
@@ -395,7 +388,9 @@ namespace FC24Plugin
                         CASDataLoader casDataLoader = new CASDataLoader(this);
                         dbo = casDataLoader.Load(ctb.Key, ctb.Value);
                         if (dbo == null)
+                        {
                             continue;
+                        }
                         foreach (var d in dbo)
                         {
                             TOCObjects.Add(d);

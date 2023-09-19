@@ -19,10 +19,10 @@
 
 
   "Sources": [
-    //{
-    //  "Path": "Patch",
-    //  "SubDirs": false
-    //},
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
     {
       "Path": "Data",
       "SubDirs": false

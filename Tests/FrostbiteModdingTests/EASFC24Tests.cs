@@ -22,7 +22,7 @@ namespace FrostbiteModdingTests
 
         public string GameEXE => throw new NotImplementedException();
 
-        public string GamePathEXE => "H:\\EA Games\\FC 24 Closed Beta\\FC24.exe";
+        public string GamePathEXE => "I:\\EA Games\\EA SPORTS FC 24\\FC24.exe";
 
         public string TestMeshesPath
         {
