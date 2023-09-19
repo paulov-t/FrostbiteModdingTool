@@ -426,7 +426,7 @@ namespace FrostySdk.Managers
                 return;
             }
 
-            if (writtenToCache)
+            //if (writtenToCache)
                 DoEbxIndexing();
 
             // Load these when you need them!
