@@ -12,6 +12,7 @@ using FrostySdk.Resources;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Formats.Tar;
 using System.IO;
 using System.Linq;
@@ -138,6 +139,11 @@ namespace FrostySdk.ModsAndProjects.Projects
             {
                 project.ProjectVersion = nr.ReadInt();
                 project.GameDataVersion = nr.ReadInt();
+                if(project.GameDataVersion != ProfileManager.DataVersion)
+                {
+                    if (AssetManager.Instance != null && AssetManager.Instance.Logger != null)
+                        AssetManager.Instance.Logger.LogWarning("You are loading a Project for a different game.");
+                }
                 project.ModSettings = JsonConvert.DeserializeObject<ModSettings>(nr.ReadLengthPrefixedString());
 
                 var assetManagerPositions = new Dictionary<string, long>();
@@ -174,38 +180,6 @@ namespace FrostySdk.ModsAndProjects.Projects
                 throw new FileNotFoundException(filePath);
 
             return Read(new FileStream(filePath, FileMode.OpenOrCreate), new FMTProject(filePath));
-
-            //FMTProject project = new FMTProject(filePath);
-            //using (NativeReader nr = new NativeReader(filePath))
-            //{
-            //    project.ProjectVersion = nr.ReadInt();
-            //    project.GameDataVersion = nr.ReadInt();
-            //    project.ModSettings = JsonConvert.DeserializeObject<ModSettings>(nr.ReadLengthPrefixedString());
-
-            //    var assetManagerPositions = new Dictionary<string, long>();
-            //    var countOfAssetManagers = nr.ReadInt();
-            //    for (var indexAM = 0; indexAM < countOfAssetManagers; indexAM++)
-            //    {
-            //        assetManagerPositions.Add(nr.ReadLengthPrefixedString(), nr.ReadLong());
-            //    }
-            //    // Read Data
-            //    nr.Position = assetManagerPositions["ebx"];
-            //    project.EBXAssetsRead(nr);
-            //    nr.Position = assetManagerPositions["res"];
-            //    project.ResourceAssetsRead(nr, out var textureResources);
-            //    nr.Position = assetManagerPositions["chunks"];
-            //    project.ChunkAssetsRead(nr);
-            //    nr.Position = assetManagerPositions["legacy"];
-            //    project.LegacyFilesModifiedRead(nr);
-            //    LegacyFilesAddedRead(nr);
-            //    nr.Position = assetManagerPositions["embedded"];
-            //    EmbeddedFilesRead(nr);
-            //    nr.Position = assetManagerPositions["localeini"];
-            //    LocaleINIRead(nr);
-
-
-            //}
-            //return project;
         }
 
 
@@ -350,18 +324,22 @@ namespace FrostySdk.ModsAndProjects.Projects
 
                 var ebxAssetEntry = AssetManager.Instance.GetEbxEntry(assetName);
                 if (ebxAssetEntry == null)
+                {
+                    FileLogger.WriteLine($"FMTProject: Unable to find AssetEntry by the name {assetName}");
+                    Debug.WriteLine($"FMTProject: Unable to find AssetEntry by the name {assetName}");
                     continue;
-
+                }
                 AssetEntryImporter assetEntryImporter = new AssetEntryImporter(ebxAssetEntry);
-                //try
-                //{
+                try
+                {
                     assetEntryImporter.ImportWithJSON(Encoding.UTF8.GetBytes(json));
                     ebxAssetEntry.IsDirty = false;
-                //}
-                //catch (Exception ex) 
-                //{
-                //    FileLogger.WriteLine($"Failed to load {assetName} from Project with message {ex.Message}");
-                //}
+                }
+                catch (Exception ex)
+                {
+                    FileLogger.WriteLine($"Failed to load {assetName} from Project with message {ex.Message}");
+                    Debug.WriteLine(ex);    
+                }
                 assetEntryImporter = null;
             }
         }

@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -20,6 +21,7 @@ using System.Windows.Shapes;
 using v2k4FIFAModding.Frosty;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using static FrostySdk.Frostbite.IO.Output.AssetEntryExporter;
+using static PInvoke.Kernel32;
 
 namespace FrostySdk.Frostbite.IO.Input
 {
@@ -125,15 +127,27 @@ namespace FrostySdk.Frostbite.IO.Input
         {
             var ebxAssetEntry = SelectedEntry as EbxAssetEntry;
             if (ebxAssetEntry == null)
+            {
+                FileLogger.WriteLine($"ERROR: SelectedEntry is not an EbxAssetEntry or is Null");
+                Debug.WriteLine($"ERROR:  SelectedEntry is not an EbxAssetEntry or is Null");
                 return false;
+            }
 
             var ebx = AssetManager.Instance.GetEbx(ebxAssetEntry);
-            //var ebx = AssetManager.Instance.GetEbxAsync(ebxAssetEntry).Result;
             if (ebx == null)
+            {
+                FileLogger.WriteLine($"ERROR: Ebx for {ebxAssetEntry.Name}  doesn't exist!");
+                Debug.WriteLine($"ERROR: Ebx for {ebxAssetEntry.Name} doesn't exist!");
                 return false;
+            }
 
             if (ebx.RootObject == null)
+            {
+                FileLogger.WriteLine($"Unable to process JSON bytes into Object {ebx.RootObject.GetType().FullName}");
+                FileLogger.WriteLine($"ERROR: RootObject doesn't exist!");
+                Debug.WriteLine($"ERROR: RootObject doesn't exist!");
                 return false;
+            }
 
             var stringOfJson = Encoding.UTF8.GetString(bytes);
 
@@ -145,9 +159,14 @@ namespace FrostySdk.Frostbite.IO.Input
             try
             {
                 var originalName = ((dynamic)ebx.RootObject).Name;
+                var originalGuidField = (ebx.RootObject).GetType().GetField("__Guid", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                var originalGuid = originalGuidField.GetValue(ebx.RootObject);
+
+                //var originalGuid = ((dynamic)ebx.RootObject).__Guid;
+                //var originalInstanceGuid = ((dynamic)ebx.RootObject).__InstanceGuid;
                 if (!Task.Run(() =>
                 {
-                    JsonConvert.PopulateObject(Encoding.UTF8.GetString(bytes), ebx.RootObject, new JsonSerializerSettings()
+                    JsonConvert.PopulateObject(stringOfJson, ebx.RootObject, new JsonSerializerSettings()
                     {
                         ObjectCreationHandling = ObjectCreationHandling.Reuse,
                         ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
@@ -162,9 +181,9 @@ namespace FrostySdk.Frostbite.IO.Input
                     });
 
                     ((dynamic)ebx.RootObject).Name = originalName;
-                    //jobjectFromJson = JObject.Parse(Encoding.UTF8.GetString(bytes));
+                    originalGuidField.SetValue(ebx.RootObject, originalGuid);
 
-                }).Wait(2000))
+                }).Wait(3000))
                     throw new Exception($"Import took too long for {originalName}");
 
             }
@@ -173,6 +192,7 @@ namespace FrostySdk.Frostbite.IO.Input
                 FileLogger.WriteLine($"Unable to process JSON bytes into Object {ebx.RootObject.GetType().FullName}");
                 FileLogger.WriteLine($"ERROR:");
                 FileLogger.WriteLine(populationException.ToString());
+                Debug.WriteLine(populationException.ToString());
                 return false;
             }
 
