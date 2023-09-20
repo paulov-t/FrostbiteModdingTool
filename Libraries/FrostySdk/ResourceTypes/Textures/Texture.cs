@@ -674,10 +674,10 @@ namespace FrostySdk.Resources
             data = AssetManager.Instance.GetChunk(ChunkEntry);
         }
 
-        public byte[] Write()
-        {
-            return ToBytes();
-        }
+        //public byte[] Write()
+        //{
+        //    return ToBytes();
+        //}
 
         public byte[] ToBytes()
         {
