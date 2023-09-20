@@ -148,7 +148,14 @@ namespace FrostySdk.Frostbite
         {
             var reader = GetCacheReader();
 
-            return EnumerateEbx(name, string.Empty, false, false).Result.First();
+            var results = EnumerateEbx(name, string.Empty, false, false).Result;
+            if (results == null)
+                return null;
+
+            if (results.Count() == 0) 
+                return null;
+
+            return results.First();
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -167,29 +174,35 @@ namespace FrostySdk.Frostbite
                 var ChunkDataOffset = nativeReader.ReadULong();
                 var NameToPositionOffset = nativeReader.ReadULong();
 
-                nativeReader.Position = (long)NameToPositionOffset;
-                var ebxCount = nativeReader.ReadUInt();
                 var positionOfAsset = -1L;
-                for (var i = 0; i < ebxCount; i++)
+                if (Instance.NameToPositionsEbx.Count == 0)
                 {
-                    var ebxName = nativeReader.ReadLengthPrefixedString();
-                    var ebxPositions = nativeReader.ReadLong();
-                    Instance.NameToPositionsEbx.Add(ebxName, ebxPositions);
+                    nativeReader.Position = (long)NameToPositionOffset;
+                    var ebxCount = nativeReader.ReadUInt();
+                    for (var i = 0; i < ebxCount; i++)
+                    {
+                        var ebxName = nativeReader.ReadLengthPrefixedString();
+                        var ebxPositions = nativeReader.ReadLong();
+                        Instance.NameToPositionsEbx.Add(ebxName, ebxPositions);
+                    }
+                    var resCount = nativeReader.ReadUInt();
+                    for (var i = 0; i < resCount; i++)
+                    {
+                        var nameI = nativeReader.ReadLengthPrefixedString();
+                        var position = nativeReader.ReadLong();
+                        Instance.NameToPositionsResource.Add(nameI, position);
+                    }
+                    var chunkCount = nativeReader.ReadUInt();
+                    for (var i = 0; i < chunkCount; i++)
+                    {
+                        var cName = nativeReader.ReadGuid();
+                        var position = nativeReader.ReadLong();
+                        if(!Instance.NameToPositionsChunk.ContainsKey(cName))
+                            Instance.NameToPositionsChunk.Add(cName, position);
+                    }
                 }
-                var resCount = nativeReader.ReadUInt();
-                for (var i = 0; i < resCount; i++)
-                {
-                    var nameI = nativeReader.ReadLengthPrefixedString();
-                    var position = nativeReader.ReadLong();
-                    Instance.NameToPositionsResource.Add(nameI, position);
-                }
-                var chunkCount = nativeReader.ReadUInt();
-                for (var i = 0; i < ebxCount; i++)
-                {
-                    var cName = nativeReader.ReadGuid();
-                    var position = nativeReader.ReadLong();
-                    Instance.NameToPositionsChunk.Add(cName, position);
-                }
+
+                positionOfAsset = Instance.NameToPositionsEbx.ContainsKey(name) ? Instance.NameToPositionsEbx[name] : -1;
 
                 if (positionOfAsset == -1)
                     return null;
@@ -223,6 +236,8 @@ namespace FrostySdk.Frostbite
 
         public static MemoryStream CacheDecompress()
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             Directory.CreateDirectory(CacheDirectoryPath);
 
             // Decompress the Cache File into a Memory Stream
