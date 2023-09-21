@@ -797,7 +797,7 @@ namespace FrostySdk.Managers
             if (!result)
             {
                 // If it already exists, then add bundles to the entry
-                var existingEbxEntry = (EbxAssetEntry)AssetManager.Instance.EBX[entry.Name].Clone();
+                var existingEbxEntry = (EbxAssetEntry)AssetManager.Instance.EBX[entry.Name.ToLower()].Clone();
 
                 foreach (var bundle in entry.Bundles.Where(x => !existingEbxEntry.Bundles.Contains(x)))
                     existingEbxEntry.Bundles.Add(bundle);
@@ -828,7 +828,7 @@ namespace FrostySdk.Managers
             if (!result)
             {
                 // If it already exists, then add bundles to the entry
-                var existingEntry = (ResAssetEntry)AssetManager.Instance.RES[entry.Name].Clone();
+                var existingEntry = (ResAssetEntry)AssetManager.Instance.RES[entry.Name.ToLower()].Clone();
 
                 foreach (var bundle in existingEntry.Bundles)
                     entry.Bundles.Add(bundle);

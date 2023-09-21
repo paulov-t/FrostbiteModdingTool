@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace StarWarsSquadronsPlugin.Cache
+namespace FMT.Cache
 {
     public class BaseCacheWriter : ICacheWriter
     {
@@ -25,13 +25,8 @@ namespace StarWarsSquadronsPlugin.Cache
                 nativeWriter.Write(0uL); // res offsets
                 nativeWriter.Write(0uL); // chunk offsets
                 nativeWriter.Write(0uL); // name to position offets
+                nativeWriter.Write(0uL); // sb chunk offsets
 
-
-                //nativeWriter.Write(AssetManager.Instance.superBundles.Count);
-                //foreach (SuperBundleEntry superBundle in AssetManager.Instance.superBundles)
-                //{
-                //    nativeWriter.WriteNullTerminatedString(superBundle.Name);
-                //}
                 nativeWriter.Write(AssetManager.Instance.Bundles.Count);
                 foreach (BundleEntry bundle in AssetManager.Instance.Bundles)
                 {
@@ -44,7 +39,9 @@ namespace StarWarsSquadronsPlugin.Cache
                 nativeWriter.Write(AssetManager.Instance.EBX.Values.Count);
                 foreach (EbxAssetEntry ebxEntry in AssetManager.Instance.EBX.Values)
                 {
-                    EbxNameToPosition.Add(ebxEntry.Name, nativeWriter.Position);
+                    if (!EbxNameToPosition.ContainsKey(ebxEntry.Name))
+                        EbxNameToPosition.Add(ebxEntry.Name, nativeWriter.Position);
+
                     WriteEbxEntry(nativeWriter, ebxEntry);
                 }
 
@@ -53,7 +50,9 @@ namespace StarWarsSquadronsPlugin.Cache
                 nativeWriter.Write(AssetManager.Instance.RES.Values.Count);
                 foreach (ResAssetEntry resEntry in AssetManager.Instance.RES.Values)
                 {
-                    ResNameToPosition.Add(resEntry.Name, nativeWriter.Position);
+                    if (!ResNameToPosition.ContainsKey(resEntry.Name))
+                        ResNameToPosition.Add(resEntry.Name, nativeWriter.Position);
+
                     WriteResEntry(nativeWriter, resEntry);
                 }
 
@@ -62,13 +61,20 @@ namespace StarWarsSquadronsPlugin.Cache
                 nativeWriter.Write(AssetManager.Instance.Chunks.Count);
                 foreach (ChunkAssetEntry chunkEntry in AssetManager.Instance.Chunks.Values)
                 {
-                    ChunkGuidToPosition.Add(chunkEntry.Id, nativeWriter.Position);
+                    if (!ChunkGuidToPosition.ContainsKey(chunkEntry.Id))
+                        ChunkGuidToPosition.Add(chunkEntry.Id, nativeWriter.Position);
+                    
                     WriteChunkEntry(nativeWriter, chunkEntry);
                 }
 
+                Dictionary<Guid, long> SbChunkGuidToPosition = new Dictionary<Guid, long>();
+                var sbChunkOffsetPosition = nativeWriter.Position;
                 nativeWriter.Write(AssetManager.Instance.SuperBundleChunks.Count);
                 foreach (ChunkAssetEntry chunkEntry in AssetManager.Instance.SuperBundleChunks.Values)
                 {
+                    if (!SbChunkGuidToPosition.ContainsKey(chunkEntry.Id))
+                        SbChunkGuidToPosition.Add(chunkEntry.Id, nativeWriter.Position);
+
                     WriteChunkEntry(nativeWriter, chunkEntry);
                 }
 
@@ -91,12 +97,19 @@ namespace StarWarsSquadronsPlugin.Cache
                     nativeWriter.WriteGuid(kvp.Key);
                     nativeWriter.Write(kvp.Value);
                 }
+                nativeWriter.Write(SbChunkGuidToPosition.Count);
+                foreach (var kvp in SbChunkGuidToPosition)
+                {
+                    nativeWriter.WriteGuid(kvp.Key);
+                    nativeWriter.Write(kvp.Value);
+                }
 
                 nativeWriter.Position = stuffOffsetPositions;
                 nativeWriter.Write(ebxOffsetPosition);
                 nativeWriter.Write(resOffsetPosition);
                 nativeWriter.Write(chunkOffsetPosition);
                 nativeWriter.Write(nameToPositionOffsets);
+                nativeWriter.Write(sbChunkOffsetPosition);
 
             }
 
@@ -212,14 +225,56 @@ namespace StarWarsSquadronsPlugin.Cache
             nativeWriter.Write(chunkEntry.LogicalSize);
             nativeWriter.Write(chunkEntry.H32);
             nativeWriter.Write(chunkEntry.FirstMip);
-
-
-            var extraDataExists = chunkEntry.ExtraData != null;
-            nativeWriter.Write(extraDataExists);
-            if (extraDataExists)
+            nativeWriter.Write(chunkEntry.ExtraData != null);
+            if (chunkEntry.ExtraData != null)
             {
                 nativeWriter.Write(chunkEntry.ExtraData.DataOffset);
-                nativeWriter.WriteLengthPrefixedString(chunkEntry.ExtraData.CasPath);
+                nativeWriter.Write(chunkEntry.ExtraData.Catalog.Value);
+                nativeWriter.Write(chunkEntry.ExtraData.Cas.Value);
+                nativeWriter.Write(chunkEntry.ExtraData.IsPatch);
+                //nativeWriter.WriteLengthPrefixedString(chunkEntry.ExtraData.CasPath);
+            }
+            else
+            {
+                throw new Exception("No Extra Data!");
+            }
+
+            nativeWriter.Write(chunkEntry.TOCFileLocations != null ? chunkEntry.TOCFileLocations.Count : 0);
+            if (chunkEntry.TOCFileLocations != null)
+            {
+                foreach (var tfl in chunkEntry.TOCFileLocations)
+                {
+                    nativeWriter.WriteLengthPrefixedString(tfl);
+                }
+            }
+
+            nativeWriter.Write(!string.IsNullOrEmpty(chunkEntry.SBFileLocation));
+            if (!string.IsNullOrEmpty(chunkEntry.SBFileLocation))
+                nativeWriter.WriteLengthPrefixedString(chunkEntry.SBFileLocation);
+            nativeWriter.Write(!string.IsNullOrEmpty(chunkEntry.TOCFileLocation));
+            if (!string.IsNullOrEmpty(chunkEntry.TOCFileLocation))
+                nativeWriter.WriteLengthPrefixedString(chunkEntry.TOCFileLocation);
+
+            nativeWriter.Write(!string.IsNullOrEmpty(chunkEntry.CASFileLocation));
+            if (!string.IsNullOrEmpty(chunkEntry.CASFileLocation))
+                nativeWriter.WriteLengthPrefixedString(chunkEntry.CASFileLocation);
+
+            nativeWriter.Write(chunkEntry.SB_CAS_Offset_Position);
+            nativeWriter.Write(chunkEntry.SB_CAS_Size_Position);
+            nativeWriter.Write(chunkEntry.SB_Sha1_Position);
+            nativeWriter.Write(chunkEntry.SB_OriginalSize_Position);
+
+            nativeWriter.Write(chunkEntry.SB_LogicalOffset_Position);
+            nativeWriter.Write(chunkEntry.SB_LogicalSize_Position);
+
+            nativeWriter.Write((!string.IsNullOrEmpty(chunkEntry.Bundle)));
+            if (!string.IsNullOrEmpty(chunkEntry.Bundle))
+                nativeWriter.WriteLengthPrefixedString(chunkEntry.Bundle);
+
+            nativeWriter.Write(chunkEntry.Bundles.Count);
+            foreach (int bundleId in chunkEntry.Bundles)
+            {
+                nativeWriter.Write(bundleId);
             }
         }
     }

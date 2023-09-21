@@ -1,20 +1,20 @@
 ﻿using FMT.FileTools;
-
 using FrostySdk;
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Managers;
 using System;
 
-namespace StarWarsSquadronsPlugin.Cache
+namespace FMT.Cache
 {
     public class BaseCacheReader : ICacheReader
     {
         public ulong EbxDataOffset { get; set; }
         public ulong ResDataOffset { get; set; }
         public ulong ChunkDataOffset { get; set; }
+        public ulong SbChunkDataOffset { get; set; }
         public ulong NameToPositionOffset { get; set; }
 
-        public bool Read()
+        public virtual bool Read()
         {
             var fs = AssetManager.Instance.FileSystem;
             bool patched = false;
@@ -34,6 +34,7 @@ namespace StarWarsSquadronsPlugin.Cache
                 ResDataOffset = nativeReader.ReadULong();
                 ChunkDataOffset = nativeReader.ReadULong();
                 NameToPositionOffset = nativeReader.ReadULong();
+                SbChunkDataOffset = nativeReader.ReadULong();
                 int count = 0;
                 // bundle count
                 count = nativeReader.ReadInt();
@@ -53,55 +54,7 @@ namespace StarWarsSquadronsPlugin.Cache
                 count = nativeReader.ReadInt();
                 for (int n = 0; n < count; n++)
                 {
-                    ResAssetEntry resAssetEntry = new ResAssetEntry();
-                    resAssetEntry.Name = nativeReader.ReadLengthPrefixedString();
-                    resAssetEntry.Sha1 = nativeReader.ReadSha1();
-                    resAssetEntry.BaseSha1 = AssetManager.Instance.GetBaseSha1(resAssetEntry.Sha1);
-                    resAssetEntry.Size = nativeReader.ReadLong();
-                    resAssetEntry.OriginalSize = nativeReader.ReadLong();
-                    resAssetEntry.Location = (AssetDataLocation)nativeReader.ReadInt();
-                    resAssetEntry.IsInline = nativeReader.ReadBoolean();
-                    resAssetEntry.ResRid = nativeReader.ReadULong();
-                    resAssetEntry.ResType = nativeReader.ReadUInt();
-                    resAssetEntry.ResMeta = nativeReader.ReadBytes(nativeReader.ReadInt());
-                    if (nativeReader.ReadBoolean())
-                    {
-                        resAssetEntry.ExtraData = new AssetExtraData();
-                        resAssetEntry.ExtraData.DataOffset = nativeReader.ReadUInt();
-                        resAssetEntry.ExtraData.Catalog = nativeReader.ReadUShort();
-                        resAssetEntry.ExtraData.Cas = nativeReader.ReadUShort();
-                        resAssetEntry.ExtraData.IsPatch = nativeReader.ReadBoolean();
-                    }
-
-                    var numTFL = nativeReader.ReadInt();
-                    //resAssetEntry.TOCFileLocations = new HashSet<string>();
-                    for (int iTFL = 0; iTFL < numTFL; iTFL++)
-                    {
-                        resAssetEntry.TOCFileLocations.Add(nativeReader.ReadLengthPrefixedString());
-                    }
-
-                    if (nativeReader.ReadBoolean())
-                        resAssetEntry.TOCFileLocation = nativeReader.ReadLengthPrefixedString();
-                    if (nativeReader.ReadBoolean())
-                        resAssetEntry.CASFileLocation = nativeReader.ReadLengthPrefixedString();
-
-                    resAssetEntry.SB_CAS_Offset_Position = nativeReader.ReadInt();
-                    resAssetEntry.SB_CAS_Size_Position = nativeReader.ReadInt();
-                    resAssetEntry.SB_Sha1_Position = nativeReader.ReadInt();
-                    resAssetEntry.SB_OriginalSize_Position = nativeReader.ReadInt();
-
-                    int bundleCount = nativeReader.ReadInt();
-                    for (int num4 = 0; num4 < bundleCount; num4++)
-                    {
-                        resAssetEntry.Bundles.Add(nativeReader.ReadInt());
-                    }
-
-                    AssetManager.Instance.RES.TryAdd(resAssetEntry.Name, resAssetEntry);
-                    if (resAssetEntry.ResRid != 0L)
-                    {
-                        if (!AssetManager.Instance.resRidList.ContainsKey(resAssetEntry.ResRid))
-                            AssetManager.Instance.resRidList.TryAdd(resAssetEntry.ResRid, resAssetEntry);
-                    }
+                    ReadResAssetEntry(nativeReader);
 
                 }
 
@@ -110,7 +63,7 @@ namespace StarWarsSquadronsPlugin.Cache
                 var chunkCount = nativeReader.ReadInt();
                 for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
                 {
-                    ChunkAssetEntry chunkAssetEntry = ReadChunkFromCache(nativeReader);
+                    ChunkAssetEntry chunkAssetEntry = ReadChunkAssetEntry(nativeReader);
                     AssetManager.Instance.AddChunk(chunkAssetEntry);
                 }
 
@@ -119,7 +72,7 @@ namespace StarWarsSquadronsPlugin.Cache
                 var sbChunkCount = nativeReader.ReadInt();
                 for (int chunkIndex = 0; chunkIndex < sbChunkCount; chunkIndex++)
                 {
-                    ChunkAssetEntry chunkAssetEntry = ReadChunkFromCache(nativeReader);
+                    ChunkAssetEntry chunkAssetEntry = ReadChunkAssetEntry(nativeReader);
                     chunkAssetEntry.IsTocChunk = true;
                     AssetManager.Instance.AddChunk(chunkAssetEntry);
                 }
@@ -127,7 +80,7 @@ namespace StarWarsSquadronsPlugin.Cache
             return !patched;
         }
 
-        public EbxAssetEntry ReadEbxAssetEntry(NativeReader nativeReader)
+        public virtual EbxAssetEntry ReadEbxAssetEntry(NativeReader nativeReader)
         {
             EbxAssetEntry ebxAssetEntry = new EbxAssetEntry();
             ebxAssetEntry.Name = nativeReader.ReadLengthPrefixedString();
@@ -167,7 +120,56 @@ namespace StarWarsSquadronsPlugin.Cache
             return ebxAssetEntry;
         }
 
-        private ChunkAssetEntry ReadChunkFromCache(NativeReader nativeReader)
+        public virtual ResAssetEntry ReadResAssetEntry(NativeReader nativeReader)
+        {
+            ResAssetEntry resAssetEntry = new ResAssetEntry();
+            resAssetEntry.Name = nativeReader.ReadLengthPrefixedString();
+            resAssetEntry.Sha1 = nativeReader.ReadSha1();
+            resAssetEntry.BaseSha1 = AssetManager.Instance.GetBaseSha1(resAssetEntry.Sha1);
+            resAssetEntry.Size = nativeReader.ReadLong();
+            resAssetEntry.OriginalSize = nativeReader.ReadLong();
+            resAssetEntry.Location = (AssetDataLocation)nativeReader.ReadInt();
+            resAssetEntry.IsInline = nativeReader.ReadBoolean();
+            resAssetEntry.ResRid = nativeReader.ReadULong();
+            resAssetEntry.ResType = nativeReader.ReadUInt();
+            resAssetEntry.ResMeta = nativeReader.ReadBytes(nativeReader.ReadInt());
+            if (nativeReader.ReadBoolean())
+            {
+                resAssetEntry.ExtraData = new AssetExtraData();
+                resAssetEntry.ExtraData.DataOffset = nativeReader.ReadUInt();
+                resAssetEntry.ExtraData.Catalog = nativeReader.ReadUShort();
+                resAssetEntry.ExtraData.Cas = nativeReader.ReadUShort();
+                resAssetEntry.ExtraData.IsPatch = nativeReader.ReadBoolean();
+            }
+
+            var numTFL = nativeReader.ReadInt();
+            //resAssetEntry.TOCFileLocations = new HashSet<string>();
+            for (int iTFL = 0; iTFL < numTFL; iTFL++)
+            {
+                resAssetEntry.TOCFileLocations.Add(nativeReader.ReadLengthPrefixedString());
+            }
+
+            if (nativeReader.ReadBoolean())
+                resAssetEntry.TOCFileLocation = nativeReader.ReadLengthPrefixedString();
+            if (nativeReader.ReadBoolean())
+                resAssetEntry.CASFileLocation = nativeReader.ReadLengthPrefixedString();
+
+            resAssetEntry.SB_CAS_Offset_Position = nativeReader.ReadInt();
+            resAssetEntry.SB_CAS_Size_Position = nativeReader.ReadInt();
+            resAssetEntry.SB_Sha1_Position = nativeReader.ReadInt();
+            resAssetEntry.SB_OriginalSize_Position = nativeReader.ReadInt();
+
+            int bundleCount = nativeReader.ReadInt();
+            for (int num4 = 0; num4 < bundleCount; num4++)
+            {
+                resAssetEntry.Bundles.Add(nativeReader.ReadInt());
+            }
+
+            AssetManager.Instance.AddRes(resAssetEntry);
+            return resAssetEntry;
+        }
+
+        public virtual ChunkAssetEntry ReadChunkAssetEntry(NativeReader nativeReader)
         {
             ChunkAssetEntry chunkAssetEntry = new ChunkAssetEntry();
             chunkAssetEntry.Id = nativeReader.ReadGuid();
@@ -183,12 +185,51 @@ namespace StarWarsSquadronsPlugin.Cache
             chunkAssetEntry.LogicalSize = nativeReader.ReadUInt();
             chunkAssetEntry.H32 = nativeReader.ReadInt();
             chunkAssetEntry.FirstMip = nativeReader.ReadInt();
-
             if (nativeReader.ReadBoolean())
             {
                 chunkAssetEntry.ExtraData = new AssetExtraData();
                 chunkAssetEntry.ExtraData.DataOffset = nativeReader.ReadUInt();
-                chunkAssetEntry.ExtraData.CasPath = nativeReader.ReadLengthPrefixedString();
+                chunkAssetEntry.ExtraData.Catalog = nativeReader.ReadUShort();
+                chunkAssetEntry.ExtraData.Cas = nativeReader.ReadUShort();
+                chunkAssetEntry.ExtraData.IsPatch = nativeReader.ReadBoolean();
+                //chunkAssetEntry.ExtraData.CasPath = nativeReader.ReadLengthPrefixedString();
+            }
+            else
+            {
+                throw new Exception("No Extra Data!");
+            }
+
+            var numTFL = nativeReader.ReadInt();
+            //chunkAssetEntry.TOCFileLocations = new HashSet<string>();
+            for (int iTFL = 0; iTFL < numTFL; iTFL++)
+            {
+                chunkAssetEntry.TOCFileLocations.Add(nativeReader.ReadLengthPrefixedString());
+            }
+
+            if (nativeReader.ReadBoolean())
+                chunkAssetEntry.SBFileLocation = nativeReader.ReadLengthPrefixedString();
+            if (nativeReader.ReadBoolean())
+                chunkAssetEntry.TOCFileLocation = nativeReader.ReadLengthPrefixedString();
+            if (nativeReader.ReadBoolean())
+                chunkAssetEntry.CASFileLocation = nativeReader.ReadLengthPrefixedString();
+
+
+            chunkAssetEntry.SB_CAS_Offset_Position = nativeReader.ReadInt();
+            chunkAssetEntry.SB_CAS_Size_Position = nativeReader.ReadInt();
+            chunkAssetEntry.SB_Sha1_Position = nativeReader.ReadInt();
+            chunkAssetEntry.SB_OriginalSize_Position = nativeReader.ReadInt();
+
+            chunkAssetEntry.SB_LogicalOffset_Position = nativeReader.ReadUInt();
+            chunkAssetEntry.SB_LogicalSize_Position = nativeReader.ReadUInt();
+
+
+            if (nativeReader.ReadBoolean())
+                chunkAssetEntry.Bundle = nativeReader.ReadLengthPrefixedString();
+
+            int num6 = nativeReader.ReadInt();
+            for (int num7 = 0; num7 < num6; num7++)
+            {
+                chunkAssetEntry.Bundles.Add(nativeReader.ReadInt());
             }
 
             return chunkAssetEntry;
