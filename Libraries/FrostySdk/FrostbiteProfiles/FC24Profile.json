@@ -83,6 +83,10 @@
       {
         "Name": "Locale.ini Editor",
         "Window": "LocaleINIEditor"
+      },
+      {
+        "Name": "Squad File Editor",
+        "Window": "SquadFileEditor"
       }
     ],
     "External": []
