@@ -339,6 +339,14 @@ namespace FMT.FileTools
             }
         }
 
+        public byte[] ToByteArray()
+        {
+            if(BaseStream is MemoryStream memoryStream)
+                return memoryStream.ToArray();
+
+            return null;
+        }
+
     }
 
     public class FileWriter : NativeWriter

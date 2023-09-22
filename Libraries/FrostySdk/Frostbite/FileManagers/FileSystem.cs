@@ -82,6 +82,18 @@ namespace FrostySdk
             }
         }
 
+        public class SuperBundleInfo
+        {
+            public string Name { get; set; }
+            public List<string> SplitSuperBundles { get; set; }
+
+            public SuperBundleInfo(string inName)
+            {
+                Name = inName;
+                SplitSuperBundles = new List<string>();
+            }
+        }
+
         public int CatalogCount => catalogs.Count;
 
         public IEnumerable<string> Catalogs

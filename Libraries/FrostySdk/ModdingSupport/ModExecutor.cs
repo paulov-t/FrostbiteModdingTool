@@ -351,7 +351,9 @@ namespace ModdingSupport
             }
         }
 
-        string ModDirectoryName { get; set; } = "ModData";
+        public string ModDirectoryName { get; set; } = "ModData";
+
+        public bool HasPatchDirectory { get; } = Directory.Exists(Path.Combine(FileSystem.Instance.BasePath, "Patch"));
 
         private bool FileIsSymbolic(string path)
         {
