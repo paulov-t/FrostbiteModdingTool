@@ -287,6 +287,7 @@ namespace FrostySdk.FrostySdk.IO
             //WriteInt32LittleEndian(uniqueTypes.Count);
             _ = classGuids;
             _ = uniqueTypes;
+            var uniqueTypeGuids = uniqueTypes.Select(x => x.GetCustomAttribute<GuidAttribute>().Guid);
             List<int> usedIndex = new List<int>();
             foreach (Guid classGuid in classGuids)
             //foreach (Guid classGuid in uniqueTypes.Select(x => x.GetCustomAttribute<GuidAttribute>().Guid))

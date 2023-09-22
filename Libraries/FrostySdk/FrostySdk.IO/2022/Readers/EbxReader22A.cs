@@ -280,6 +280,10 @@ namespace FrostySdk.IO._2022.Readers
                 .ToArray();
 
 #if DEBUG
+            if (type.Name.Contains("ChunkFileCollector"))
+            {
+
+            }
 
             if (type.Name.Contains("MeshMaterial"))
             {

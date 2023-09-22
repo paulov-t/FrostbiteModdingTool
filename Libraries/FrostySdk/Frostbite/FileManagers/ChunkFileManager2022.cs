@@ -196,7 +196,9 @@ namespace Frostbite.FileManagers
                 chunkAssetEntry.IsLegacy = true;
 
                 MemoryStream chunk = GetChunkStreamForEbx(ebxEntry) as MemoryStream;
-                if (chunk != null)
+                if (chunk == null)
+                    continue;
+
                 {
                     using (NativeReader nativeReader = new NativeReader(chunk))
                     {
@@ -503,13 +505,6 @@ namespace Frostbite.FileManagers
             }
         }
 
-        public static EbxAsset GetEbxAssetForEbx(EbxAssetEntry ebxAssetEntry)
-        {
-            EbxAsset ebx = AssetManager.Instance.GetEbx(ebxAssetEntry);
-            ebx.ParentEntry = ebxAssetEntry;
-            return ebx;
-        }
-
         public static void GetChunkAssetForEbx(EbxAssetEntry ebxAssetEntry, out ChunkAssetEntry chunkAssetEntry, out EbxAsset ebxAsset)
         {
             chunkAssetEntry = null;
@@ -535,11 +530,6 @@ namespace Frostbite.FileManagers
                 chunkAssetEntry = AssetManager.Instance.GetChunkEntry(val.ChunkId);
                 if (chunkAssetEntry == null)
                 {
-                    var cId = ((Guid)rootObject.ParentChunkFileCollector.External.ClassGuid).ToString();
-                    var fId = ((Guid)rootObject.ParentChunkFileCollector.External.FileGuid).ToString();
-                    var parentEntry = AssetManager.Instance.GetEbxEntry(Guid.Parse(fId));
-                    var parentEntry2 = AssetManager.Instance.GetEbxEntry(Guid.Parse(cId));
-
                     Debug.WriteLine($"Unable to find the ChunkAssetEntry for {ebxAssetEntry.Name}");
                     FileLogger.WriteLine($"Unable to find the ChunkAssetEntry for {ebxAssetEntry.Name}");
                 }

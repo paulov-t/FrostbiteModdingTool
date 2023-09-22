@@ -180,6 +180,7 @@ namespace FrostySdk
                 compressedArray = Utils.CompressFile(decompressedArray, null, ResourceType.Invalid, compressionOverride);
 
 #if DEBUG
+                var debuggingFileStreamDirectoryPath = Directory.CreateDirectory(AppContext.BaseDirectory + "\\Debugging\\EBX\\");
                 if (
                     name.Contains("default/settings")
                     || name.Contains("head_")

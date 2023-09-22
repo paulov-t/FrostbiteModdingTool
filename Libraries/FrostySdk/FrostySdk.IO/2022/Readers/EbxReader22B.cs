@@ -1,4 +1,5 @@
-﻿using FrostySdk.Attributes;
+﻿using FMT.Logging;
+using FrostySdk.Attributes;
 using FrostySdk.Ebx;
 using FrostySdk.FrostySdk.IO;
 using FrostySdk.Managers;
@@ -281,15 +282,15 @@ namespace FrostySdk.IO._2022.Readers
                 fsDump.Dispose();
                 Position = payloadOffset;
             }
-            else if (RootType.Contains("AttribSchema_gp_actor_movement", StringComparison.OrdinalIgnoreCase))
-            {
-                Position = 0;
-                var fsDump = new FileStream($"ebx.{RootType}.read.22.dat", FileMode.OpenOrCreate);
-                base.stream.CopyTo(fsDump);
-                fsDump.Close();
-                fsDump.Dispose();
-                Position = payloadOffset;
-            }
+            //else if (RootType.Contains("AttribSchema_gp_actor_movement", StringComparison.OrdinalIgnoreCase))
+            //{
+            //    Position = 0;
+            //    var fsDump = new FileStream($"ebx.{RootType}.read.22.dat", FileMode.OpenOrCreate);
+            //    base.stream.CopyTo(fsDump);
+            //    fsDump.Close();
+            //    fsDump.Dispose();
+            //    Position = payloadOffset;
+            //}
             else if (RootType.Contains("gp_cpuai_cpuaiballhandler", StringComparison.OrdinalIgnoreCase))
             {
                 Position = 0;
@@ -312,8 +313,9 @@ namespace FrostySdk.IO._2022.Readers
             {
 
                 Position = 0;
-                var fsDump = new FileStream(debugFileStreamPath, FileMode.OpenOrCreate);
+                var fsDump = new MemoryStream();
                 base.stream.CopyTo(fsDump);
+                DebugBytesToFileLogger.Instance.WriteAllBytes($"ebx.{RootType}.read.dat", fsDump.ToArray(), "EBX/Read");
                 fsDump.Close();
                 fsDump.Dispose();
                 Position = payloadOffset;
