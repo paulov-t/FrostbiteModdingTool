@@ -441,13 +441,7 @@ namespace FrostySdk.Managers
             }
 
             //if (writtenToCache)
-                DoEbxIndexing();
-
-            // Load these when you need them!
-            //         foreach (ICustomAssetManager value in CustomAssetManagers.Values)
-            //{
-            //	value.Initialize(logger);
-            //}
+            DoEbxIndexing();
 
             TimeSpan timeSpan = DateTime.Now - dtAtStart;
             Logger.Log($"Loading complete {timeSpan.ToString(@"mm\:ss")}");
@@ -508,6 +502,9 @@ namespace FrostySdk.Managers
 
         public void UpdateEbxListItem(EbxAssetEntry ebx)
         {
+            if (!EBX.ContainsKey(ebx.Name))
+                return;
+
             //if (ProfileManager.DataVersion == 20230922)
             //{
             //    return;
@@ -537,9 +534,6 @@ namespace FrostySdk.Managers
                         if (readerInst.GetType() == typeof(EbxReader) && !readerInst.IsValid)
                             readerInst.InitialRead(ebxStream, false);
                         //EbxReaderInstance.InitialRead(ebxStream, false);
-
-                        if (!EBX.ContainsKey(ebx.Name))
-                            return;
 
                         EBX[ebx.Name].Type = readerInst.RootType;
                         EBX[ebx.Name].Id = readerInst.FileGuid;
@@ -594,7 +588,7 @@ namespace FrostySdk.Managers
                 {
                     UpdateEbxListItem(x);
                     ebxProgress++;
-                    WriteToLog($"Initial load - Indexing data ({Math.Round((ebxProgress / (double)count * 100.0), 1)}%)");
+                    WriteToLog($"Initial load - Indexing data ({Math.Round((ebxProgress / (double)count * 100.0))}%)");
                 });
 
                 CacheWrite();
@@ -793,11 +787,11 @@ namespace FrostySdk.Managers
         /// <returns></returns>
         public bool AddEbx(EbxAssetEntry entry)
         {
-            bool result = EBX.TryAdd(entry.Name.ToLower(), entry);
+            bool result = EBX.TryAdd(entry.Name, entry);
             if (!result)
             {
                 // If it already exists, then add bundles to the entry
-                var existingEbxEntry = (EbxAssetEntry)AssetManager.Instance.EBX[entry.Name.ToLower()].Clone();
+                var existingEbxEntry = (EbxAssetEntry)AssetManager.Instance.EBX[entry.Name].Clone();
 
                 foreach (var bundle in entry.Bundles.Where(x => !existingEbxEntry.Bundles.Contains(x)))
                     existingEbxEntry.Bundles.Add(bundle);
@@ -857,6 +851,13 @@ namespace FrostySdk.Managers
 
             if (entry.Id == Guid.Empty)
                 throw new ArgumentNullException(nameof(entry.Id));
+
+#if DEBUG
+            if(entry.Id == Guid.Parse("bb78c273-1bec-eb61-5e4b-6a1390e564e9"))
+            {
+
+            }
+#endif
 
             if (!Chunks.TryAdd(entry.Id, entry))
             {
@@ -1104,28 +1105,27 @@ namespace FrostySdk.Managers
 
         public void ModifyEbx(string name, EbxAsset asset)
         {
-            name = name.ToLower();
-            if (EBX.ContainsKey(name))
+            if (!EBX.ContainsKey(name))
+                throw new KeyNotFoundException($"{name} was not found in EBX list");
+
+            EbxAssetEntry ebxAssetEntry = EBX[name];
+            if (ebxAssetEntry.ModifiedEntry == null)
             {
-                EbxAssetEntry ebxAssetEntry = EBX[name];
-                if (ebxAssetEntry.ModifiedEntry == null)
-                {
-                    ebxAssetEntry.ModifiedEntry = new ModifiedAssetEntry();
-                }
-                ebxAssetEntry.ModifiedEntry.Data = null;
-                ((ModifiedAssetEntry)ebxAssetEntry.ModifiedEntry).DataObject = asset;
-                ebxAssetEntry.ModifiedEntry.OriginalSize = 0L;
-                ebxAssetEntry.ModifiedEntry.Sha1 = Sha1.Zero;
-                ebxAssetEntry.ModifiedEntry.IsTransientModified = asset.TransientEdit;
-                ebxAssetEntry.ModifiedEntry.DependentAssets.Clear();
-                ebxAssetEntry.ModifiedEntry.DependentAssets.AddRange(asset.Dependencies);
-                ebxAssetEntry.IsDirty = true;
-                ebxAssetEntry.IsBinary = false;
-
-                if (AssetManagerModified != null)
-                    AssetManagerModified(ebxAssetEntry);
-
+                ebxAssetEntry.ModifiedEntry = new ModifiedAssetEntry();
             }
+            ebxAssetEntry.ModifiedEntry.Data = null;
+            ((ModifiedAssetEntry)ebxAssetEntry.ModifiedEntry).DataObject = asset;
+            ebxAssetEntry.ModifiedEntry.OriginalSize = 0L;
+            ebxAssetEntry.ModifiedEntry.Sha1 = Sha1.Zero;
+            ebxAssetEntry.ModifiedEntry.IsTransientModified = asset.TransientEdit;
+            ebxAssetEntry.ModifiedEntry.DependentAssets.Clear();
+            ebxAssetEntry.ModifiedEntry.DependentAssets.AddRange(asset.Dependencies);
+            ebxAssetEntry.IsDirty = true;
+            ebxAssetEntry.IsBinary = false;
+
+            if (AssetManagerModified != null)
+                AssetManagerModified(ebxAssetEntry);
+
         }
 
         public async Task ModifyEbxAsync(string name, EbxAsset asset)
@@ -1150,35 +1150,33 @@ namespace FrostySdk.Managers
 
         public void ModifyEbxBinary(string name, byte[] data)
         {
-            name = name.ToLower();
-            if (EBX.ContainsKey(name))
-            {
-                var ebxEntry = EBX[name];
-                var patch = ebxEntry.IsInPatch || ebxEntry.ExtraData.IsPatch;
-                var ebxAsset = GetEbxAssetFromStream(new MemoryStream(data), patch);
-                ModifyEbx(name, ebxAsset);
-            }
+            if (!EBX.ContainsKey(name))
+                return;
+
+            var ebxEntry = EBX[name];
+            var patch = ebxEntry.IsInPatch || ebxEntry.ExtraData.IsPatch;
+            var ebxAsset = GetEbxAssetFromStream(new MemoryStream(data), patch);
+            ModifyEbx(name, ebxAsset);
         }
 
         public void ModifyEbxJson(string name, string json)
         {
-            name = name.ToLower();
-            if (EBX.ContainsKey(name))
+            if (!EBX.ContainsKey(name))
+                return;
+
+            var ebxEntry = EBX[name];
+            var patch = ebxEntry.IsInPatch || ebxEntry.ExtraData.IsPatch;
+            var ebxAsset = GetEbx(ebxEntry);
+            if (ebxAsset != null)
             {
-                var ebxEntry = EBX[name];
-                var patch = ebxEntry.IsInPatch || ebxEntry.ExtraData.IsPatch;
-                var ebxAsset = GetEbx(ebxEntry);
-                if (ebxAsset != null)
-                {
 
-                    var rootObject = ebxAsset.RootObject;
-                    ExpandoObject newObject = JsonConvert.DeserializeObject<ExpandoObject>(json);
-                    RecursiveExpandoObjectToObject(rootObject, newObject);
+                var rootObject = ebxAsset.RootObject;
+                ExpandoObject newObject = JsonConvert.DeserializeObject<ExpandoObject>(json);
+                RecursiveExpandoObjectToObject(rootObject, newObject);
 
-                    ModifyEbx(name, ebxAsset);
+                ModifyEbx(name, ebxAsset);
 
 
-                }
             }
         }
 
