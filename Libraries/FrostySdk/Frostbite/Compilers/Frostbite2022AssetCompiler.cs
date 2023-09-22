@@ -450,14 +450,14 @@ namespace FrostySdk.Frostbite.Compilers
         }
 
 
-        private List<Guid> ProcessedChunks = new();
+        public List<Guid> ProcessedChunks = new();
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="directory">native_patch or native_data?</param>
         /// <returns>List of Modded Chunk Ids</returns>
-        public List<Guid> ModifyTOCChunks(string directory = "native_patch")
+        protected virtual List<Guid> ModifyTOCChunks(string directory = "native_patch")
         {
             List<Guid> result = new List<Guid>();
 
@@ -793,9 +793,7 @@ namespace FrostySdk.Frostbite.Compilers
             //return EntriesToNewPosition;
         }
 
-
-        //protected bool WriteNewDataChangesToSuperBundles(ref Dictionary<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> EntriesToNewPosition, string directory = "native_patch")
-        protected bool WriteNewDataChangesToSuperBundles(ref List<AssetEntry> listOfModifiedAssets, string directory = "native_patch")
+        protected virtual bool WriteNewDataChangesToSuperBundles(ref List<AssetEntry> listOfModifiedAssets, string directory = "native_patch")
         {
             if (listOfModifiedAssets == null)
             {
