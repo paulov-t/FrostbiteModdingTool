@@ -6,11 +6,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="DB\FC24\Db\fifa_ng_db-meta.XML" />
+    <None Remove="DB\FC24\Loc\eng_us-meta.XML" />
+    <None Remove="TestCareerSaveFile\FC24\Squads\Squads20230922190437" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="DB\FC24\Db\fifa_ng_db-meta.XML" />
+    <EmbeddedResource Include="DB\FC24\Loc\eng_us-meta.XML" />
     <EmbeddedResource Include="DB\FIFA23\Db\fifa_ng_db-meta.XML" />
     <EmbeddedResource Include="DB\FIFA23\Loc\eng_us-meta.XML" />
     <EmbeddedResource Include="TestCareerSaveFile\Career20220930102999">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="TestCareerSaveFile\FC24\Squads\Squads20230922190437" />
   </ItemGroup>
 
   <ItemGroup>

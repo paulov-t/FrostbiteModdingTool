@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--This is the meta XML file for a t3db database.-->
+<database name="eng_us" shortname="g_us" writename="eng_us_write" writeshortname="rite" version="6">
+  <parameters />
+  <indices>
+    <index shortname="ENTr" tableshortname="dMSI">
+      <indexfields>
+        <indexfield shortname="jhKj" sortdirection="0" />
+      </indexfields>
+    </index>
+    <index shortname="mQAV" tableshortname="gFXC">
+      <indexfields>
+        <indexfield shortname="jhKj" sortdirection="0" />
+      </indexfields>
+    </index>
+  </indices>
+  <table name="LanguageStrings1" shortname="gFXC">
+    <fields>
+      <field name="hashid" shortname="jhKj" type="FIELDTYPE_INTEGER" depth="32" null="False" rangehigh="2147483647" rangelow="-2147483648" key="True" />
+      <field name="stringid" shortname="sAhV" type="FIELDTYPE_STRING" depth="800" null="False" rangehigh="0" rangelow="0" />
+      <field name="sourcetext" shortname="ZbYb" type="FIELDTYPE_STRING" depth="64000" null="False" rangehigh="0" rangelow="0" />
+    </fields>
+  </table>
+  <table name="LanguageStrings2" shortname="dMSI">
+    <fields>
+      <field name="hashid" shortname="jhKj" type="FIELDTYPE_INTEGER" depth="32" null="False" rangehigh="2147483647" rangelow="-2147483648" key="True" />
+      <field name="stringid" shortname="sAhV" type="FIELDTYPE_STRING" depth="800" null="False" rangehigh="0" rangelow="0" />
+      <field name="sourcetext" shortname="ZbYb" type="FIELDTYPE_STRING" depth="64000" null="False" rangehigh="0" rangelow="0" />
+    </fields>
+  </table>
+</database>
