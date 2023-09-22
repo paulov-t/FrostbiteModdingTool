@@ -20,7 +20,7 @@ namespace FrostySdk
     {
         private List<string> paths { get; } = new List<string>();
 
-        private List<string> superBundles { get; } = new List<string>();
+        private HashSet<string> superBundles { get; } = new HashSet<string>();
 
         private List<string> splitSuperBundles { get; } = new List<string>();
 
@@ -64,10 +64,12 @@ namespace FrostySdk
         {
             get
             {
-                for (int i = 0; i < superBundles.Count; i++)
-                {
-                    yield return superBundles[i];
-                }
+                return superBundles;
+                //var arrayOfSb = superBundles.ToArray();
+                //for (int i = 0; i < arrayOfSb.Length; i++)
+                //{
+                //    yield return arrayOfSb[i];
+                //}
             }
         }
 
@@ -756,6 +758,9 @@ namespace FrostySdk
 
         private void ProcessLayouts()
         {
+            var layoutFiles = Directory.GetFiles(this.basePath, "*layout.toc", new EnumerationOptions() { RecurseSubdirectories = true }).ToList();
+            layoutFiles = layoutFiles.Where(x => !x.Contains("ModData")).ToList();
+
             string dataPath = ResolvePath("native_data/layout.toc");
             string patchPath = ResolvePath("native_patch/layout.toc");
 
