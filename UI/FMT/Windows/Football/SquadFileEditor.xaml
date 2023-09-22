@@ -1,0 +1,59 @@
+﻿<mah:MetroWindow x:Class="FMT.Windows.Football.SquadFileEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:localControls="clr-namespace:FIFAModdingUI.Pages.Common"
+         xmlns:ToolControls="clr-namespace:FMT.Pages.Common"
+         xmlns:localPlayerControls="clr-namespace:FrostbiteModdingUI.Pages.Player"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:MaterialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:materialDesignColors="clr-namespace:MaterialDesignColors;assembly=MaterialDesignColors"
+        
+        xmlns:FMTControls="clr-namespace:FMT.Controls.Controls;assembly=FMT.Controls"
+        xmlns:FMTControlsPages="clr-namespace:FMT.Controls.Pages;assembly=FMT.Controls"
+        xmlns:FMTControlsWindows="clr-namespace:FMT.Controls.Windows;assembly=FMT.Controls"
+        xmlns:local="clr-namespace:FMT.Windows.Football"
+        mc:Ignorable="d"
+        Title="Squad File Editor" Height="600" Width="1280" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Button x:Name="btnOpenDbFile" Click="btnOpenDbFile_Click">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                <MaterialDesign:PackIcon Kind="OpenInNew" VerticalAlignment="Center" />
+                <Label Content="Open Squad file"></Label>
+            </StackPanel>
+        </Button>
+        <Button x:Name="btnSaveDbFile" Click="btnSaveDbFile_Click" Grid.Column="1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                <MaterialDesign:PackIcon Kind="ContentSaveEdit" VerticalAlignment="Center" />
+                <Label Content="Save Squad file"></Label>
+            </StackPanel>
+        </Button>
+        <Grid Grid.Row="1" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <ListBox x:Name="lbTables" SelectionChanged="lbTables_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" ></TextBlock>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <DataGrid x:Name="dgTable" Grid.Column="1" >
+
+            </DataGrid>
+        </Grid>
+
+    </Grid>
+</mah:MetroWindow>

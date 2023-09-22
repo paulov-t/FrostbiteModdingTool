@@ -120,7 +120,20 @@ namespace FrostbiteModdingUI.Windows
                             if (bmpBytes == null)
                                 iconUri = new Uri("pack://application:,,,/FMT;component/FMTIcon24.ico");
                             else
-                                Icon = BitmapFrame.Create(CreateBitmapImageFromBytes(bmpBytes));
+                            {
+                                try
+                                {
+                                    var bitmapImage = CreateBitmapImageFromBytes(bmpBytes);
+                                    if (bitmapImage == null || bitmapImage.Metadata == null)
+                                        iconUri = new Uri("pack://application:,,,/FMT;component/FMTIcon24.ico");
+                                    else
+                                        Icon = BitmapFrame.Create(bitmapImage);
+                                }
+                                catch
+                                {
+                                    iconUri = new Uri("pack://application:,,,/FMT;component/FMTIcon24.ico");
+                                }
+                            }
                             break;
                         default:
                             iconUri = new Uri("pack://application:,,,/FMT;component/FMTIcon24.ico");
