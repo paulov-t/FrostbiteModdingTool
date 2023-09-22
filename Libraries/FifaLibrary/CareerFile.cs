@@ -1,12 +1,13 @@
+using System;
 using System.Data;
 using System.IO;
 
 namespace FifaLibrary
 {
-    public class CareerFile : DbFile
+    public class CareerFile : DbFile, IDisposable
     {
 
-        public static CareerFile Current { get; private set; }
+        public static CareerFile Current { get; set; }
 
         private string m_InGameName;
 

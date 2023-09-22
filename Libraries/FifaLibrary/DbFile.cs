@@ -438,6 +438,8 @@ namespace FifaLibrary
             Dispose(true);
             // Suppress finalization.
             GC.SuppressFinalize(this);
+
+            CareerFile.Current = null;
         }
 
         ~DbFile() => Dispose(false);
