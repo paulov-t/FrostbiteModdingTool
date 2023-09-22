@@ -3,7 +3,7 @@ using FrostySdk.Frostbite.PluginInterfaces;
 
 namespace Madden21Plugin.Cache
 {
-    public class CacheWriter : BaseCacheWriter, ICacheWriter
+    public class Madden21CacheWriter : BaseCacheWriter, ICacheWriter
     {
 
     }
