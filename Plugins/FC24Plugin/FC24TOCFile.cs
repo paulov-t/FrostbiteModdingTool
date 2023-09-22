@@ -57,11 +57,19 @@ namespace FC24Plugin
 
             }
 
+            if (NativeFileLocation.Contains("globalsfull"))
+            {
+
+            }
+
 #endif
             //base.ReadChunkData(nativeReader);
-            nativeReader.Position = 556 + MetaData.ChunkFlagOffsetPosition;
-            if (MetaData.ChunkCount > 0)
+            if (MetaData.ChunkCount == 0)
             {
+                return;
+            }
+
+                nativeReader.Position = 556 + MetaData.ChunkFlagOffsetPosition;
                 for (int chunkIndex = 0; chunkIndex < MetaData.ChunkCount; chunkIndex++)
                 {
                     ListTocChunkFlags.Add(nativeReader.ReadInt(Endian.Big));
@@ -77,6 +85,7 @@ namespace FC24Plugin
                     Guid guid = nativeReader.ReadGuid();
                     nativeReader.Position -= 16;
                     Guid guidReverse = nativeReader.ReadGuidReverse();
+                    TocChunkGuids[chunkIndex] = guidReverse;
 
 #if DEBUG
                     if (guidReverse.ToString() == "19104422-214d-40b9-e26c-198089f37621")
@@ -89,6 +98,12 @@ namespace FC24Plugin
                     {
 
                     }
+
+                    if(guidReverse.ToString() == "38ddba93-089e-dda0-e210-118d042ab439")
+                    {
+
+                    }
+
 #endif
 
                     uint decodeAndOffset = nativeReader.ReadUInt(Endian.Big);
@@ -105,7 +120,17 @@ namespace FC24Plugin
                     TOCChunkByOffset.Add(order, TocChunks[(int)(order / 3u)]);
                 }
 
+                if(TocChunkGuids.Contains(Guid.Parse("bb78c273-1bec-eb61-5e4b-6a1390e564e9")))
+                {
 
+                }
+
+                var expectedOffsetAfterGuid = 556 + MetaData.ChunkGuidOffset + (4 * MetaData.ChunkCount) + (16 * MetaData.ChunkCount);
+                if (nativeReader.Position != expectedOffsetAfterGuid)
+                {
+
+                }
+                
                 // -----------------------------------------------
                 var foundCatalog = 0;
                 var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
@@ -117,40 +142,44 @@ namespace FC24Plugin
                 }
                 var singleCatalog = allCatalogs.Last(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
                 foundCatalog = allCatalogs.IndexOf(singleCatalog);
-                ///
+            ///
 
-                nativeReader.Position = 556 + MetaData.DataOffset;
-                for (int chunkIndex = 0; chunkIndex < MetaData.ChunkCount; chunkIndex++)
-                {
-                    uint chunkIdentificationOffset = (uint)(nativeReader.Position - 556 - MetaData.DataOffset) / 4u;
-                    ChunkAssetEntry tocChunk = TOCChunkByOffset[chunkIdentificationOffset];
-                    tocChunk.IsTocChunk = true;
+            if (MetaData.ChunkEntryOffset != MetaData.DataOffset)
+            {
 
-                    nativeReader.ReadByte();
-                    var patch = nativeReader.ReadBoolean();
-                    nativeReader.ReadBytes(4); // magic
-                    nativeReader.ReadByte();
-                    var cas = nativeReader.ReadByte(); // cas
-                    var catalog = foundCatalog;
-                    tocChunk.SB_CAS_Offset_Position = (int)nativeReader.Position;
-                    var offset = nativeReader.ReadUInt(Endian.Big);
-                    tocChunk.SB_CAS_Size_Position = (int)nativeReader.Position;
-                    var size = nativeReader.ReadUInt(Endian.Big);
-                    tocChunk.Sha1 = Sha1.Create(Encoding.ASCII.GetBytes(tocChunk.Id.ToString()));
+            }
 
-                    tocChunk.LogicalOffset = offset;
-                    tocChunk.OriginalSize = (tocChunk.LogicalOffset & 0xFFFF) | size;
-                    tocChunk.Size = size;
-                    tocChunk.Location = AssetDataLocation.CasNonIndexed;
-                    tocChunk.ExtraData = new AssetExtraData();
-                    tocChunk.ExtraData.Unk = 0;
-                    tocChunk.ExtraData.Catalog = (ushort)catalog;
-                    tocChunk.ExtraData.Cas = cas;
-                    tocChunk.ExtraData.IsPatch = patch;
-                    tocChunk.ExtraData.DataOffset = offset;
-                    tocChunk.Bundles.Add(ChunkDataBundleId);
-                    AssetManager.Instance.AddChunk(tocChunk);
-                }
+            nativeReader.Position = 556 + MetaData.ChunkEntryOffset;
+            for (int chunkIndex = 0; chunkIndex < MetaData.ChunkCount; chunkIndex++)
+            {
+                uint chunkIdentificationOffset = (uint)(nativeReader.Position - 556 - MetaData.DataOffset) / 4u;
+                ChunkAssetEntry tocChunk = TOCChunkByOffset[chunkIdentificationOffset];
+                tocChunk.IsTocChunk = true;
+
+                nativeReader.ReadByte();
+                var patch = nativeReader.ReadBoolean();
+                nativeReader.ReadBytes(4); // magic
+                nativeReader.ReadByte();
+                var cas = nativeReader.ReadByte(); // cas
+                var catalog = foundCatalog;
+                tocChunk.SB_CAS_Offset_Position = (int)nativeReader.Position;
+                var offset = nativeReader.ReadUInt(Endian.Big);
+                tocChunk.SB_CAS_Size_Position = (int)nativeReader.Position;
+                var size = nativeReader.ReadUInt(Endian.Big);
+                tocChunk.Sha1 = Sha1.Create(Encoding.ASCII.GetBytes(tocChunk.Id.ToString()));
+
+                tocChunk.LogicalOffset = offset;
+                tocChunk.OriginalSize = (tocChunk.LogicalOffset & 0xFFFF) | size;
+                tocChunk.Size = size;
+                tocChunk.Location = AssetDataLocation.CasNonIndexed;
+                tocChunk.ExtraData = new AssetExtraData();
+                tocChunk.ExtraData.Unk = 0;
+                tocChunk.ExtraData.Catalog = (ushort)catalog;
+                tocChunk.ExtraData.Cas = cas;
+                tocChunk.ExtraData.IsPatch = patch;
+                tocChunk.ExtraData.DataOffset = offset;
+                tocChunk.Bundles.Add(ChunkDataBundleId);
+                AssetManager.Instance.AddChunk(tocChunk);
             }
         }
 
