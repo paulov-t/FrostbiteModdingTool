@@ -201,7 +201,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             nativeReader.Position -= 4;
 
             MetaData.Read(nativeReader);
-            if (MetaData.BundleCount == 0)
+            if (MetaData.BundleCount == 0 && MetaData.ChunkCount == 0)
                 return TOCObjects.List.Select(o => (DbObject)o).ToList();
 
             ReadBundleData(nativeReader);
