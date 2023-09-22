@@ -12,10 +12,10 @@ namespace FMT.FileTools
         {
             Stream stream = null;
             string resourceName = null;
-            foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetManifestResourceNames().Length > 0))
             {
                 var allResources = a.GetManifestResourceNames();
-                resourceName = allResources.SingleOrDefault(x => x.EndsWith(name));
+                resourceName = allResources.LastOrDefault(x => x.EndsWith(name));
                 if (!string.IsNullOrEmpty(resourceName))
                 {
                     stream = a.GetManifestResourceStream(resourceName);
