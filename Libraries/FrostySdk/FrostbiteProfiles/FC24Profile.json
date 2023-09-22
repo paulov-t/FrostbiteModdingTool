@@ -1,6 +1,6 @@
 {
   "Name": "FC24",
-  "DisplayName": "EASFC 24",
+  "DisplayName": "EA SPORTS FC 24",
   "DataVersion": 20230922,
   "CacheName": "easfc24",
   "Deobfuscator": "NullDeobfuscator",
@@ -41,7 +41,7 @@
   // Supported Launcher Filetypes
   "SupportedLauncherFileTypes": [ "fbmod", "fifamod", "zip" ],
   // Will the Launcher support this Game?
-  "CanLaunchMods": false,
+  "CanLaunchMods": true,
   // Can this Application Edit this Game?
   "CanEdit": true,
 
@@ -71,7 +71,7 @@
   "SupportLowMemoryFootprint": true,
   "GameIdentifier": 16115019,
   "UseACBypass": false, // Can only be used with TU2 or below
-  "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0004970",
+  "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0005306",
   "SteamId": "1811260",
   "HasAntiCheat": true,
   "Tools": {
