@@ -89,7 +89,7 @@ namespace FC24Plugin.Textures
                 byte[] textureArray = new byte[nativeReader.Length - nativeReader.Position];
                 nativeReader.Read(textureArray, 0, (int)(nativeReader.Length - nativeReader.Position));
                 AssetManager.Instance.ModifyChunk(textureAsset.ChunkId, textureArray, textureAsset);
-                AssetManager.Instance.ModifyRes(resRid, textureAsset.ToBytes());
+                //AssetManager.Instance.ModifyRes(resRid, textureAsset.ToBytes());
                 AssetManager.Instance.ModifyEbx(assetEntry.Name, ebxAsset);
                 resEntry.LinkAsset(chunkEntry);
                 assetEntry.LinkAsset(resEntry);
