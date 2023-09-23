@@ -2,10 +2,12 @@
 using FifaLibrary;
 using FMT.Controls.Controls;
 using FMT.Controls.Pages;
+using FrostbiteSdk;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -43,7 +45,7 @@ namespace FMT.Windows.Football
             FileInfo fiMetaFile = null;
 
             OpenFileDialog openFileDialogSquadFile = new OpenFileDialog();
-            openFileDialogSquadFile.Filter = "";
+            openFileDialogSquadFile.Filter = "Squads Files|Squads*|Career Files|Career*";
             if (openFileDialogSquadFile.ShowDialog().Value)
             {
                 fiSquadFile = new FileInfo(openFileDialogSquadFile.FileName);
@@ -107,7 +109,26 @@ namespace FMT.Windows.Football
         private void lbTables_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             FifaTable fifaTable = e.AddedItems[0] as FifaTable;
+            dgTable.ItemsSource = null;
+            var dt = fifaTable.ConvertToDataTable();
+            var dv = dt.AsDataView();
+            dv.AllowNew = false;
+            dv.AllowDelete = false; 
+            dgTable.ItemsSource = dv;
+        }
 
+        private void txtColumnFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                var textboxSearch = e.Source as TextBox;
+                var dv = dgTable.ItemsSource as DataView;
+                if(dv.Table.Columns.Contains(textboxSearch.Text))
+                    dv.RowFilter = textboxSearch.Text;
+            }
+            catch 
+            { 
+            }
         }
     }
 }

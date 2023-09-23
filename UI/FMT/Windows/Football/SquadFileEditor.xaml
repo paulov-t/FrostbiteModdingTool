@@ -43,14 +43,25 @@
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <ListBox x:Name="lbTables" SelectionChanged="lbTables_SelectionChanged">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <ListBox x:Name="lbTables" SelectionChanged="lbTables_SelectionChanged" Grid.RowSpan="2">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding}" ></TextBlock>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <DataGrid x:Name="dgTable" Grid.Column="1" >
+            <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="txtColumnFilter" TextChanged="txtColumnFilter_TextChanged"></TextBox>
+            </Grid>
+            <DataGrid x:Name="dgTable" Grid.Column="1" Grid.Row="1" Padding="5" >
 
             </DataGrid>
         </Grid>
