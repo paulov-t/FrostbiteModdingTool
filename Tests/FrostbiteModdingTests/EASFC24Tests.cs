@@ -1,4 +1,5 @@
-﻿using FrostySdk.Frostbite;
+﻿using FC24Plugin;
+using FrostySdk.Frostbite;
 using FrostySdk.Frostbite.IO.Output;
 using FrostySdk.Managers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -119,6 +120,23 @@ namespace FrostbiteModdingTests
             var ebxFile = AssetManager.Instance.EBX.Keys.Where(x => x.Contains("file", StringComparison.OrdinalIgnoreCase));
             var ebxCollector = AssetManager.Instance.EBX.Keys.Where(x => x.Contains("collector", StringComparison.OrdinalIgnoreCase));
             var legacyItems = AssetManager.Instance.EnumerateCustomAssets("legacy").ToList();
+        }
+
+
+        /// <summary>
+        /// This test will load as much as it can from a TOC without having the full file system or assetmanager
+        /// </summary>
+        [TestMethod]
+        public void ProcessTOC()
+        {
+            var tocDataResource = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.Data.globalsfull.toc");
+
+            FC24TOCFile tocDataFile = new FC24TOCFile(tocDataResource, true, false, false, -1, false);
+
+            var tocPatchResource = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.Data.globalsfull.toc");
+
+            FC24TOCFile tocPatchFile = new FC24TOCFile(tocPatchResource, true, false, false, -1, false);
+
         }
 
     }

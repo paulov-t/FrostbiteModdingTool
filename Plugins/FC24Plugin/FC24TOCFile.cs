@@ -27,20 +27,13 @@ namespace FC24Plugin
         public FC24TOCFile(string nativeFilePath, bool log = true, bool process = true, bool modDataPath = false, int sbIndex = -1, bool headerOnly = false)
             : base(nativeFilePath, log, process, modDataPath, sbIndex, headerOnly)
         {
-#if DEBUG
-            if (nativeFilePath.Contains("/en"))
-            {
 
-            }
-            if (nativeFilePath.Contains("chants_preview"))
-            {
+        }
 
-            }
-            if (nativeFilePath.Contains("win32/fc/fcgame/fcgame"))
-            {
+        public FC24TOCFile(Stream tocStream, bool log = true, bool process = true, bool modDataPath = false, int sbIndex = -1, bool headerOnly = false) 
+            : base (tocStream, log, process, modDataPath, sbIndex, headerOnly)
+        {
 
-            }
-#endif
         }
 
         protected override void ReadChunkData(NativeReader nativeReader)
@@ -133,6 +126,8 @@ namespace FC24Plugin
                 
                 // -----------------------------------------------
                 var foundCatalog = 0;
+            if (AssetManager.Instance != null)
+            {
                 var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
                 var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace(".toc", "");
                 if (!allCatalogs.Any(x => x.SuperBundles.ContainsKey(keyToFindSb)))
@@ -142,6 +137,7 @@ namespace FC24Plugin
                 }
                 var singleCatalog = allCatalogs.Last(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
                 foundCatalog = allCatalogs.IndexOf(singleCatalog);
+            }
             ///
 
             if (MetaData.ChunkEntryOffset != MetaData.DataOffset)
@@ -179,7 +175,8 @@ namespace FC24Plugin
                 tocChunk.ExtraData.IsPatch = patch;
                 tocChunk.ExtraData.DataOffset = offset;
                 tocChunk.Bundles.Add(ChunkDataBundleId);
-                AssetManager.Instance.AddChunk(tocChunk);
+                if(AssetManager.Instance != null)
+                    AssetManager.Instance.AddChunk(tocChunk);
             }
         }
 
@@ -249,15 +246,11 @@ namespace FC24Plugin
             if (remainingByteLength > 0)
             {
 
+                if (AssetManager.Instance == null)
+                    return;
+
                 if (AssetManager.Instance != null && DoLogging)
                     AssetManager.Instance.Logger.Log("Searching for CAS Data from " + FileLocation);
-
-#if DEBUG
-                var fs = AssetManager.Instance.FileSystem;
-                var cats = fs.Catalogs;
-                var catObjs = fs.CatalogObjects;
-                var sbs = fs.SuperBundles;
-#endif
 
                 var foundCatalog = 0;
                 var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
@@ -375,6 +368,8 @@ namespace FC24Plugin
                     CasBundles.Add(bundle);
 
                 }
+
+
 
 
                 if (CasBundles.Count > 0)

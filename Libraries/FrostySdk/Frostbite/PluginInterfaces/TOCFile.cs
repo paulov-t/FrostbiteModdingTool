@@ -31,8 +31,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             UsedInGame
         }
 
-        public string FileLocation { get; set; }
-        public string NativeFileLocation { get; set; }
+        public string FileLocation { get; set; } = string.Empty;
+        public string NativeFileLocation { get; set; } = string.Empty;
 
         public bool DoLogging = true;
 
@@ -93,6 +93,21 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             }
 
             using (NativeReader reader = new NativeReader(new FileStream(FileLocation, FileMode.Open)))
+                Read(reader);
+        }
+
+        public TOCFile(Stream tocStream, bool log = true, bool process = true, bool modDataPath = false, int sbIndex = -1, bool headerOnly = false)
+        {
+            DoLogging = log;
+            ProcessData = process;
+            SuperBundleIndex = sbIndex;
+
+            if (headerOnly)
+            {
+                ShouldReadCASBundles = false;
+            }
+
+            using (NativeReader reader = new NativeReader(tocStream))
                 Read(reader);
         }
 
@@ -250,7 +265,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                     var bE = new BundleEntry()
                     {
                         Type = bundleName.Contains("sublevel", StringComparison.OrdinalIgnoreCase) ? BundleType.SubLevel : BundleType.None,
-                        PersistedIndex = AssetManager.Instance.Bundles.Count,
+                        PersistedIndex = AssetManager.Instance != null ? AssetManager.Instance.Bundles.Count : 0,
                         Name = bundleName,
                         SuperBundleId = Fnv1a.HashString(NativeFileLocation.Replace("native_patch", "").Replace("native_data", "")),
                         BundleReference = bundle.BundleReference

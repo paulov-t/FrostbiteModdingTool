@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <None Remove="FbProjects\FIFA22\FIFA22.UltraSlowExampleTest.fbproject" />
+    <None Remove="TOCFiles\FC24\Data\globalsfull.toc" />
+    <None Remove="TOCFiles\FC24\Patch\globalsfull.toc" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +46,8 @@
     <EmbeddedResource Include="FbProjects\FIFA22\FIFA22.UltraSlowExampleTest.fbproject">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="TOCFiles\FC24\Data\globalsfull.toc" />
+    <EmbeddedResource Include="TOCFiles\FC24\Patch\globalsfull.toc" />
   </ItemGroup>
 
   <ItemGroup>
@@ -59,6 +63,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" />
     <ProjectReference Include="..\..\Libraries\SDKGenerator\SDKGenerator.csproj" />
+    <ProjectReference Include="..\..\Plugins\FC24Plugin\FC24Plugin.csproj" />
     <ProjectReference Include="..\..\Plugins\FIFA23Plugin\FIFA23Plugin.csproj" />
     <ProjectReference Include="..\..\UI\FMT\FrostbiteModdingUI.csproj" />
   </ItemGroup>
