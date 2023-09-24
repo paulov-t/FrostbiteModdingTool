@@ -152,19 +152,19 @@ namespace FC24Plugin
                 }
                 
                 // -----------------------------------------------
-                var foundCatalog = 0;
-            if (AssetManager.Instance != null)
-            {
-                var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
-                var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace(".toc", "");
-                if (!allCatalogs.Any(x => x.SuperBundles.ContainsKey(keyToFindSb)))
-                {
-                    FileLogger.WriteLine($"{nameof(ReadChunkData)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
-                    return;
-                }
-                var singleCatalog = allCatalogs.Last(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
-                foundCatalog = allCatalogs.IndexOf(singleCatalog);
-            }
+                //var foundCatalog = 0;
+            //if (AssetManager.Instance != null)
+            //{
+            //    var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
+            //    var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace(".toc", "");
+            //    if (!allCatalogs.Any(x => x.SuperBundles.ContainsKey(keyToFindSb)))
+            //    {
+            //        FileLogger.WriteLine($"{nameof(ReadChunkData)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
+            //        return;
+            //    }
+            //    var singleCatalog = allCatalogs.Last(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
+            //    foundCatalog = allCatalogs.IndexOf(singleCatalog);
+            //}
             ///
 
             if (MetaData.ChunkEntryOffset != MetaData.DataOffset)
@@ -279,23 +279,23 @@ namespace FC24Plugin
                 if (AssetManager.Instance != null && DoLogging)
                     AssetManager.Instance.Logger.Log("Searching for CAS Data from " + FileLocation);
 
-                var foundCatalog = 0;
-                var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
-                var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace("native_patch/", "").Replace(".toc", "");
+                //var foundCatalog = 0;
+                //var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
+                //var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace("native_patch/", "").Replace(".toc", "");
 
-                // --------------------------------------------------------------------------------------------------
-                // Find single catalog
-                //var singleCatalog = allCatalogs.Single(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
-                if (!allCatalogs.Any(x => x.SuperBundles.ContainsKey(keyToFindSb)))
-                {
-                    Debug.WriteLine($"{nameof(ReadCasBundles)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
-                    FileLogger.WriteLine($"{nameof(ReadCasBundles)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
-                    return;
-                }
+                //// --------------------------------------------------------------------------------------------------
+                //// Find single catalog
+                ////var singleCatalog = allCatalogs.Single(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
+                //if (!allCatalogs.Any(x => x.SuperBundles.ContainsKey(keyToFindSb)))
+                //{
+                //    Debug.WriteLine($"{nameof(ReadCasBundles)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
+                //    FileLogger.WriteLine($"{nameof(ReadCasBundles)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
+                //    return;
+                //}
 
-                var singleCatalog = allCatalogs.Last(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
+                //var singleCatalog = allCatalogs.Last(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
 
-                foundCatalog = allCatalogs.IndexOf(singleCatalog);
+                //foundCatalog = allCatalogs.IndexOf(singleCatalog);
 
                 for (int i = 0; i < MetaData.BundleCount; i++)
                 {

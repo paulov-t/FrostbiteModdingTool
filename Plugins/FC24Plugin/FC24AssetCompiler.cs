@@ -439,7 +439,7 @@ namespace FC24Plugin
 
                                 if (origDbo != null)
                                 {
-                                    casPath = origDbo.GetValue<string>("CASFileLocation");
+                                    casPath = origDbo.GetValue<string>("ParentCASBundleLocation");
                                 }
                             }
 
