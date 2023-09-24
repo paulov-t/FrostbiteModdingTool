@@ -19,6 +19,7 @@
         Title="Squad File Editor" Height="600" Width="1280" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="30"></RowDefinition>
             <RowDefinition Height="35"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
@@ -26,19 +27,27 @@
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <Button x:Name="btnOpenDbFile" Click="btnOpenDbFile_Click">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                <MaterialDesign:PackIcon Kind="OpenInNew" VerticalAlignment="Center" />
-                <Label Content="Open Squad file"></Label>
-            </StackPanel>
-        </Button>
-        <Button x:Name="btnSaveDbFile" Click="btnSaveDbFile_Click" Grid.Column="1">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                <MaterialDesign:PackIcon Kind="ContentSaveEdit" VerticalAlignment="Center" />
-                <Label Content="Save Squad file"></Label>
-            </StackPanel>
-        </Button>
+        <Label Background="OrangeRed" Grid.ColumnSpan="2">THIS IS WORK IN PROGRESS. USE RDBM INSTEAD!</Label>
         <Grid Grid.Row="1" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="btnOpenDbFile" Click="btnOpenDbFile_Click" VerticalContentAlignment="Stretch">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <MaterialDesign:PackIcon Kind="OpenInNew" VerticalAlignment="Center" />
+                    <Label Content="Open Squad file" FontSize="14" VerticalContentAlignment="Stretch"></Label>
+                </StackPanel>
+            </Button>
+            <Button x:Name="btnSaveDbFile" Click="btnSaveDbFile_Click" Grid.Column="1">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                    <MaterialDesign:PackIcon Kind="ContentSaveEdit" VerticalAlignment="Center" />
+                    <Label Content="Save Squad file"></Label>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="2" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
@@ -59,9 +68,10 @@
                     <ColumnDefinition></ColumnDefinition>
                     <ColumnDefinition></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="txtColumnFilter" TextChanged="txtColumnFilter_TextChanged"></TextBox>
+                <TextBlock x:Name="lblColumnFilter" Text="Column Filter: " VerticalAlignment="Center" ToolTip="See https://learn.microsoft.com/en-us/dotnet/api/system.data.dataview.rowfilter?view=net-7.0 for tips on how to use. Example: PlayerID = 277584"></TextBlock>
+                <TextBox Grid.Column="1" x:Name="txtColumnFilter"  VerticalAlignment="Center" VerticalContentAlignment="Center" TextChanged="txtColumnFilter_TextChanged"></TextBox>
             </Grid>
-            <DataGrid x:Name="dgTable" Grid.Column="1" Grid.Row="1" Padding="5" >
+            <DataGrid x:Name="dgTable" Grid.Column="1" Grid.Row="1" Padding="5" CellEditEnding="dgTable_CellEditEnding" >
 
             </DataGrid>
         </Grid>

@@ -447,7 +447,7 @@ namespace FifaLibrary
 
         public bool IsClean()
         {
-            bool flag = true;
+            bool isClean = true;
             for (int i = 0; i < m_TableDescriptor.NFields; i++)
             {
                 _ = m_TableDescriptor.FieldDescriptors[i].BitOffset / 8;
@@ -457,28 +457,29 @@ namespace FifaLibrary
                     case FieldDescriptor.EFieldTypes.String:
                         if (m_StringField[typeIndex] != string.Empty)
                         {
-                            flag = false;
+                            isClean = false;
                         }
                         break;
                     case FieldDescriptor.EFieldTypes.Integer:
                         if (m_IntField[typeIndex] != m_TableDescriptor.FieldDescriptors[i].RangeLow)
                         {
-                            flag = false;
+                            isClean = false;
                         }
                         break;
                     case FieldDescriptor.EFieldTypes.Float:
                         if (m_FloatField[typeIndex] != 0f)
                         {
-                            flag = false;
+                            isClean = false;
                         }
                         break;
                 }
-                if (!flag)
+                if (!isClean)
                 {
-                    break;
+                    throw new Exception("Row isn't clean");
+                    //break;
                 }
             }
-            return flag;
+            return isClean;
         }
 
         public void Fill(DbWriter w)
