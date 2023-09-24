@@ -98,6 +98,11 @@
                                     </LayoutRoot>
                                 </DockingManager>
                             </LayoutDocument>
+                            <LayoutDocument x:Name="layoutAssetEntryViewer" CanClose="False" Title="Asset Entry">
+                                <local:AssetEntryViewer x:Name="AssetEntryViewer">
+
+                                </local:AssetEntryViewer>
+                            </LayoutDocument>
                         </LayoutDocumentPane>
                     </LayoutDocumentPaneGroup>
                   

@@ -291,6 +291,9 @@ namespace FMT.Pages.Common
             try
             {
                 SelectedEntry = ebxEntry;
+                await AssetEntryViewer.LoadEntry(SelectedEntry, MainEditorWindow);
+                DisplayUnknownFileViewer(AssetManager.Instance.GetEbxStream(ebxEntry));
+
                 SelectedEbxAsset = await AssetManager.Instance.GetEbxAsync(ebxEntry, cancellationToken: cancellationToken);
 
                 OpenEbxTextureAsset(ebxEntry, cancellationToken);
@@ -326,7 +329,6 @@ namespace FMT.Pages.Common
                 }
                 else if (string.IsNullOrEmpty(ebxEntry.Type) || ebxEntry.Type == "UnknownType")
                 {
-                    DisplayUnknownFileViewer(AssetManager.Instance.GetEbxStream(ebxEntry));
                 }
                 else
                 {
