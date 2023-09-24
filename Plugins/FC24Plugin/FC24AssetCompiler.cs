@@ -188,24 +188,17 @@ namespace FC24Plugin
                     var tocChunks = tocFileObj.TocChunks.Where(x => x != null && x.ExtraData != null);
 
                     var patch = true;
-                    var catalog = tocChunks.Max(x => x.ExtraData.Catalog.Value);
-                    if (!tocChunks.Any(x => x.ExtraData.IsPatch))
-                        patch = false;
+                    var instance = tocChunks.OrderByDescending(x => x.ExtraData.Catalog).FirstOrDefault();
+                    var catalog = instance.ExtraData.Catalog.Value;
+                    var cas = instance.ExtraData.Cas.Value;
+                    var newCas = instance.ExtraData.Cas.Value;
+                    patch = instance.ExtraData.IsPatch;
 
-                    var cas = tocChunks.Max(x => x.ExtraData.Cas.Value);
-
-                    var newCas = cas;
                     //var nextCasPath = GetNextCasInCatalog(catalogInfo, cas, patch, out int newCas);
-                    var nextCasPath = FileSystem.Instance.ResolvePath(FileSystem.Instance.GetFilePath(catalog, cas, patch), ModExecutor.UseModData);
-                    if (!File.Exists(nextCasPath))
-                    {
-                        nextCasPath = FileSystem.Instance.ResolvePath(FileSystem.Instance.GetFilePath(catalog, cas, false), ModExecutor.UseModData);
-                        patch = false;
-                    }
+                    var nextCasPath = FileSystem.Instance.ResolvePath(FileSystem.Instance.GetFilePath(instance.ExtraData.Catalog.Value, instance.ExtraData.Cas.Value, instance.ExtraData.IsPatch), ModExecutor.UseModData);
                     if (string.IsNullOrEmpty(nextCasPath))
                     {
-                        Debug.WriteLine("Error finding nextCasPath in BaseAssetCompiler.ModifyTOCChunks!");
-                        continue;
+                        throw new FileNotFoundException("Error finding nextCasPath in BaseAssetCompiler.ModifyTOCChunks!");
                     }
 
                     using (NativeWriter nw_cas = new NativeWriter(new FileStream(nextCasPath, FileMode.OpenOrCreate)))
@@ -216,7 +209,9 @@ namespace FC24Plugin
                             {
                                 if (tocFileObj.TocChunkGuids.Contains(modChunk.Key))
                                 {
-                                    var chunkIndex = tocFileObj.TocChunks.FindIndex(x => x.Id == modChunk.Key
+                                    var chunkIndex = tocFileObj.TocChunks.FindIndex(x => 
+                                        x != null &&
+                                        x.Id == modChunk.Key
                                         && modChunk.Value.ModifiedEntry != null
                                         );
                                     if (chunkIndex != -1)
@@ -251,9 +246,9 @@ namespace FC24Plugin
                                         };
 
                                         nw_toc.Position = tocFileObj.TocChunkPatchPositions[chunkGuid];
-                                        nw_toc.Write(Convert.ToByte(patch ? 1 : 0));
-                                        nw_toc.Write(Convert.ToByte(catalog));
-                                        nw_toc.Write(Convert.ToByte(newCas));
+                                        nw_toc.Write(Convert.ToUInt16(patch ? 1 : 0), Endian.Big);
+                                        nw_toc.Write((int)AssetManager.Instance.FileSystem.CatalogObjects.ToArray()[catalog].PersistentIndex, Endian.Big);
+                                        nw_toc.Write(Convert.ToUInt16(newCas), Endian.Big);
 
                                         nw_toc.Position = chunk.SB_CAS_Offset_Position;
                                         nw_toc.Write((uint)newPosition, Endian.Big);
