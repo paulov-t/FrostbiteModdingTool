@@ -61,7 +61,7 @@ namespace FrostySdk.IO
             InitialRead(InStream, inPatched);
         }
 
-        public override void InitialRead(Stream InStream, bool inPatched)
+        public override void InitialRead(Stream InStream, bool inPatched, bool onlyType = false)
         {
             if (stream != InStream)
             {

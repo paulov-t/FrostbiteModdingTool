@@ -76,7 +76,7 @@ namespace FrostySdk.IO
             //InitialRead(InStream, fs, inPatched);
         }
 
-        public override void InitialRead(Stream InStream, bool inPatched)
+        public override void InitialRead(Stream InStream, bool inPatched, bool onlyType = false)
         {
             //if (!string.IsNullOrEmpty(InBoundName) && InBoundName.Contains("gp_"))
             //{

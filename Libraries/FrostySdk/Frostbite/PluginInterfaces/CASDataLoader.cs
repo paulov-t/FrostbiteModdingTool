@@ -94,6 +94,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                             var ebxCount = binaryObject.GetValue<DbObject>("ebx").Count;
                             var resCount = binaryObject.GetValue<DbObject>("res").Count;
                             var chunkCount = binaryObject.GetValue<DbObject>("chunks").Count;
+                            var totalCount = ebxCount + resCount + chunkCount;
 
                             var allObjectList = EbxObjectList.List.Union(ResObjectList.List).Union(ChunkObjectList.List).ToArray();
                             var indexInList = 0;
@@ -122,116 +123,21 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                                 indexInList++;
                             }
 
-                            //
-//                            for (var i = 0; i < ebxCount; i++)
-//                            {
-//                                var ebxobjectinlist = EbxObjectList[i] as DbObject;
-
-//                                ebxobjectinlist.SetValue("ebx", true);
-//                                ebxobjectinlist.SetValue("offset", casBundle.Offsets[i]);
-//                                ebxobjectinlist.SetValue("size", casBundle.Sizes[i]);
-
-//                                ebxobjectinlist.SetValue("TOCOffsetPosition", casBundle.TOCOffsets[i]);
-//                                ebxobjectinlist.SetValue("TOCSizePosition", casBundle.TOCSizes[i]);
-
-//                                ebxobjectinlist.SetValue("CASFileLocation", NativeFileLocation);
-
-//                                ebxobjectinlist.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
-//                                ebxobjectinlist.SetValue("SB_CAS_Offset_Position", casBundle.TOCOffsets[i]);
-//                                ebxobjectinlist.SetValue("SB_CAS_Size_Position", casBundle.TOCSizes[i]);
-//                                ebxobjectinlist.SetValue("ParentCASBundleLocation", NativeFileLocation);
-
-//                                ebxobjectinlist.SetValue("cas", casBundle.TOCCas[i]);
-//                                ebxobjectinlist.SetValue("catalog", casBundle.TOCCatalog[i]);
-//                                ebxobjectinlist.SetValue("patch", casBundle.TOCPatch[i]);
-
-//                                ebxobjectinlist.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
-//                                ebxobjectinlist.SetValue("Bundle", casBundle.BaseEntry.Name);
-
-//#if DEBUG
-//                                //if (ebxobjectinlist["name"].ToString().Contains("antony"))
-//                                //if (ebxobjectinlist["name"].ToString().Contains("head_255475")) // antony
-//                                //{
-//                                    // patch cas data loader
-//                                    // CAS Patch\\win32\superbundlelayout\fifa_installpackage_06\cas_02.cas
-//                                    // native_patch/win32/contentsb.toc
-//                                    // TOCOffsetPosition = 2566052
-//                                    // TOCSizePosition = 2566056
-//                                //}
-//#endif
-
-//                            }
-//                            for (var i = 0; i < resCount; i++)
-//                            {
-//                                var resobjectinlist = ResObjectList[i] as DbObject;
-
-
-//                                resobjectinlist.SetValue("res", true);
-//                                resobjectinlist.SetValue("offset", casBundle.Offsets[ebxCount + i]);
-//                                resobjectinlist.SetValue("size", casBundle.Sizes[ebxCount + i]);
-//                                resobjectinlist.SetValue("TOCOffsetPosition", casBundle.TOCOffsets[ebxCount + i]);
-//                                resobjectinlist.SetValue("TOCSizePosition", casBundle.TOCSizes[ebxCount + i]);
-//                                resobjectinlist.SetValue("CASFileLocation", NativeFileLocation);
-
-//                                resobjectinlist.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
-//                                resobjectinlist.SetValue("SB_CAS_Offset_Position", casBundle.TOCOffsets[ebxCount + i]);
-//                                resobjectinlist.SetValue("SB_CAS_Size_Position", casBundle.TOCSizes[ebxCount + i]);
-//                                resobjectinlist.SetValue("ParentCASBundleLocation", NativeFileLocation);
-
-//                                resobjectinlist.SetValue("cas", casBundle.TOCCas[ebxCount + i]);
-//                                resobjectinlist.SetValue("catalog", casBundle.TOCCatalog[ebxCount + i]);
-//                                resobjectinlist.SetValue("patch", casBundle.TOCPatch[ebxCount + i]);
-
-//                                resobjectinlist.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
-//                                resobjectinlist.SetValue("Bundle", casBundle.BaseEntry.Name);
-
-//                            }
-
-//                            for (var i = 0; i < chunkCount; i++)
-//                            {
-//                                var chunkObjectInList = ChunkObjectList[i] as DbObject;
-
-//                                chunkObjectInList.SetValue("chunk", true);
-//                                chunkObjectInList.SetValue("offset", casBundle.Offsets[ebxCount + resCount + i]);
-//                                chunkObjectInList.SetValue("size", casBundle.Sizes[ebxCount + resCount + i]);
-
-//                                chunkObjectInList.SetValue("CASFileLocation", NativeFileLocation);
-
-
-//                                chunkObjectInList.SetValue("TOCFileLocation", AssociatedTOCFile.NativeFileLocation);
-//                                chunkObjectInList.SetValue("SB_CAS_Offset_Position", casBundle.TOCOffsets[ebxCount + resCount + i]);
-//                                chunkObjectInList.SetValue("SB_CAS_Size_Position", casBundle.TOCSizes[ebxCount + resCount + i]);
-//                                chunkObjectInList.SetValue("ParentCASBundleLocation", NativeFileLocation);
-
-
-//                                chunkObjectInList.SetValue("cas", casBundle.TOCCas[ebxCount + resCount + i]);
-//                                chunkObjectInList.SetValue("catalog", casBundle.TOCCatalog[ebxCount + resCount + i]);
-//                                chunkObjectInList.SetValue("patch", casBundle.TOCPatch[ebxCount + resCount + i]);
-
-//                                chunkObjectInList.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
-//                                chunkObjectInList.SetValue("Bundle", casBundle.BaseEntry.Name);
-
-//                            }
-
                             dboAll.Add(binaryObject);
 
                             if (AssociatedTOCFile.ProcessData)
                             {
-                                foreach (DbObject item in
-                                    EbxObjectList.List
+                                var allData = EbxObjectList.List
                                     .Union(ResObjectList.List)
-                                    .Union(ChunkObjectList.List)
-                                    )
+                                    .Union(ChunkObjectList.List).ToArray();
+
+                                if (allData.Length != totalCount) 
+                                { 
+                                
+                                }
+
+                                foreach (DbObject item in allData)
                                 {
-                                    //EbxAssetEntry ebxAssetEntry = new EbxAssetEntry();
-                                    //ebxAssetEntry = (EbxAssetEntry)AssetLoaderHelpers.ConvertDbObjectToAssetEntry(item, ebxAssetEntry);
-
-                                    //ebxAssetEntry.CASFileLocation = NativeFileLocation;
-                                    //ebxAssetEntry.TOCFileLocation = AssociatedTOCFile.NativeFileLocation;
-
-                                    //if (AssociatedTOCFile.ProcessData)
-                                    //    AssetManager.Instance.AddEbx(ebxAssetEntry);
-
                                     AssetEntry asset = null;
                                     if (item.HasValue("ebx"))
                                         asset = new EbxAssetEntry();
@@ -253,38 +159,6 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                                             AssetManager.Instance.AddChunk(chunkAssetEntry);
                                     }
                                 }
-
-                                //var iRes = 0;
-                                //foreach (DbObject item in ResObjectList)
-                                //{
-                                //    ResAssetEntry resAssetEntry = new ResAssetEntry();
-                                //    resAssetEntry = (ResAssetEntry)AssetLoaderHelpers.ConvertDbObjectToAssetEntry(item, resAssetEntry);
-
-                                //    resAssetEntry.CASFileLocation = NativeFileLocation;
-                                //    resAssetEntry.TOCFileLocation = AssociatedTOCFile.NativeFileLocation;
-
-                                //    resAssetEntry.Bundles.Add(BaseBundleInfo.BundleItemIndex);
-                                //    if (AssociatedTOCFile.ProcessData)
-                                //        AssetManager.Instance.AddRes(resAssetEntry);
-
-                                //    iRes++;
-                                //}
-
-                                //var iChunk = 0;
-                                //foreach (DbObject item in ChunkObjectList)
-                                //{
-                                //    ChunkAssetEntry chunkAssetEntry = new ChunkAssetEntry();
-                                //    chunkAssetEntry = (ChunkAssetEntry)AssetLoaderHelpers.ConvertDbObjectToAssetEntry(item, chunkAssetEntry);
-
-                                //    chunkAssetEntry.CASFileLocation = NativeFileLocation;
-                                //    chunkAssetEntry.TOCFileLocation = AssociatedTOCFile.NativeFileLocation;
-
-                                //    chunkAssetEntry.Bundles.Add(BaseBundleInfo.BundleItemIndex);
-                                //    if (AssociatedTOCFile.ProcessData)
-                                //        AssetManager.Instance.AddChunk(chunkAssetEntry);
-
-                                //    iChunk++;
-                                //}
                             }
                         }
 

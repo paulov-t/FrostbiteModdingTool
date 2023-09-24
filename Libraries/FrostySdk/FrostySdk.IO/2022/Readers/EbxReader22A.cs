@@ -69,7 +69,7 @@ namespace FrostySdk.IO._2022.Readers
 
 
         internal EbxReader22A(Stream inStream, bool passthru)
-            : base(inStream)
+            : base(inStream, passthru)
         {
             Position = 0;
             if (inStream == null)

@@ -24,6 +24,7 @@ namespace FrostySdk
 
         private List<string> splitSuperBundles { get; } = new List<string>();
 
+
         private List<Catalog> catalogs { get; } = new List<Catalog>();
 
         public Dictionary<string, byte[]> memoryFs { get; set; } = new Dictionary<string, byte[]>();
@@ -118,6 +119,9 @@ namespace FrostySdk
                 }
             }
         }
+
+        public Dictionary<int, Catalog> CatalogsIndexed { get; } = new Dictionary<int, Catalog>();
+
 
         public int CasFileCount => casFiles.Count;
 
@@ -502,9 +506,15 @@ namespace FrostySdk
             return "";
         }
 
-        public string GetCasFilePathFromIndex(int index)
+        public string GetFilePathByCatalogIndex(int catalogIndex, int cas, bool patch)
         {
-            return GetFilePath(index);
+            Catalog catalogInfo = CatalogsIndexed[catalogIndex];
+            var result = (patch ? "native_patch/" : "native_data/") + catalogInfo.Name + "/cas_" + cas.ToString("D2") + ".cas";
+            if (new ReadOnlySpan<char>(ResolvePath(result).ToArray()).IsEmpty)
+            {
+                throw new FileNotFoundException(result);
+            }
+            return result;
         }
 
         public string GetFilePath(int catalog, int cas, bool patch)
@@ -517,6 +527,7 @@ namespace FrostySdk
             }
             return result;
         }
+
         public string GetCasFilePath(int catalog, int cas, bool patch)
         {
             return GetFilePath(catalog, cas, patch);
@@ -828,18 +839,6 @@ namespace FrostySdk
                         }
                     }
 
-
-                    //if (
-                    //	(ProfilesLibrary.DataVersion != 20180628 
-                    //		|| !(text == "win32/installation/default")) 
-                    //		&& (File.Exists(ResolvePath(text + "/cas.cat"))
-                    //		|| (item.HasValue("files") && item.GetValue<DbObject>("files").Count != 0
-                    //	) 
-                    //	|| ProfilesLibrary.DataVersion == 20181207 || ProfilesLibrary.DataVersion == 20190905 || ProfilesLibrary.DataVersion == 20180628)
-
-                    //	|| ProfilesLibrary.IsFIFA21DataVersion()
-                    //	)
-                    //{
                     Catalog catalogInfo = null;
                     Guid catalogId = item.GetValue<Guid>("id");
                     catalogInfo = catalogs.Find((Catalog ci) => ci.Id == catalogId);
@@ -896,7 +895,12 @@ namespace FrostySdk
                             }
                         }
                     }
+
                     catalogs.Add(catalogInfo);
+
+                    if (catalogInfo.PersistentIndex.HasValue && !CatalogsIndexed.ContainsKey(catalogInfo.PersistentIndex.Value))
+                        CatalogsIndexed.Add(catalogInfo.PersistentIndex.Value, catalogInfo);
+
                     //}
                     //}
                 }

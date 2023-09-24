@@ -57,7 +57,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
             if (item.HasValue("patch"))
             {
                 bool patch = item.GetValue("patch", false);
-                assetEntry.ExtraData.IsPatch = patch;
+                if (patch)
+                    assetEntry.ExtraData.IsPatch = patch;
             }
             //chunkAssetEntry.ExtraData.CasPath = FileSystem.Instance.GetFilePath(catalog, cas, patch);
 

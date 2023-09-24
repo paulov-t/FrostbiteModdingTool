@@ -20,15 +20,17 @@ namespace FrostySdk.IO._2022.Readers
 
         //internal static EbxSharedTypeDescriptorV2 patchStd { get; private set; }
 
-        public EbxReader22B(Stream ebxDataStream, bool inPatched)
+        public EbxReader22B(Stream ebxDataStream, bool inPatched, bool onlyType = false)
             : base(ebxDataStream, passthru: true)
         {
             Position = 0;
-            InitialRead(ebxDataStream, inPatched);
+            InitialRead(ebxDataStream, inPatched, onlyType);
 
         }
 
-        public override void InitialRead(Stream InStream, bool inPatched)
+        private bool OnlyFindType { get; set; } = false;
+
+        public override void InitialRead(Stream InStream, bool inPatched, bool onlyType = false)
         {
             if (InStream == null)
             {
@@ -44,7 +46,7 @@ namespace FrostySdk.IO._2022.Readers
 
             this.patched = inPatched;
             base.magic = (EbxVersion)base.ReadUInt32LittleEndian();
-            
+            this.OnlyFindType = onlyType;
             this.LoadRiffEbx();
             this.isValid = true;
             IsLoaded = true;
@@ -309,7 +311,7 @@ namespace FrostySdk.IO._2022.Readers
                 fsDump.Dispose();
                 Position = payloadOffset;
             }
-            else
+            else if(!OnlyFindType)
             {
 
                 Position = 0;

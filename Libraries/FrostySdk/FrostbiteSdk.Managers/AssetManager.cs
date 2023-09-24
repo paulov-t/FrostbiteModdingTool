@@ -528,7 +528,7 @@ namespace FrostySdk.Managers
                         ebxStream.Position = 0;
                         //EbxReaderInstance = (EbxReader)Activator.CreateInstance(EbxReaderType, ebxStream, true);
                         //EbxReaderInstance.Position = 0;
-                        var readerInst = (EbxReader)LoadTypeByName(ProfileManager.EBXReader, ebxStream, true);
+                        var readerInst = (EbxReader)LoadTypeByName(ProfileManager.EBXReader, ebxStream, true, true);
                         //try
                         //{
                         if (readerInst.GetType() == typeof(EbxReader) && !readerInst.IsValid)
@@ -853,7 +853,7 @@ namespace FrostySdk.Managers
                 throw new ArgumentNullException(nameof(entry.Id));
 
 #if DEBUG
-            if(entry.Id == Guid.Parse("bb78c273-1bec-eb61-5e4b-6a1390e564e9"))
+            if(entry.Id.ToString() == "bb78c273-1bec-eb61-5e4b-6a1390e564e9")
             {
 
             }

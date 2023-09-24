@@ -17,7 +17,7 @@ namespace FrostySdk.IO
 
         public static EbxReader GetEbxReader(Stream stream, bool patched)
         {
-            return (EbxReader)AssetManager.LoadTypeByName(ProfileManager.EBXReader, stream, patched);
+            return (EbxReader)AssetManager.LoadTypeByName(ProfileManager.EBXReader, stream, patched, false);
             //EbxReader reader = new EbxReader(stream);
             //foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
             //{
@@ -120,7 +120,7 @@ namespace FrostySdk.IO
 
 
 
-        public virtual void InitialRead(Stream InStream, bool inPatched)
+        public virtual void InitialRead(Stream InStream, bool inPatched, bool onlyType = false)
         {
             if (stream != InStream)
             {

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace FC24Plugin
 {
@@ -34,6 +35,28 @@ namespace FC24Plugin
             : base (tocStream, log, process, modDataPath, sbIndex, headerOnly)
         {
 
+        }
+
+        private (short, byte, bool) FindCatalogCasPatch(NativeReader nativeReader)
+        {
+            var isInPatch = Convert.ToBoolean(nativeReader.ReadShort(Endian.Big)); // Patch
+            var catalogIndex = nativeReader.ReadInt(Endian.Big); // Catalog PersistedIndex Identifier
+            var cas = Convert.ToByte(nativeReader.ReadShort(Endian.Big)); // Cas number
+
+            var catalogIndexedKVP = AssetManager.Instance.FileSystem.CatalogsIndexed[catalogIndex];
+            var catalogIndexInt = AssetManager.Instance.FileSystem.CatalogObjects.ToList().FindIndex(x => x.PersistentIndex.HasValue && x.PersistentIndex.Value == catalogIndex);
+            if (catalogIndexInt == -1)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            var catalog = (short)catalogIndexInt;
+            if((byte)catalog == 255)
+            {
+                throw new ArithmeticException();
+            }
+
+            return (catalog, cas, isInPatch);
         }
 
         protected override void ReadChunkData(NativeReader nativeReader)
@@ -78,7 +101,10 @@ namespace FC24Plugin
                     Guid guid = nativeReader.ReadGuid();
                     nativeReader.Position -= 16;
                     Guid guidReverse = nativeReader.ReadGuidReverse();
-                    TocChunkGuids[chunkIndex] = guidReverse;
+                nativeReader.Position -= 16;
+                Guid guidBig = nativeReader.ReadGuid(Endian.Big);
+
+                TocChunkGuids[chunkIndex] = guidReverse;
 
 #if DEBUG
                     if (guidReverse.ToString() == "19104422-214d-40b9-e26c-198089f37621")
@@ -87,6 +113,7 @@ namespace FC24Plugin
                     }
                     if (guidReverse.ToString() == "bb78c273-1bec-eb61-5e4b-6a1390e564e9"
                         || guid.ToString() == "bb78c273-1bec-eb61-5e4b-6a1390e564e9"
+                        || guidBig.ToString() == "bb78c273-1bec-eb61-5e4b-6a1390e564e9"
                         )
                     {
 
@@ -152,12 +179,10 @@ namespace FC24Plugin
                 ChunkAssetEntry tocChunk = TOCChunkByOffset[chunkIdentificationOffset];
                 tocChunk.IsTocChunk = true;
 
-                nativeReader.ReadByte();
-                var patch = nativeReader.ReadBoolean();
-                nativeReader.ReadBytes(4); // magic
-                nativeReader.ReadByte();
-                var cas = nativeReader.ReadByte(); // cas
-                var catalog = foundCatalog;
+                uint patchPosition = (uint)nativeReader.Position;
+                var catcaspatch = FindCatalogCasPatch(nativeReader);
+                TocChunkPatchPositions.Add(tocChunk.Id, patchPosition);
+
                 tocChunk.SB_CAS_Offset_Position = (int)nativeReader.Position;
                 var offset = nativeReader.ReadUInt(Endian.Big);
                 tocChunk.SB_CAS_Size_Position = (int)nativeReader.Position;
@@ -170,9 +195,9 @@ namespace FC24Plugin
                 tocChunk.Location = AssetDataLocation.CasNonIndexed;
                 tocChunk.ExtraData = new AssetExtraData();
                 tocChunk.ExtraData.Unk = 0;
-                tocChunk.ExtraData.Catalog = (ushort)catalog;
-                tocChunk.ExtraData.Cas = cas;
-                tocChunk.ExtraData.IsPatch = patch;
+                tocChunk.ExtraData.Catalog = (ushort)catcaspatch.Item1;
+                tocChunk.ExtraData.Cas = catcaspatch.Item2;
+                tocChunk.ExtraData.IsPatch = catcaspatch.Item3;
                 tocChunk.ExtraData.DataOffset = offset;
                 tocChunk.Bundles.Add(ChunkDataBundleId);
                 if(AssetManager.Instance != null)
@@ -215,6 +240,8 @@ namespace FC24Plugin
                 }
             }
         }
+
+  
 
         protected override void ReadCasBundles(NativeReader nativeReader)
         {
@@ -312,16 +339,33 @@ namespace FC24Plugin
                         bool hasCasIdentifier = bundle.Flags[j2] == 128;
                         if (hasCasIdentifier)
                         {
-                            // 8 bytes of something? 
-                            var unkByte1 = nativeReader.ReadByte(); // 00 Unknown
-                            isInPatch = nativeReader.ReadBoolean(); // Patch?
-                            var unkMagic1 = nativeReader.ReadBytes(4); // A3 A0 0D catalog identifier?
-                            var unkByte = nativeReader.ReadByte();
-                            cas = nativeReader.ReadByte(); // Cas number
-                                                           //catalog = (byte)unkShortCas;
-                                                           //cas = (byte)unkShortCas;
-                                                           //catalog = 0;
-                            catalog = (byte)foundCatalog;
+                            isInPatch = Convert.ToBoolean(nativeReader.ReadShort(Endian.Big)); // Patch
+#if DEBUG
+
+                            _ = AssetManager.Instance.FileSystem;
+
+
+                            if (isInPatch)
+                            {
+
+                            }
+#endif
+
+                            var catalogIndex = nativeReader.ReadInt(Endian.Big); // Catalog PersistedIndex Identifier
+                            cas = Convert.ToByte(nativeReader.ReadShort(Endian.Big)); // Cas number
+                                                           
+                            if(!AssetManager.Instance.FileSystem.CatalogsIndexed.ContainsKey(catalogIndex))
+                            {
+                                continue;
+                            }
+
+                            var catalogIndexedKVP = AssetManager.Instance.FileSystem.CatalogsIndexed[catalogIndex];
+                            var catalogIndexInt = AssetManager.Instance.FileSystem.CatalogObjects.ToList().FindIndex(x => x.PersistentIndex.HasValue && x.PersistentIndex.Value == catalogIndex);
+                            if (catalogIndexInt == -1)
+                            {
+                                continue;
+                            }
+                            catalog = (byte)catalogIndexInt;// (byte)foundCatalog;
                         }
 
                         long locationOfOffset = nativeReader.Position;
