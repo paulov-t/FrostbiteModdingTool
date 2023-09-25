@@ -507,7 +507,7 @@ namespace CSharpImageLibrary.Headers
             /// <returns>String header.</returns>
             public override string ToString()
             {
-                return UsefulThings.General.StringifyObject(this);
+                return $"{dxgiFormat.ToString()},{resourceDimension.ToString()}";
             }
         }
 
