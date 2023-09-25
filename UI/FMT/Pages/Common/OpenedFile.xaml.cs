@@ -165,6 +165,9 @@ namespace FMT.Pages.Common
                             "AST"
                         };
 
+                    var legacyAssetStream = (MemoryStream)ProjectManagement.Instance.Project.AssetManager.GetCustomAsset("legacy", legacyFileEntry);
+                    //DisplayUnknownFileViewer(legacyAssetStream);
+
                     if (textViewers.Contains(legacyFileEntry.Type))
                     {
                         MainEditorWindow.Log("Loading Legacy File " + SelectedLegacyEntry.Filename);
@@ -174,7 +177,7 @@ namespace FMT.Pages.Common
                         btnRevert.IsEnabled = true;
 
                         TextViewer.Visibility = Visibility.Visible;
-                        using (var nr = new NativeReader(AssetManager.Instance.GetCustomAsset("legacy", legacyFileEntry)))
+                        using (var nr = new NativeReader(legacyAssetStream))
                         {
                             //TextViewer.Text = ASCIIEncoding.ASCII.GetString(nr.ReadToEnd());
                             TextViewer.Text = UTF8Encoding.UTF8.GetString(nr.ReadToEnd());
@@ -187,7 +190,7 @@ namespace FMT.Pages.Common
                         btnExport.IsEnabled = true;
                         //layoutImageViewer.Visibility = Visibility.Visible;
 
-                        BuildTextureViewerFromStream((MemoryStream)ProjectManagement.Instance.Project.AssetManager.GetCustomAsset("legacy", legacyFileEntry));
+                        BuildTextureViewerFromStream(legacyAssetStream);
 
 
                     }
@@ -218,21 +221,21 @@ namespace FMT.Pages.Common
                         btnImport.IsEnabled = true;
                         btnRevert.IsEnabled = true;
 
-                        unknownFileDocumentsPane.Children.Clear();
-                        var newLayoutDoc = new LayoutDocument();
-                        newLayoutDoc.Title = SelectedEntry.DisplayName;
-                        WpfHexaEditor.HexEditor hexEditor = new WpfHexaEditor.HexEditor();
-                        using (var nr = new NativeReader(ProjectManagement.Instance.Project.AssetManager.GetCustomAsset("legacy", legacyFileEntry)))
-                        {
-                            hexEditor.Stream = new MemoryStream(nr.ReadToEnd());
-                        }
-                        newLayoutDoc.Content = hexEditor;
-                        //hexEditor.BytesModified += HexEditor_BytesModified;
-                        unknownFileDocumentsPane.Children.Insert(0, newLayoutDoc);
-                        unknownFileDocumentsPane.SelectedContentIndex = 0;
+                        //unknownFileDocumentsPane.Children.Clear();
+                        //var newLayoutDoc = new LayoutDocument();
+                        //newLayoutDoc.Title = SelectedEntry.DisplayName;
+                        //WpfHexaEditor.HexEditor hexEditor = new WpfHexaEditor.HexEditor();
+                        //using (var nr = new NativeReader(ProjectManagement.Instance.Project.AssetManager.GetCustomAsset("legacy", legacyFileEntry)))
+                        //{
+                        //    hexEditor.Stream = new MemoryStream(nr.ReadToEnd());
+                        //}
+                        //newLayoutDoc.Content = hexEditor;
+                        ////hexEditor.BytesModified += HexEditor_BytesModified;
+                        //unknownFileDocumentsPane.Children.Insert(0, newLayoutDoc);
+                        //unknownFileDocumentsPane.SelectedContentIndex = 0;
 
 
-                        UnknownFileViewer.Visibility = Visibility.Visible;
+                        //UnknownFileViewer.Visibility = Visibility.Visible;
                     }
 
                 }
@@ -292,7 +295,7 @@ namespace FMT.Pages.Common
             {
                 SelectedEntry = ebxEntry;
                 await AssetEntryViewer.LoadEntry(SelectedEntry, MainEditorWindow);
-                DisplayUnknownFileViewer(AssetManager.Instance.GetEbxStream(ebxEntry));
+                //DisplayUnknownFileViewer(AssetManager.Instance.GetEbxStream(ebxEntry));
 
                 SelectedEbxAsset = await AssetManager.Instance.GetEbxAsync(ebxEntry, cancellationToken: cancellationToken);
 
