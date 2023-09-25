@@ -24,7 +24,8 @@ namespace FC24Plugin.Meshes
             if (section.Offset1 != 0)
                 return;
             section.Name = nativeReader.ReadNullTerminatedString(offset: nativeReader.ReadInt64LittleEndian());
-            ReadBonesAtPosition(nativeReader, nativeReader.ReadInt64LittleEndian());
+            long bonePositions = nativeReader.ReadInt64LittleEndian();
+            //ReadBonesAtPosition(nativeReader, nativeReader.ReadInt64LittleEndian());
             section.BoneCount = nativeReader.ReadUInt16LittleEndian(); //438
             section.BonesPerVertex = (byte)nativeReader.ReadByte(); // 8
             section.MaterialId = nativeReader.ReadUShort(); // 28
@@ -35,14 +36,19 @@ namespace FC24Plugin.Meshes
             section.StartIndex = nativeReader.ReadUInt32LittleEndian(); // 0
             section.VertexOffset = nativeReader.ReadUInt32LittleEndian(); // 0
             section.VertexCount = (uint)nativeReader.ReadUInt32LittleEndian(); // 3157
-            section.UnknownInt = nativeReader.ReadUInt(); // 0
+            section.UnknownInt = nativeReader.ReadUInt();
+            section.UnknownInt = nativeReader.ReadUInt();
+            section.UnknownInt = nativeReader.ReadUInt();
+            section.UnknownInt = nativeReader.ReadUInt();
+            section.UnknownInt = nativeReader.ReadUInt();
 
+            section.TextureCoordinateRatios.Clear();
             for (int i = 0; i < 6; i++)
             {
                 section.TextureCoordinateRatios.Add(nativeReader.ReadFloat());
             }
 
-            for (int geomDeclId = 0; geomDeclId < section.DeclCount; geomDeclId++)
+            for (int geomDeclId = 0; geomDeclId < 1; geomDeclId++)
             {
                 section.GeometryDeclDesc[geomDeclId].Elements = new GeometryDeclarationDesc.Element[GeometryDeclarationDesc.MaxElements];
                 section.GeometryDeclDesc[geomDeclId].Streams = new GeometryDeclarationDesc.Stream[GeometryDeclarationDesc.MaxStreams];
@@ -75,17 +81,22 @@ namespace FC24Plugin.Meshes
                 nativeReader.ReadBytes(2); // padding
             }
 
-            section.UnknownData = nativeReader.ReadBytes(80);
+            _ = nativeReader.Position;
+            section.UnknownData = nativeReader.ReadBytes(64);
+            section.ReadBones(nativeReader, bonePositions);
         }
 
-        private void ReadBonesAtPosition(NativeReader nativeReader, long position)
-        {
-            var startPosition = nativeReader.Position;
-            nativeReader.Position = position;
+        //private void ReadBonesAtPosition(NativeReader nativeReader, long position)
+        //{
+        //    var startPosition = nativeReader.Position;
+        //    nativeReader.Position = position;
+        //    for (int m = 0; m < BoneCount; m++)
+        //    {
+        //        BoneList.Add(reader.ReadUInt16LittleEndian());
+        //    }
 
 
-
-            nativeReader.Position = startPosition;
-        }
+        //    nativeReader.Position = startPosition;
+        //}
     }
 }

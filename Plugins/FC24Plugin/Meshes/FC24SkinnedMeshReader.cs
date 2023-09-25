@@ -21,10 +21,10 @@ namespace FC24Plugin.Meshes
             nativeReader.Position = 0;
 
             meshSet.BoundingBox = nativeReader.ReadAxisAlignedBox();
-            long[] lodOffsets = new long[MaxLodCount];
+            meshSet.LodOffsets.Clear();
             for (int i2 = 0; i2 < MaxLodCount; i2++)
             {
-                lodOffsets[i2] = nativeReader.ReadLong();
+                meshSet.LodOffsets.Add(nativeReader.ReadLong());
             }
             meshSet.UnknownPostLODCount = nativeReader.ReadLong();
             long offsetNameLong = nativeReader.ReadLong();
@@ -40,7 +40,7 @@ namespace FC24Plugin.Meshes
             }
             meshSet.MeshLayout = (EMeshLayout)nativeReader.ReadByte();
             nativeReader.Position -= 1;
-            var meshLayoutFlags = (MeshSetLayoutFlags)nativeReader.ReadByte();
+            meshSet.MeshSetLayoutFlags = (MeshSetLayoutFlags)nativeReader.ReadByte();
             meshSet.unknownUInts.Add(nativeReader.ReadUInt());
             meshSet.unknownUInts.Add(nativeReader.ReadUInt());
             nativeReader.Position -= 1;
@@ -60,8 +60,8 @@ namespace FC24Plugin.Meshes
             //positionBeforeMeshTypeRead = nativeReader.Position;
             //nativeReader.Position = positionBeforeMeshTypeRead;
 
-            if (meshSet.Type == MeshType.MeshType_Skinned)
-            {
+            //if (meshSet.Type == MeshType.MeshType_Skinned)
+            //{
 
                 meshSet.FIFA23_SkinnedUnknownBytes = nativeReader.ReadBytes(12);
                 meshSet.boneCount = nativeReader.ReadUInt16LittleEndian();
@@ -89,13 +89,13 @@ namespace FC24Plugin.Meshes
                     }
                     nativeReader.Position = position;
                 }
-            }
+            //}
 
             nativeReader.Pad(16);
             meshSet.headerSize = (uint)nativeReader.Position;
             for (int n = 0; n < lodsCount; n++)
             {
-                nativeReader.Position = lodOffsets[n];
+                nativeReader.Position = meshSet.LodOffsets[n];
                 meshSet.Lods.Add(new MeshSetLod(nativeReader, meshSet));
             }
             int sectionIndex = 0;
@@ -150,7 +150,7 @@ namespace FC24Plugin.Meshes
                 }
             }
             //nativeReader.Pad(16);
-            if (meshSetLayoutSize.HasValue && meshSetVertexSize.HasValue)
+            if (meshSetLayoutSize.HasValue) // && meshSetVertexSize.HasValue)
             {
                 nativeReader.Position = meshSetLayoutSize.Value;
                 foreach (MeshSetLod lod in meshSet.Lods)

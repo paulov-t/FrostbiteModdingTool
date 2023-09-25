@@ -177,9 +177,15 @@ namespace FrostySdk.Resources
                 , FMT.FileTools.Modding.EGame.FC24
                 ))
             {
-                UnknownChunkPad = reader.ReadBytes(8);
                 if (ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.DeadSpace, FMT.FileTools.Modding.EGame.FC24))
-                    _ = reader.ReadBytes(4);
+                {
+                    UnknownChunkPad = reader.ReadBytes(12);
+                }
+                else
+                {
+                    UnknownChunkPad = reader.ReadBytes(8);
+                }
+
             }
 
             ChunkId = reader.ReadGuid();

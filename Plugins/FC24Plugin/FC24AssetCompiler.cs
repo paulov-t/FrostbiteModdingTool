@@ -114,6 +114,8 @@ namespace FC24Plugin
 
             parent.Logger.Log("Retreiving list of Modified CAS Files.");
             var dictOfModsToCas = GetModdedCasFiles();
+            if (dictOfModsToCas == null)
+                return false;
 
             // Force delete of Live Tuning Updates
             if (dictOfModsToCas.Any(x => x.Value.Any(y => y.NamePath.Contains("gp_", StringComparison.OrdinalIgnoreCase))))

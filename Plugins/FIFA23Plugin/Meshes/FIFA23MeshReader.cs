@@ -24,10 +24,10 @@ namespace FIFA23Plugin.Meshes
         public void Read(NativeReader nativeReader, MeshSet meshSet)
         {
             meshSet.BoundingBox = nativeReader.ReadAxisAlignedBox();
-            long[] lodOffsets = new long[MaxLodCount];
+            meshSet.LodOffsets.Clear();
             for (int i2 = 0; i2 < MaxLodCount; i2++)
             {
-                lodOffsets[i2] = nativeReader.ReadLong();
+                meshSet.LodOffsets.Add(nativeReader.ReadLong());
             }
             meshSet.UnknownPostLODCount = nativeReader.ReadLong();
             long offsetNameLong = nativeReader.ReadLong();
