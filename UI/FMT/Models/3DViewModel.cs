@@ -1,4 +1,5 @@
 ﻿using FMT;
+using FMT.Logging;
 using Frostbite.Textures;
 using FrostySdk.Ebx;
 using FrostySdk.IO;
@@ -11,6 +12,7 @@ using HelixToolkit.Wpf.SharpDX;
 using SharpDX;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Media;
@@ -160,9 +162,10 @@ namespace FrostbiteModdingUI.Models
                     Camera.Position = new System.Windows.Media.Media3D.Point3D(0.0, firstModel.Geometry.Positions[0].Y, 0.65);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-
+                FileLogger.WriteLine(ex.ToString());
+                Debug.WriteLine(ex.ToString());
             }
         }
 
