@@ -24,15 +24,7 @@ namespace FrostySdk
         {
             get
             {
-                if (ProfileManager.IsFIFADataVersion()
-                    || ProfileManager.IsFIFA21DataVersion()
-                    || ProfileManager.IsFIFA22DataVersion()
-                    || ProfileManager.IsFIFA23DataVersion()
-                    )
-                {
-                    return 262144;
-                }
-                return 65536;
+                return ProfileManager.LoadedProfile.MaxBufferSize.HasValue ? ProfileManager.LoadedProfile.MaxBufferSize.Value : 65536;
             }
         }
 

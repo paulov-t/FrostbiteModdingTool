@@ -89,7 +89,8 @@
         "Window": "BuildSDKAndCache"
       }
     ],
-    "External": [ ]
-  }
+    "External": []
+  },
+  "MaxBufferSize": 262144
 
 }

@@ -218,6 +218,8 @@ namespace FrostySdk
             public bool HasAntiCheat { get; set; }
             public Tools Tools { get; set; }
 
+            public int? MaxBufferSize { get; set; }
+
         }
 
         public struct Tools

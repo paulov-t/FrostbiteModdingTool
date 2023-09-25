@@ -41,5 +41,6 @@
   "CanLaunchMods": false,
   "LegacyFileManager": "",
   "DoesNotUsePlugin": true,
-  "CanUseModData": true
+  "CanUseModData": true,
+  "MaxBufferSize": 262144
 }

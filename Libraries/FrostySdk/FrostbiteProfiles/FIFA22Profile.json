@@ -83,6 +83,6 @@
   "ForceUseModData": true,
   "GameIdentifier": 196837,
   "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0004566",
-  "SteamId": "1506830"
-
+  "SteamId": "1506830",
+  "MaxBufferSize": 262144
 }

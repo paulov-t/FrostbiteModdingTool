@@ -49,5 +49,6 @@
   "CompressedFormatLegacy": "LZ4",
   "LegacyFileManager": "",
   "CanUseLiveLegacyMods": true,
-  "CanUseModData": true
+  "CanUseModData": true,
+  "MaxBufferSize": 262144
 }

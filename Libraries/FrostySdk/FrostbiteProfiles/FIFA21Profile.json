@@ -76,5 +76,6 @@
   "CacheReader": "Fifa21CacheReader",
   "GameIdentifier": 195853,
   "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0004195",
-  "SteamId": "1313860"
+  "SteamId": "1313860",
+  "MaxBufferSize": 262144
 }
