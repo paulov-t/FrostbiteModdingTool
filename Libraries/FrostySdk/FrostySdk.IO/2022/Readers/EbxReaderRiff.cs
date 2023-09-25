@@ -6,8 +6,8 @@ namespace FrostySdk.FrostySdk.IO.Readers
     public class EbxReaderRiff : EbxReader22B
     {
 
-        public EbxReaderRiff(Stream ebxDataStream, bool inPatched)
-            : base(ebxDataStream, inPatched)
+        public EbxReaderRiff(Stream ebxDataStream, bool inPatched, bool onlyType = false)
+            : base(ebxDataStream, inPatched, onlyType)
         {
         }
     }
