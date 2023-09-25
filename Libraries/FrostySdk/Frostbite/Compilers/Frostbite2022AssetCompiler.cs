@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
@@ -151,8 +152,10 @@ namespace FrostySdk.Frostbite.Compilers
             CopyDirectory(from_datafolderpath, to_datafolderpath, true, logger);
         }
 
-        protected Dictionary<string, List<ModdedFile>> GetModdedCasFiles()
+        protected Dictionary<string, List<ModdedFile>> GetModdedCasFiles(CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (cancellationToken.IsCancellationRequested)
+                return null;
             // -----------------------------------------------------------
             // Only load cache when required
             //if (AssetManager.Instance == null)
@@ -190,6 +193,9 @@ namespace FrostySdk.Frostbite.Compilers
             }
 
             ProcessLegacyMods();
+
+            if (cancellationToken.IsCancellationRequested)
+                return null;
 
             return casToMods;
         }
