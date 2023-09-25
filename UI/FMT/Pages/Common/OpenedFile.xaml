@@ -69,6 +69,39 @@
                                     </Image>
                                 </Grid>
                             </LayoutDocument>
+                            <LayoutDocument x:Name="layoutMeshViewer" CanClose="False" Title="Mesh Viewer">
+                                <Grid x:Name="ModelDockingManager" Visibility="Hidden">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"></ColumnDefinition>
+                                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <hx:Viewport3DX
+            x:Name="ModelViewer"
+            Grid.Column="0"
+            Camera="{Binding Camera}"
+            EffectsManager="{Binding EffectsManager}"
+            EnableSSAO="True"
+            FXAALevel="Medium"
+            BackgroundColor="Gray"
+            Background="Gray"
+            ShowFrameDetails="False"
+            EnableDeferredRendering="True">
+                                        <hx:Viewport3DX.InputBindings>
+                                            <MouseBinding Command="hx:ViewportCommands.Rotate" Gesture="RightClick" />
+                                            <MouseBinding Command="hx:ViewportCommands.Zoom" Gesture="MiddleClick" />
+                                            <MouseBinding Command="hx:ViewportCommands.Pan" Gesture="LeftClick" />
+                                        </hx:Viewport3DX.InputBindings>
+                                        <hx:DirectionalLight3D Direction="{Binding Camera.LookDirection}" Color="#D6D6D6" />
+                                        <hx:AmbientLight3D Color="#111111" />
+                                        <hx:Element3DPresenter Content="{Binding GroupModel}" />
+                                    </hx:Viewport3DX>
+
+
+                                    <local:Editor Grid.Column="1" x:Name="ModelViewerEBX">
+
+                                    </local:Editor>
+                                </Grid>
+                            </LayoutDocument>
                             <LayoutDocument x:Name="layoutTextViewer" CanClose="False" Title="Text Viewer">
                                 <Grid>
                                     <TextBox x:Name="TextViewer"
@@ -117,43 +150,6 @@
         <local2:BrowserOfBIG Grid.Row="1" x:Name="BIGViewer" Visibility="Collapsed">
 
         </local2:BrowserOfBIG>
-        <!--<xctk:PropertyGrid Grid.Row="1" x:Name="BackupEBXViewer" Visibility="Collapsed" Background="DarkGray">
-                                        </xctk:PropertyGrid>-->
-        <!--<local2:FMTPropertyGrid x:Name="BackupEBXViewer" Grid.Row="1" Visibility="Collapsed">
-                                    </local2:FMTPropertyGrid>-->
-
-
-        <Grid  Grid.Row="1" x:Name="ModelDockingManager" Visibility="Hidden"   >
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"></ColumnDefinition>
-                <ColumnDefinition Width="1*"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <hx:Viewport3DX
-            x:Name="ModelViewer"
-            Grid.Column="0"
-            Camera="{Binding Camera}"
-            EffectsManager="{Binding EffectsManager}"
-            EnableSSAO="True"
-            FXAALevel="Medium"
-            BackgroundColor="Gray"
-            Background="Gray"
-            ShowFrameDetails="False"
-            EnableDeferredRendering="True">
-                <hx:Viewport3DX.InputBindings>
-                    <MouseBinding Command="hx:ViewportCommands.Rotate" Gesture="RightClick" />
-                    <MouseBinding Command="hx:ViewportCommands.Zoom" Gesture="MiddleClick" />
-                    <MouseBinding Command="hx:ViewportCommands.Pan" Gesture="LeftClick" />
-                </hx:Viewport3DX.InputBindings>
-                <hx:DirectionalLight3D Direction="{Binding Camera.LookDirection}" Color="#D6D6D6" />
-                <hx:AmbientLight3D Color="#111111" />
-                <hx:Element3DPresenter Content="{Binding GroupModel}" />
-            </hx:Viewport3DX>
-
-
-            <local:Editor Grid.Column="1" x:Name="ModelViewerEBX">
-
-            </local:Editor>
-        </Grid>
 
     </Grid>
 </UserControl>
