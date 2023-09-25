@@ -116,10 +116,6 @@ namespace FrostySdk.IO
                     if (AssociatedAssetEntry != null) AssociatedAssetEntry.OriginalCompressionType = CompressionType.Oodle;
                     result = DecompressOodle(LastCompressedBufferSize, originalSize, unobfuscate);
                     break;
-                default:
-                    if (AssociatedAssetEntry != null) AssociatedAssetEntry.OriginalCompressionType = CompressionType.Oodle;
-                    result = DecompressOodle(LastCompressedBufferSize, originalSize, unobfuscate);
-                    break;
             }
             return result;
         }
