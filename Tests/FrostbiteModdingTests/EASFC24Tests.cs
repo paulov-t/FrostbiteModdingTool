@@ -1,8 +1,12 @@
 ﻿using FC24Plugin;
+using Frostbite.FileManagers;
+using FrostySdk;
 using FrostySdk.Frostbite;
 using FrostySdk.Frostbite.IO.Output;
 using FrostySdk.Managers;
+using FrostySdk.ModsAndProjects.Projects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ModdingSupport;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,6 +15,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using v2k4FIFAModdingCL;
+using static FrostbiteSdk.Frosty.Abstract.BaseModReader;
+using static FrostySdk.FrostbiteModWriter;
 
 namespace FrostbiteModdingTests
 {
@@ -137,6 +143,35 @@ namespace FrostbiteModdingTests
 
             FC24TOCFile tocPatchFile = new FC24TOCFile(tocPatchResource, true, false, false, -1, false);
 
+        }
+
+
+        /// <summary>
+        /// This test will load as much as it can from a TOC without having the full file system or assetmanager
+        /// </summary>
+        [TestMethod]
+        public void LoadLegacyProjectAndRebuildChunks()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
+
+            var fmtproj = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.LegacyFile.RotherhamCrest.fmtproj");
+            FMTProject project = FMTProject.Read(fmtproj);
+
+          
+            var legacyFileManager = AssetManager.Instance.GetLegacyAssetManager() as ChunkFileManager2022;
+            if (legacyFileManager != null)
+            {
+                Dictionary<string, byte[]> legacyData = new Dictionary<string, byte[]>();
+                foreach (LegacyFileEntry lfe in AssetManager.Instance.EnumerateCustomAssets("legacy", true))
+                {
+                    if (lfe.HasModifiedData)
+                    {
+                        legacyData.Add(lfe.Name, lfe.ModifiedEntry.Data);
+                    }
+                }
+                
+                legacyFileManager.ModifyAssets(legacyData, true);
+            }
         }
 
     }
