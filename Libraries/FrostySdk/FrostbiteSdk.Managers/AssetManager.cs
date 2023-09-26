@@ -800,7 +800,7 @@ namespace FrostySdk.Managers
                     entry.Bundles.Add(bundle);
 
                 // Always overwrite if the new item is a patch version
-                if (entry.ExtraData != null && !existingEbxEntry.ExtraData.IsPatch && entry.ExtraData.IsPatch)
+                if (entry.ExtraData != null && existingEbxEntry.ExtraData != null && !existingEbxEntry.ExtraData.IsPatch && entry.ExtraData.IsPatch)
                     EBX[entry.Name] = entry;
 
                 entry.Name = $"{entry.Name}_{(entry.ExtraData.IsPatch ? "EAPatch" : "EAData")}";
@@ -2609,6 +2609,12 @@ namespace FrostySdk.Managers
             if (imageFormat == TextureUtils.ImageFormat.DDS)
             {
                 ImageEngineImage originalImage = new ImageEngineImage(bytes);
+                TextureUtils.DDSHeader dDSHeader = new TextureUtils.DDSHeader();
+                using(var nr = new NativeReader(new MemoryStream(bytes)))
+                if (dDSHeader.Read(nr))
+                {
+
+                }
                 ImageEngineImage newImage = new ImageEngineImage(importFilePath);
                 if (originalImage.Format != newImage.Format)
                 {
@@ -2616,10 +2622,18 @@ namespace FrostySdk.Managers
 
                     bytes = newImage.Save(
                         new ImageFormats.ImageEngineFormatDetails(
-                            ImageEngineFormat.DDS_DXT1
-                            , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
+                           originalImage.Format
+                            //, CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB
+                            )
                         , mipHandling
                         , removeAlpha: false);
+
+                    //bytes = newImage.Save(
+                    //    new ImageFormats.ImageEngineFormatDetails(
+                    //        ImageEngineFormat.DDS_DXT1
+                    //        , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
+                    //    , mipHandling
+                    //    , removeAlpha: false);
                 }
                 else
                 {
@@ -2672,6 +2686,15 @@ namespace FrostySdk.Managers
                         new ImageFormats.ImageEngineFormatDetails(
                             ImageEngineFormat.DDS_DXT1
                             , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
+                        , mipHandling
+                        , removeAlpha: false);
+                }
+                else if (originalImage.Format == ImageEngineFormat.DDS_ARGB_8)
+                {
+                    bytes = imageEngineImage.Save(
+                        new ImageFormats.ImageEngineFormatDetails(
+                            ImageEngineFormat.DDS_ARGB_8
+                            , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM)
                         , mipHandling
                         , removeAlpha: false);
                 }

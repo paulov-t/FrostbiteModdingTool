@@ -146,146 +146,162 @@ namespace FC24Plugin
         {
             List<Guid> result = new List<Guid>();
 
-            int sbIndex = -1;
-            foreach (var catalogInfo in FileSystem.Instance.EnumerateCatalogInfos())
+            if (!ModExecuter.ModifiedChunks.Any())
+                return result;
+
+            try
             {
-                foreach (
-                    string sbKey in catalogInfo.SuperBundles.Keys
-                    //.Where(x => x.Contains("globals", StringComparison.OrdinalIgnoreCase))
-                    )
+
+
+                int sbIndex = -1;
+                foreach (var catalogInfo in FileSystem.Instance.EnumerateCatalogInfos())
                 {
-                    sbIndex++;
-                    string tocFileSbKey = sbKey;
-                    if (catalogInfo.SuperBundles[sbKey])
-                    {
-                        tocFileSbKey = sbKey.Replace("win32", catalogInfo.Name);
-                    }
-
-                    // Only handle Legacy stuff right now
-                    //if (!tocFile.Contains("globals", StringComparison.OrdinalIgnoreCase))
-                    //{
-                    //    continue;
-                    //}
-
-                    var pathToTOCFileRAW = $"{directory}/{tocFileSbKey}.toc";
-                    //string location_toc_file = FileSystem.Instance.ResolvePath(pathToTOCFileRAW);
-
-                    var pathToTOCFile = FileSystem.Instance.ResolvePath(pathToTOCFileRAW, ModExecutor.UseModData);
-
-                    using FC24TOCFile tocFileObj = new FC24TOCFile(pathToTOCFileRAW, false, false, true, sbIndex, true);
-
-                    // read the changed toc file in ModData
-                    if (!tocFileObj.TocChunks.Any())
-                        continue;
-
-                    if (!ModExecuter.ModifiedChunks.Any(x =>
-                        x.Value.Bundles.Contains(tocFileObj.ChunkDataBundleId)
-                        || x.Value.Bundles.Contains(tocFileObj.ChunkDataBundleId_PreFMT2323)
-                        || x.Value.Bundles.Contains(Fnv1a.HashString("TocChunks"))
-                        || x.Value.Bundles.Contains(Fnv1a.HashStringByHashDepot("TocChunks"))
+                    foreach (
+                        string sbKey in catalogInfo.SuperBundles.Keys
+                        //.Where(x => x.Contains("globals", StringComparison.OrdinalIgnoreCase))
                         )
-                        )
-                        continue;
-
-                    var tocChunks = tocFileObj.TocChunks.Where(x => x != null && x.ExtraData != null);
-
-                    var patch = true;
-                    var instance = tocChunks.OrderByDescending(x => x.ExtraData.Catalog).FirstOrDefault();
-                    var catalog = instance.ExtraData.Catalog.Value;
-                    var cas = instance.ExtraData.Cas.Value;
-                    var newCas = instance.ExtraData.Cas.Value;
-                    patch = instance.ExtraData.IsPatch;
-
-                    //var nextCasPath = GetNextCasInCatalog(catalogInfo, cas, patch, out int newCas);
-                    var nextCasPath = FileSystem.Instance.ResolvePath(FileSystem.Instance.GetFilePath(instance.ExtraData.Catalog.Value, instance.ExtraData.Cas.Value, instance.ExtraData.IsPatch), ModExecutor.UseModData);
-                    if (string.IsNullOrEmpty(nextCasPath))
                     {
-                        throw new FileNotFoundException("Error finding nextCasPath in BaseAssetCompiler.ModifyTOCChunks!");
-                    }
-
-                    using (NativeWriter nw_cas = new NativeWriter(new FileStream(nextCasPath, FileMode.OpenOrCreate)))
-                    {
-                        using (NativeWriter nw_toc = new NativeWriter(new FileStream(pathToTOCFile, FileMode.Open)))
+                        sbIndex++;
+                        string tocFileSbKey = sbKey;
+                        if (catalogInfo.SuperBundles[sbKey])
                         {
-                            foreach (var modChunk in ModExecuter.ModifiedChunks)
+                            tocFileSbKey = sbKey.Replace("win32", catalogInfo.Name);
+                        }
+
+                        // Only handle Legacy stuff right now
+                        //if (!tocFile.Contains("globals", StringComparison.OrdinalIgnoreCase))
+                        //{
+                        //    continue;
+                        //}
+
+                        var pathToTOCFileRAW = $"{directory}/{tocFileSbKey}.toc";
+                        //string location_toc_file = FileSystem.Instance.ResolvePath(pathToTOCFileRAW);
+
+                        var pathToTOCFile = FileSystem.Instance.ResolvePath(pathToTOCFileRAW, ModExecutor.UseModData);
+
+                        using FC24TOCFile tocFileObj = new FC24TOCFile(pathToTOCFileRAW, false, false, true, sbIndex, true);
+
+                        // read the changed toc file in ModData
+                        if (!tocFileObj.TocChunks.Any())
+                            continue;
+
+                        if (!tocFileObj.TocChunks.Any(x => x != null && ModExecuter.ModifiedChunks.ContainsKey(x.Id)))
+                            continue;
+
+                        if (!ModExecuter.ModifiedChunks.Any(x =>
+                            x.Value.Bundles.Contains(tocFileObj.ChunkDataBundleId)
+                            || x.Value.Bundles.Contains(tocFileObj.ChunkDataBundleId_PreFMT2323)
+                            || x.Value.Bundles.Contains(Fnv1a.HashString("TocChunks"))
+                            || x.Value.Bundles.Contains(Fnv1a.HashStringByHashDepot("TocChunks"))
+                            )
+                            )
+                            continue;
+
+                        var tocChunks = tocFileObj.TocChunks.Where(x => x != null && x.ExtraData != null);
+
+                        var patch = true;
+                        var firstKey = ModExecuter.ModifiedChunks.Keys.First();
+                        var instance = tocChunks.Where(x => x != null && ModExecuter.ModifiedChunks.ContainsKey(x.Id)).First();
+                        var catalog = instance.ExtraData.Catalog.Value;
+                        var cas = instance.ExtraData.Cas.Value;
+                        var newCas = instance.ExtraData.Cas.Value;
+                        patch = instance.ExtraData.IsPatch;
+
+                        //var nextCasPath = GetNextCasInCatalog(catalogInfo, cas, patch, out int newCas);
+                        var nextCasPath = FileSystem.Instance.ResolvePath(FileSystem.Instance.GetFilePath(catalog, cas, patch), ModExecutor.UseModData);
+                        if (string.IsNullOrEmpty(nextCasPath))
+                        {
+                            throw new FileNotFoundException("Error finding nextCasPath in BaseAssetCompiler.ModifyTOCChunks!");
+                        }
+
+                        using (NativeWriter nw_cas = new NativeWriter(new FileStream(nextCasPath, FileMode.OpenOrCreate)))
+                        {
+                            using (NativeWriter nw_toc = new NativeWriter(new FileStream(pathToTOCFile, FileMode.Open)))
                             {
-                                if (tocFileObj.TocChunkGuids.Contains(modChunk.Key))
+                                foreach (var modChunk in ModExecuter.ModifiedChunks)
                                 {
-                                    var chunkIndex = tocFileObj.TocChunks.FindIndex(x => 
-                                        x != null &&
-                                        x.Id == modChunk.Key
-                                        && modChunk.Value.ModifiedEntry != null
-                                        );
-                                    if (chunkIndex != -1)
+                                    if (tocFileObj.TocChunkGuids.Contains(modChunk.Key))
                                     {
-                                        //var data = parent.archiveData[modChunk.Value.Sha1].Data;
-                                        byte[] data = null;
-                                        if (ModExecuter.archiveData.ContainsKey(modChunk.Value.ModifiedEntry.Sha1))
-                                            data = ModExecuter.archiveData[modChunk.Value.ModifiedEntry.Sha1].Data;
-
-                                        if (modChunk.Value.ModifiedEntry != null && modChunk.Value.ModifiedEntry.Data != null)
-                                            data = modChunk.Value.ModifiedEntry.Data;
-
-                                        if (data == null)
-                                            continue;
-
-                                        var chunkGuid = tocFileObj.TocChunkGuids[chunkIndex];
-                                        if (ProcessedChunks.Contains(chunkGuid))
-                                            continue;
-
-                                        var chunk = tocFileObj.TocChunks[chunkIndex];
-
-                                        nw_cas.Position = nw_cas.Length;
-                                        var newPosition = nw_cas.Position;
-                                        nw_cas.WriteBytes(data);
-                                        modChunk.Value.Size = data.Length;
-                                        modChunk.Value.ExtraData = new AssetExtraData()
+                                        var chunkIndex = tocFileObj.TocChunks.FindIndex(x =>
+                                            x != null &&
+                                            x.Id == modChunk.Key
+                                            && modChunk.Value.ModifiedEntry != null
+                                            );
+                                        if (chunkIndex != -1)
                                         {
-                                            DataOffset = (uint)newPosition,
-                                            Cas = newCas,
-                                            Catalog = catalog,
-                                            IsPatch = patch,
-                                        };
+                                            //var data = parent.archiveData[modChunk.Value.Sha1].Data;
+                                            byte[] data = null;
+                                            if (ModExecuter.archiveData.ContainsKey(modChunk.Value.ModifiedEntry.Sha1))
+                                                data = ModExecuter.archiveData[modChunk.Value.ModifiedEntry.Sha1].Data;
 
-                                        nw_toc.Position = tocFileObj.TocChunkPatchPositions[chunkGuid];
-                                        nw_toc.Write(Convert.ToUInt16(patch ? 1 : 0), Endian.Big);
-                                        nw_toc.Write((int)AssetManager.Instance.FileSystem.CatalogObjects.ToArray()[catalog].PersistentIndex, Endian.Big);
-                                        nw_toc.Write(Convert.ToUInt16(newCas), Endian.Big);
+                                            if (modChunk.Value.ModifiedEntry != null && modChunk.Value.ModifiedEntry.Data != null)
+                                                data = modChunk.Value.ModifiedEntry.Data;
 
-                                        nw_toc.Position = chunk.SB_CAS_Offset_Position;
-                                        nw_toc.Write((uint)newPosition, Endian.Big);
+                                            if (data == null)
+                                                continue;
 
-                                        nw_toc.Position = chunk.SB_CAS_Size_Position;
-                                        nw_toc.Write((uint)data.Length, Endian.Big);
-                                        FileLogger.WriteLine($"Written TOC Chunk {chunkGuid} to {nextCasPath}");
-                                        result.Add(chunkGuid);
-                                        ProcessedChunks.Add(chunkGuid);
+                                            var chunkGuid = tocFileObj.TocChunkGuids[chunkIndex];
+                                            if (ProcessedChunks.Contains(chunkGuid))
+                                                continue;
+
+                                            var chunk = tocFileObj.TocChunks[chunkIndex];
+
+                                            nw_cas.Position = nw_cas.Length;
+                                            var newPosition = nw_cas.Position;
+                                            nw_cas.WriteBytes(data);
+                                            modChunk.Value.Size = data.Length;
+                                            modChunk.Value.ExtraData = new AssetExtraData()
+                                            {
+                                                DataOffset = (uint)newPosition,
+                                                Cas = newCas,
+                                                Catalog = catalog,
+                                                IsPatch = patch,
+                                            };
+
+                                            nw_toc.Position = tocFileObj.TocChunkPatchPositions[chunkGuid];
+                                            nw_toc.Write(Convert.ToUInt16(patch ? 1 : 0), Endian.Big);
+                                            nw_toc.Write((int)AssetManager.Instance.FileSystem.CatalogObjects.ToArray()[catalog].PersistentIndex, Endian.Big);
+                                            nw_toc.Write(Convert.ToUInt16(newCas), Endian.Big);
+
+                                            nw_toc.Position = chunk.SB_CAS_Offset_Position;
+                                            nw_toc.Write((uint)newPosition, Endian.Big);
+
+                                            nw_toc.Position = chunk.SB_CAS_Size_Position;
+                                            nw_toc.Write((uint)data.Length, Endian.Big);
+                                            FileLogger.WriteLine($"Written TOC Chunk {chunkGuid} to {nextCasPath}");
+                                            result.Add(chunkGuid);
+                                            ProcessedChunks.Add(chunkGuid);
+                                        }
                                     }
-                                }
 
-                                // Added / Duplicate chunk -- Does nothing at the moment
-                                //if (modChunk.Value.ExtraData == null && tocFile == "win32/globalsfull")
-                                //{
-                                //    var data = ModExecuter.archiveData[modChunk.Value.Sha1].Data;
-                                //    nw_cas.Position = nw_cas.Length;
-                                //    var newPosition = nw_cas.Position;
-                                //    //nw_cas.WriteBytes(data);
-                                //    modChunk.Value.Size = data.Length;
-                                //    modChunk.Value.ExtraData = new AssetExtraData()
-                                //    {
-                                //        DataOffset = (uint)newPosition,
-                                //        Cas = newCas,
-                                //        Catalog = catalog,
-                                //        IsPatch = patch,
-                                //    };
-                                //    //tocSb.TOCFile.TocChunks.Add(modChunk.Value);
-                                //}
+                                    // Added / Duplicate chunk -- Does nothing at the moment
+                                    //if (modChunk.Value.ExtraData == null && tocFile == "win32/globalsfull")
+                                    //{
+                                    //    var data = ModExecuter.archiveData[modChunk.Value.Sha1].Data;
+                                    //    nw_cas.Position = nw_cas.Length;
+                                    //    var newPosition = nw_cas.Position;
+                                    //    //nw_cas.WriteBytes(data);
+                                    //    modChunk.Value.Size = data.Length;
+                                    //    modChunk.Value.ExtraData = new AssetExtraData()
+                                    //    {
+                                    //        DataOffset = (uint)newPosition,
+                                    //        Cas = newCas,
+                                    //        Catalog = catalog,
+                                    //        IsPatch = patch,
+                                    //    };
+                                    //    //tocSb.TOCFile.TocChunks.Add(modChunk.Value);
+                                    //}
+                                }
                             }
                         }
-                    }
 
-                    TOCFile.RebuildTOCSignatureOnly(pathToTOCFile);
+                        TOCFile.RebuildTOCSignatureOnly(pathToTOCFile);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+
             }
 
             if (directory == "native_patch")

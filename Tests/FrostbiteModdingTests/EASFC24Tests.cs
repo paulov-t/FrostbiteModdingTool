@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using v2k4FIFAModding.Frosty;
 using v2k4FIFAModdingCL;
 using static FrostbiteSdk.Frosty.Abstract.BaseModReader;
 using static FrostySdk.FrostbiteModWriter;
@@ -147,17 +148,17 @@ namespace FrostbiteModdingTests
 
 
         /// <summary>
-        /// This test will load as much as it can from a TOC without having the full file system or assetmanager
+        /// This will test the recompress chunks methods
         /// </summary>
         [TestMethod]
         public void LoadLegacyProjectAndRebuildChunks()
         {
             GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
 
-            var fmtproj = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.LegacyFile.RotherhamCrest.fmtproj");
+            //var fmtproj = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.LegacyFile.RotherhamCrest.fmtproj");
+            var fmtproj = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.LegacyFile.FinanceTest.fmtproj");
             FMTProject project = FMTProject.Read(fmtproj);
 
-          
             var legacyFileManager = AssetManager.Instance.GetLegacyAssetManager() as ChunkFileManager2022;
             if (legacyFileManager != null)
             {
@@ -172,6 +173,36 @@ namespace FrostbiteModdingTests
                 
                 legacyFileManager.ModifyAssets(legacyData, true);
             }
+        }
+
+        [TestMethod]
+        public void LoadLegacyRotherhamCrestProjectAndLaunch()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
+            var fmtproj = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.LegacyFile.RotherhamCrest.fmtproj");
+            FMTProject project = FMTProject.Read(fmtproj);
+            project.ModSettings.Author = "RotherhamCrest";
+            project.ModSettings.Title = "RotherhamCrest";
+            project.WriteToMod("test.fbmod", project.ModSettings);
+            ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+            frostyModExecutor.ForceRebuildOfMods = true;
+            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
+
+        }
+
+        [TestMethod]
+        public void LoadLegacyFinanceProjectAndLaunch()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
+            var fmtproj = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.LegacyFile.FinanceTest.fmtproj");
+            FMTProject project = FMTProject.Read(fmtproj);
+            project.ModSettings.Author = "Finance Test";
+            project.ModSettings.Title = "Finance Test";
+            project.WriteToMod("test.fbmod", project.ModSettings);
+            ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+            frostyModExecutor.ForceRebuildOfMods = true;
+            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
+
         }
 
     }

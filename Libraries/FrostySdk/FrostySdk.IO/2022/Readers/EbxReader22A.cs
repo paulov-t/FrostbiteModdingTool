@@ -294,11 +294,16 @@ namespace FrostySdk.IO._2022.Readers
             foreach (var property in orderedProps)
             {
                 base.Position = property.Value.Offset + startOffset;
-
+#if DEBUG
                 if (property.Key.Name.Equals("Objects"))
                 {
 
                 }
+                if (property.Key.Name.Equals("Shader"))
+                {
+
+                }
+#endif
                 var fieldMetaAttribute = property.Key.GetCustomAttribute<EbxFieldMetaAttribute>();
                 var propNameHash = property.Key.GetCustomAttribute<HashAttribute>();
                 EbxField field = default(EbxField);
