@@ -1,4 +1,5 @@
 using CSharpImageLibrary;
+using DirectXTexNet;
 using FMT.FileTools;
 using FMT.Logging;
 using Frostbite.FileManagers;
@@ -14,12 +15,14 @@ using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Resources;
 using Newtonsoft.Json;
+using SharpDX.Direct3D11;
 using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
@@ -30,6 +33,10 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Vortice.Direct3D;
+using Vortice.Direct3D11;
+using Vortice.Direct3D12;
+using Vortice.DXGI;
 
 namespace FrostySdk.Managers
 {
@@ -2580,6 +2587,170 @@ namespace FrostySdk.Managers
             return await Task.Run(() => { return DoLegacyImageImport(importFilePath, lfe); });
         }
 
+        private static ScratchImage LoadScratchImage(byte[] data, TextureUtils.ImageFormat dataFormat)
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException("data");
+            }
+            GCHandle pinnedInputData = default(GCHandle);
+            try
+            {
+                pinnedInputData = GCHandle.Alloc(data, GCHandleType.Pinned);
+                return dataFormat switch
+                {
+                    TextureUtils.ImageFormat.PNG => TexHelper.Instance.LoadFromWICMemory(pinnedInputData.AddrOfPinnedObject(), data.Length, WIC_FLAGS.NONE),
+                    TextureUtils.ImageFormat.HDR => TexHelper.Instance.LoadFromHDRMemory(pinnedInputData.AddrOfPinnedObject(), data.Length),
+                    TextureUtils.ImageFormat.DDS => TexHelper.Instance.LoadFromDDSMemory(pinnedInputData.AddrOfPinnedObject(), data.Length, DDS_FLAGS.NONE),
+                    _ => throw new ArgumentException("Unhandled input data format.", "dataFormat"),
+                };
+            }
+            finally
+            {
+                if (pinnedInputData.IsAllocated)
+                {
+                    pinnedInputData.Free();
+                }
+            }
+        }
+        //public static byte[] ConvertImageToDDS(byte[] inputData, TextureUtils.ImageFormat inputDataFormat, DXGI_FORMAT outputFormat, TextureType textureType, ConversionOptions? options = null)
+        public static byte[] ConvertImageToDDS(byte[] inputData, TextureUtils.ImageFormat inputDataFormat, DXGI_FORMAT outputFormat, TextureType textureType)
+        {
+            if (inputData == null)
+            {
+                throw new ArgumentNullException("inputData");
+            }
+            if (textureType != TextureType.TT_1d && textureType != 0)
+            {
+                throw new ArgumentException("Only 1D and 2D textures are supported by this method. Use ConvertMultiImagesToDDS for other texture types.", "textureType");
+            }
+            //if (options == null)
+            //{
+            //    options = ConversionOptions.Default;
+            //}
+            ScratchImage image = null;
+            ScratchImage tmpScratchImage = null;
+            try
+            {
+                image = LoadScratchImage(inputData, inputDataFormat);
+                TexMetadata meta = image.GetMetadata();
+                if (TexHelper.Instance.IsCompressed(meta.Format))
+                {
+                    tmpScratchImage = image.Decompress(DXGI_FORMAT.UNKNOWN);
+                    image.Dispose();
+                    image = tmpScratchImage;
+                }
+                //if (options.Resize)
+                //{
+                //    int width = options.ResizeWidth;
+                //    int height = options.ResizeHeight;
+                //    if (width == 0 && height == 0)
+                //    {
+                //        throw new ArgumentException("ResizeWidth or ResizeHeight must be non-zero when Resize is enabled.", "options");
+                //    }
+                //    if (width == 0)
+                //    {
+                //        width = (int)((float)height / (float)meta.Height) * meta.Width;
+                //    }
+                //    else if (height == 0)
+                //    {
+                //        height = (int)((float)width / (float)meta.Width) * meta.Height;
+                //    }
+                //    if (meta.Height != height || meta.Width != width)
+                //    {
+                //        tmpScratchImage = image.Resize(width, height, TEX_FILTER_FLAGS.DEFAULT);
+                //        image.Dispose();
+                //        image = tmpScratchImage;
+                //    }
+                //}
+                if (textureType == TextureType.TT_1d && image.GetMetadata().Height != 1)
+                {
+                    throw new InvalidDataException("The source image height must be 1 for 1D textures.");
+                }
+                if (TexHelper.Instance.IsCompressed(outputFormat) && image.GetMetadata().Width % 4 != 0)
+                {
+                    throw new InvalidDataException("The source image width must be a multiple of 4 for block-compressed textures.");
+                }
+                if (TexHelper.Instance.IsCompressed(outputFormat) && image.GetMetadata().Height % 4 != 0)
+                {
+                    throw new InvalidDataException("The source image height must be a multiple of 4 for block-compressed textures.");
+                }
+                //if (options.GenerateMipMaps)
+                //{
+                //    if (meta.Dimension == TEX_DIMENSION.TEXTURE3D)
+                //    {
+                //        tmpScratchImage = image.GenerateMipMaps3D(TEX_FILTER_FLAGS.DEFAULT, 0);
+                //        image.Dispose();
+                //        image = tmpScratchImage;
+                //    }
+                //    else
+                //    {
+                //        tmpScratchImage = image.GenerateMipMaps(TEX_FILTER_FLAGS.DEFAULT, 0);
+                //        image.Dispose();
+                //        image = tmpScratchImage;
+                //    }
+                //}
+                int mipLevels = image.GetMetadata().MipLevels;
+                if (TexHelper.Instance.IsCompressed(outputFormat))
+                {
+                    TEX_COMPRESS_FLAGS srgbCompressFlags = ((inputDataFormat == TextureUtils.ImageFormat.HDR) ? TEX_COMPRESS_FLAGS.SRGB_OUT : TEX_COMPRESS_FLAGS.SRGB);
+                    //TEX_COMPRESS_FLAGS ditherFlags = (options.DitherRGB ? TEX_COMPRESS_FLAGS.RGB_DITHER : TEX_COMPRESS_FLAGS.DEFAULT) | (options.DitherAlpha ? TEX_COMPRESS_FLAGS.A_DITHER : TEX_COMPRESS_FLAGS.DEFAULT);
+                    TEX_COMPRESS_FLAGS ditherFlags = TEX_COMPRESS_FLAGS.DEFAULT;
+                    if (outputFormat == DXGI_FORMAT.BC6H_UF16 || outputFormat == DXGI_FORMAT.BC6H_SF16 || outputFormat == DXGI_FORMAT.BC7_UNORM || outputFormat == DXGI_FORMAT.BC7_UNORM_SRGB)
+                    {
+                        var flags = Vortice.Direct3D11.DeviceCreationFlags.BgraSupport;
+                        int adapterIndex = 0;
+                        using IDXGIFactory1 factory = DXGI.CreateDXGIFactory1<IDXGIFactory1>();
+                        using IDXGIAdapter adapter = factory.GetAdapter(adapterIndex);
+                        ID3D11Device device;
+                        var result = D3D11.D3D11CreateDevice(adapter, DriverType.Unknown, flags, new FeatureLevel[1] { FeatureLevel.Level_11_0 }, out device);
+                        try
+                        {
+                            result.CheckError();
+                            tmpScratchImage = image.Compress(device.NativePointer, outputFormat, TEX_COMPRESS_FLAGS.PARALLEL | srgbCompressFlags | ditherFlags, 1f);
+                            image.Dispose();
+                            image = tmpScratchImage;
+                        }
+                        finally
+                        {
+                            device?.Dispose();
+                        }
+                    }
+                    else
+                    {
+                        tmpScratchImage = image.Compress(outputFormat, TEX_COMPRESS_FLAGS.PARALLEL | srgbCompressFlags | ditherFlags, 0.5f);
+                        image.Dispose();
+                        image = tmpScratchImage;
+                    }
+                }
+                else if (image.GetMetadata().Format != outputFormat)
+                {
+                    TEX_FILTER_FLAGS srgbFilterFlags = ((inputDataFormat == TextureUtils.ImageFormat.HDR) ? TEX_FILTER_FLAGS.SRGB_OUT : TEX_FILTER_FLAGS.SRGB);
+                    tmpScratchImage = image.Convert(outputFormat, srgbFilterFlags, 0.5f);
+                    image.Dispose();
+                    image = tmpScratchImage;
+                }
+                TexMetadata outputMetadata = textureType switch
+                {
+                    TextureType.TT_1d => new TexMetadata(image.GetMetadata().Width, 1, 1, 1, mipLevels, (TEX_MISC_FLAG)0, (TEX_MISC_FLAG2)0, outputFormat, TEX_DIMENSION.TEXTURE1D),
+                    TextureType.TT_2d => new TexMetadata(image.GetMetadata().Width, image.GetMetadata().Height, 1, 1, mipLevels, (TEX_MISC_FLAG)0, (TEX_MISC_FLAG2)0, outputFormat, TEX_DIMENSION.TEXTURE2D),
+                    _ => throw new ArgumentException($"Unsupported texture type {textureType}", "textureType"),
+                };
+                using ScratchImage finalImage = TexHelper.Instance.InitializeTemporary((from index in Enumerable.Range(0, image.GetImageCount())
+                                                                                        select image.GetImage(index)).ToArray(), outputMetadata);
+                //using UnmanagedMemoryStream unmanagedOutputStream = finalImage.SaveToDDSMemory(options.OutputFlags);
+                using UnmanagedMemoryStream unmanagedOutputStream = finalImage.SaveToDDSMemory(DDS_FLAGS.FORCE_DX9_LEGACY);
+                byte[] outputArray = new byte[unmanagedOutputStream.Length];
+                unmanagedOutputStream.Read(outputArray);
+                return outputArray;
+            }
+            finally
+            {
+                image?.Dispose();
+                tmpScratchImage?.Dispose();
+            }
+        }
+
         public bool DoLegacyImageImport(string importFilePath, LegacyFileEntry lfe)
         {
             var extension = "DDS";
@@ -2594,8 +2765,8 @@ namespace FrostySdk.Managers
 
             // -------------------------------- //
             // Gets Image Format from Extension //
-            TextureUtils.ImageFormat imageFormat = TextureUtils.ImageFormat.DDS;
-            imageFormat = (TextureUtils.ImageFormat)Enum.Parse(imageFormat.GetType(), extension);
+            TextureUtils.ImageFormat imageFormatOfImportedFile = TextureUtils.ImageFormat.DDS;
+            imageFormatOfImportedFile = (TextureUtils.ImageFormat)Enum.Parse(imageFormatOfImportedFile.GetType(), extension);
             //if (MainEditorWindow != null && imageFormat == TextureUtils.ImageFormat.PNG)
             //{
             //	MainEditorWindow.LogWarning("Legacy PNG Image conversion is EXPERIMENTAL. Please dont use it in your production Mods!" + Environment.NewLine);
@@ -2605,110 +2776,146 @@ namespace FrostySdk.Managers
             MemoryStream memoryStream = (MemoryStream)AssetManager.Instance.GetCustomAsset("legacy", lfe);
             var bytes = memoryStream.ToArray();
 
-            //TextureUtils.BlobData pOutData = default(TextureUtils.BlobData);
-            if (imageFormat == TextureUtils.ImageFormat.DDS)
+            switch (imageFormatOfImportedFile)
             {
-                ImageEngineImage originalImage = new ImageEngineImage(bytes);
-                TextureUtils.DDSHeader dDSHeader = new TextureUtils.DDSHeader();
-                using(var nr = new NativeReader(new MemoryStream(bytes)))
-                if (dDSHeader.Read(nr))
-                {
+                case TextureUtils.ImageFormat.PNG:
+                    ImageEngineImage originalImage = new ImageEngineImage(bytes);
+                    TextureUtils.DDSHeader dDSHeader = new TextureUtils.DDSHeader();
+                    using (var nr = new NativeReader(new MemoryStream(bytes)))
+                        if (dDSHeader.Read(nr))
+                        {
 
-                }
-                ImageEngineImage newImage = new ImageEngineImage(importFilePath);
-                if (originalImage.Format != newImage.Format)
-                {
-                    var mipHandling = originalImage.MipMaps.Count > 1 ? MipHandling.GenerateNew : MipHandling.KeepTopOnly;
-
-                    bytes = newImage.Save(
-                        new ImageFormats.ImageEngineFormatDetails(
-                           originalImage.Format
-                            //, CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB
-                            )
-                        , mipHandling
-                        , removeAlpha: false);
-
-                    //bytes = newImage.Save(
-                    //    new ImageFormats.ImageEngineFormatDetails(
-                    //        ImageEngineFormat.DDS_DXT1
-                    //        , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
-                    //    , mipHandling
-                    //    , removeAlpha: false);
-                }
-                else
-                {
+                        }
+                    bytes = ConvertImageToDDS(File.ReadAllBytes(importFilePath), imageFormatOfImportedFile, DXGI_FORMAT.BC3_UNORM, TextureType.TT_2d);
+                    break;
+                case TextureUtils.ImageFormat.DDS:
                     bytes = File.ReadAllBytes(importFilePath);
-                }
+                    break;
+                default:
+                    throw new NotImplementedException("Incorrect file type used in Texture Importer");
             }
-            else
-            {
 
-                ImageEngineImage originalImage = new ImageEngineImage(bytes);
+            //File.WriteAllBytes("tempExport.dds", bytes);
+            //using (var image = TexHelper.Instance.LoadFromDDSFile("tempExport.dds", DDS_FLAGS.NONE))
+            //{
+            //    var metaData = image.GetMetadata();
 
-                ImageEngineImage imageEngineImage = new ImageEngineImage(importFilePath);
-                //imageEngineImage.Resize(
-                //	(imageEngineImage.Height + imageEngineImage.Width)
-                //	/ (originalImage.Height + originalImage.Width)
-                //	);
-                if (imageEngineImage.Height > originalImage.Height)
-                {
-                    //imageEngineImage.Resize(
-                    //	(imageEngineImage.Height + imageEngineImage.Width)
-                    //	*
-                    //	(originalImage.Height + originalImage.Width)
-                    //	- (imageEngineImage.Height + imageEngineImage.Width)
-                    //	);
-                }
-                var mipHandling = originalImage.MipMaps.Count > 1 ? MipHandling.GenerateNew : MipHandling.KeepTopOnly;
+            //    if (imageFormatOfImportedFile == TextureUtils.ImageFormat.PNG)
+            //    {
+            //        using (var importedImage = TexHelper.Instance.LoadFromWICFile(importFilePath, WIC_FLAGS.NONE))
+            //        {
+
+            //        }
+            //        var scratch = LoadScratchImage(File.ReadAllBytes(importFilePath), imageFormatOfImportedFile);
+            //    }
+            //}
 
 
-                if (originalImage.Format == ImageEngineFormat.DDS_DXT5)
-                {
-                    bytes = imageEngineImage.Save(
-                        new ImageFormats.ImageEngineFormatDetails(
-                            ImageEngineFormat.DDS_DXT5
-                            , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM)
-                        , mipHandling
-                        , removeAlpha: false);
-                }
-                else if (originalImage.Format == ImageEngineFormat.DDS_DXT3)
-                {
-                    bytes = imageEngineImage.Save(
-                        new ImageFormats.ImageEngineFormatDetails(
-                            ImageEngineFormat.DDS_DXT3
-                            , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC2_UNORM_SRGB)
-                        , MipHandling.KeepTopOnly
-                        , removeAlpha: false);
-                }
-                else if (originalImage.Format == ImageEngineFormat.DDS_DXT1)
-                {
-                    bytes = imageEngineImage.Save(
-                        new ImageFormats.ImageEngineFormatDetails(
-                            ImageEngineFormat.DDS_DXT1
-                            , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
-                        , mipHandling
-                        , removeAlpha: false);
-                }
-                else if (originalImage.Format == ImageEngineFormat.DDS_ARGB_8)
-                {
-                    bytes = imageEngineImage.Save(
-                        new ImageFormats.ImageEngineFormatDetails(
-                            ImageEngineFormat.DDS_ARGB_8
-                            , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM)
-                        , mipHandling
-                        , removeAlpha: false);
-                }
-                else
-                {
-                    bytes = imageEngineImage.Save(
-                        new ImageFormats.ImageEngineFormatDetails(
-                            ImageEngineFormat.DDS_DXT1
-                            , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
-                        , mipHandling
-                        , removeAlpha: false);
-                }
+            ////TextureUtils.BlobData pOutData = default(TextureUtils.BlobData);
+            //if (imageFormatOfImportedFile == TextureUtils.ImageFormat.DDS)
+            //{
+            //    ImageEngineImage originalImage = new ImageEngineImage(bytes);
+            //    TextureUtils.DDSHeader dDSHeader = new TextureUtils.DDSHeader();
+            //    using(var nr = new NativeReader(new MemoryStream(bytes)))
+            //    if (dDSHeader.Read(nr))
+            //    {
 
-            }
+            //    }
+            //    ImageEngineImage newImage = new ImageEngineImage(importFilePath);
+            //    if (originalImage.Format != newImage.Format)
+            //    {
+            //        var mipHandling = originalImage.MipMaps.Count > 1 ? MipHandling.GenerateNew : MipHandling.KeepTopOnly;
+
+            //        bytes = newImage.Save(
+            //            new ImageFormats.ImageEngineFormatDetails(
+            //               originalImage.Format
+            //                //, CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB
+            //                )
+            //            , mipHandling
+            //            , removeAlpha: false);
+
+            //        //bytes = newImage.Save(
+            //        //    new ImageFormats.ImageEngineFormatDetails(
+            //        //        ImageEngineFormat.DDS_DXT1
+            //        //        , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
+            //        //    , mipHandling
+            //        //    , removeAlpha: false);
+            //    }
+            //    else
+            //    {
+            //        bytes = File.ReadAllBytes(importFilePath);
+            //    }
+            //}
+            //else
+            //{
+
+            //    ImageEngineImage originalImage = new ImageEngineImage(bytes);
+
+            //    ImageEngineImage imageEngineImage = new ImageEngineImage(importFilePath);
+            //    //imageEngineImage.Resize(
+            //    //	(imageEngineImage.Height + imageEngineImage.Width)
+            //    //	/ (originalImage.Height + originalImage.Width)
+            //    //	);
+            //    if (imageEngineImage.Height > originalImage.Height)
+            //    {
+            //        //imageEngineImage.Resize(
+            //        //	(imageEngineImage.Height + imageEngineImage.Width)
+            //        //	*
+            //        //	(originalImage.Height + originalImage.Width)
+            //        //	- (imageEngineImage.Height + imageEngineImage.Width)
+            //        //	);
+            //    }
+            //    var mipHandling = originalImage.MipMaps.Count > 1 ? MipHandling.GenerateNew : MipHandling.KeepTopOnly;
+
+
+            //    if (originalImage.Format == ImageEngineFormat.DDS_DXT5)
+            //    {
+            //        bytes = imageEngineImage.Save(
+            //            new ImageFormats.ImageEngineFormatDetails(
+            //                ImageEngineFormat.DDS_DXT5
+            //                , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM)
+            //            , mipHandling
+            //            , removeAlpha: false);
+            //    }
+            //    else if (originalImage.Format == ImageEngineFormat.DDS_DXT3)
+            //    {
+            //        bytes = imageEngineImage.Save(
+            //            new ImageFormats.ImageEngineFormatDetails(
+            //                ImageEngineFormat.DDS_DXT3
+            //                , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC2_UNORM_SRGB)
+            //            , MipHandling.KeepTopOnly
+            //            , removeAlpha: false);
+            //    }
+            //    else if (originalImage.Format == ImageEngineFormat.DDS_DXT1)
+            //    {
+            //        bytes = imageEngineImage.Save(
+            //            new ImageFormats.ImageEngineFormatDetails(
+            //                ImageEngineFormat.DDS_DXT1
+            //                , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
+            //            , mipHandling
+            //            , removeAlpha: false);
+            //    }
+            //    else if (originalImage.Format == ImageEngineFormat.DDS_ARGB_8)
+            //    {
+            //        bytes = imageEngineImage.Save(
+            //            new ImageFormats.ImageEngineFormatDetails(
+            //                ImageEngineFormat.DDS_ARGB_8
+            //                //, CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM
+            //                )
+            //            , mipHandling
+            //            , removeAlpha: false);
+            //    }
+            //    else
+            //    {
+            //        bytes = imageEngineImage.Save(
+            //            new ImageFormats.ImageEngineFormatDetails(
+            //                ImageEngineFormat.DDS_DXT1
+            //                , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
+            //            , mipHandling
+            //            , removeAlpha: false);
+            //    }
+
+            //}
 
             AssetManager.Instance.ModifyLegacyAsset(lfe.Name, bytes, false);
             return true;
