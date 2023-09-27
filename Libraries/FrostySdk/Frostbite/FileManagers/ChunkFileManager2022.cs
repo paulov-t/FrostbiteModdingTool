@@ -676,11 +676,11 @@ namespace Frostbite.FileManagers
 
                     legacyItem.ModifiedEntry.CompressedOffset = 0;
                     legacyItem.ModifiedEntry.CompressedOffsetEnd = 0;// chunkEntryClone.ModifiedEntry.Size;
-                    if (ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.FC24))
-                    {
-                        legacyItem.ModifiedEntry.CompressedOffset = 0;
-                        legacyItem.ModifiedEntry.CompressedOffsetEnd = chunkEntryClone.ModifiedEntry.Size;
-                    }
+                    //if (ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.FC24))
+                    //{
+                    //    legacyItem.ModifiedEntry.CompressedOffset = 0;
+                    //    legacyItem.ModifiedEntry.CompressedOffsetEnd = chunkEntryClone.ModifiedEntry.Size;
+                    //}
 
                     chunkEntryClone.ModifiedEntry.Sha1 = AssetManager.Instance.GenerateSha1(Encoding.UTF8.GetBytes(legacyItem.Name));
                     ModifiedChunks.Add(chunkEntryClone);
@@ -771,12 +771,12 @@ namespace Frostbite.FileManagers
                             Sha1 = groupChunkEntryClone.Sha1,
                         };
                         ModifiedChunks.Add(groupChunkEntryClone);
-#if DEBUG
-                        var testStream = new CasReader(new MemoryStream(ModifiedChunks[0].ModifiedEntry.Data)).Read();
-                        if (testStream.Length != newChunkGroupData.Length)
-                            throw new Exception("Decompressed Test Data should be the same length as the Raw Uncompressed data");
+//#if DEBUG
+//                        var testStream = new CasReader(new MemoryStream(ModifiedChunks[0].ModifiedEntry.Data)).Read();
+//                        if (testStream.Length != newChunkGroupData.Length)
+//                            throw new Exception("Decompressed Test Data should be the same length as the Raw Uncompressed data");
 
-#endif
+//#endif
                     }
 
 

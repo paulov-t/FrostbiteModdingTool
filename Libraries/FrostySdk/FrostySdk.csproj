@@ -17,12 +17,13 @@
 	</PropertyGroup>-->
 
     <ItemGroup>
+		<PackageReference Include="DirectXTexNet" Version="1.0.3" />
 		<PackageReference Include="DotNetProjects.Extended.Wpf.Toolkit" Version="4.6.97" />
 		<PackageReference Include="DotNetZip" Version="1.16.0" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
 		<PackageReference Include="FastStream" Version="1.6.0" />
 		<PackageReference Include="NetDiscordRpc" Version="1.0.2" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="PInvoke.BCrypt" Version="0.7.124" />
 		<PackageReference Include="SharpDX" Version="4.2.0" />
 		<PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
@@ -35,8 +36,9 @@
 		<PackageReference Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
 		<PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
 		<PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
-		<PackageReference Include="Vortice.DXGI" Version="1.9.87" />
-		<PackageReference Include="Vortice.Mathematics" Version="1.3.21" />
+		<PackageReference Include="Vortice.Direct3D11" Version="2.1.19" />
+		<PackageReference Include="Vortice.DXGI" Version="2.1.19" />
+		<PackageReference Include="Vortice.Mathematics" Version="1.7.2" />
 	</ItemGroup>
 	
 	<ItemGroup>

@@ -60,13 +60,13 @@ As of September 2022, Frosty Toolsuite is open source on [GitHub](https://github
 ### 99% supported - Minor issues
 - FIFA 22 (Mesh Import is not working as expected, use [FIFA Editor Tool](https://www.fifaeditortool.com/) to create these mods instead)
 - FIFA 23 (Mesh Import is not working as expected, use [FIFA Editor Tool](https://www.fifaeditortool.com/) to create these mods instead)
+- EA Sports FC 24 (Mesh Import is not working as expected, use [FIFA Editor Tool](https://www.fifaeditortool.com/) to create these mods instead)
 
 ### 25% supported - Likely missing or broken major features
 - MADDEN 21
 
 ### Read Only Support
 - Dead Space (Read only)
-- EA Sports FC 24 (Read only)
 - EA Sports PGA Tour (Read only)
 - FIFA 17 (Read only)
 - Madden NFL 23 (Read only)
