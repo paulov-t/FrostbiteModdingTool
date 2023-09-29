@@ -200,7 +200,7 @@ namespace FC24Plugin
                 tocChunk.ExtraData.IsPatch = catcaspatch.Item3;
                 tocChunk.ExtraData.DataOffset = offset;
                 tocChunk.Bundles.Add(ChunkDataBundleId);
-                if(AssetManager.Instance != null)
+                if(AssetManager.Instance != null && ProcessData)
                     AssetManager.Instance.AddChunk(tocChunk);
             }
         }

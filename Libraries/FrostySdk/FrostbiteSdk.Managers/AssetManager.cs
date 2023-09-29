@@ -67,7 +67,7 @@ namespace FrostySdk.Managers
 
         public ConcurrentDictionary<Guid, ChunkAssetEntry> Chunks { get; private set; }
 
-        public ConcurrentDictionary<int, ChunkAssetEntry> SuperBundleChunks { get; private set; } = new ConcurrentDictionary<int, ChunkAssetEntry>();
+        public ConcurrentDictionary<Guid, ChunkAssetEntry> SuperBundleChunks { get; private set; } = new ConcurrentDictionary<Guid, ChunkAssetEntry>();
 
         public ConcurrentDictionary<ulong, ResAssetEntry> resRidList { get; private set; } = new ConcurrentDictionary<ulong, ResAssetEntry>();
 
@@ -882,32 +882,19 @@ namespace FrostySdk.Managers
             {
 
             }
-#endif
 
-            if (!Chunks.TryAdd(entry.Id, entry))
+            if(entry.Id.ToString() == "0f32be29-cd84-f85c-1bc5-833753550ceb")
             {
-                // If it already exists, then add bundles to the entry
-                var existingChunk = (ChunkAssetEntry)Chunks[entry.Id].Clone();
 
-                foreach (var bundle in entry.Bundles.Where(x => !existingChunk.Bundles.Contains(x)))
-                    existingChunk.Bundles.Add(bundle);
-
-                foreach (var bundle in existingChunk.Bundles.Where(x => !entry.Bundles.Contains(x)))
-                    entry.Bundles.Add(bundle);
-
-                // Always overwrite if the new item is a patch version
-                if (existingChunk.ExtraData != null && !existingChunk.ExtraData.IsPatch && entry.ExtraData.IsPatch)
-                    Chunks[entry.Id] = entry;
             }
-
+#endif
             if (entry.IsTocChunk)
             {
-                var hashedId = SuperBundleChunks.Count; //Fnv1a.HashStringByHashDepot(entry.Id.ToString());
 
-                if (!SuperBundleChunks.TryAdd(hashedId, entry))
+                if (!SuperBundleChunks.TryAdd(entry.Id, entry))
                 {
                     // If it already exists, then add bundles to the entry
-                    var existingChunk = (ChunkAssetEntry)SuperBundleChunks[hashedId].Clone();
+                    var existingChunk = (ChunkAssetEntry)SuperBundleChunks[entry.Id].Clone();
 
                     foreach (var bundle in entry.Bundles.Where(x => !existingChunk.Bundles.Contains(x)))
                         existingChunk.Bundles.Add(bundle);
@@ -917,7 +904,25 @@ namespace FrostySdk.Managers
 
                     // Always overwrite if the new item is a patch version
                     if (existingChunk.ExtraData != null && !existingChunk.ExtraData.IsPatch && entry.ExtraData.IsPatch)
-                        SuperBundleChunks[hashedId] = entry;
+                        SuperBundleChunks[entry.Id] = entry;
+                }
+            }
+            else
+            {
+                if (!Chunks.TryAdd(entry.Id, entry))
+                {
+                    // If it already exists, then add bundles to the entry
+                    var existingChunk = (ChunkAssetEntry)Chunks[entry.Id].Clone();
+
+                    foreach (var bundle in entry.Bundles.Where(x => !existingChunk.Bundles.Contains(x)))
+                        existingChunk.Bundles.Add(bundle);
+
+                    foreach (var bundle in existingChunk.Bundles.Where(x => !entry.Bundles.Contains(x)))
+                        entry.Bundles.Add(bundle);
+
+                    // Always overwrite if the new item is a patch version
+                    if (existingChunk.ExtraData != null && !existingChunk.ExtraData.IsPatch && entry.ExtraData.IsPatch)
+                        Chunks[entry.Id] = entry;
                 }
             }
 
@@ -996,7 +1001,7 @@ namespace FrostySdk.Managers
             , CompressionType compressionOverride = CompressionType.Default
             , bool addToChunkBundle = false)
         {
-            if (!Chunks.ContainsKey(chunkId) && !SuperBundleChunks.ContainsKey(Fnv1a.HashString(chunkId.ToString())))
+            if (!Chunks.ContainsKey(chunkId) && !SuperBundleChunks.ContainsKey(chunkId))
             {
                 return false;
             }
@@ -1432,29 +1437,15 @@ namespace FrostySdk.Managers
 
         protected IEnumerable<EbxAssetEntry> EnumerateEbx(string type, bool modifiedOnly, bool includeLinked, bool includeHidden, params int[] bundles)
         {
-            //foreach (EbxAssetEntry value in EBX.Values)
-            //{
-            //	if (
-            //		(!modifiedOnly 
-            //		|| (
-            //			value.IsModified && (!value.IsIndirectlyModified || includeLinked || value.IsDirectlyModified)
-            //			)
-            //		) 
-            //		&& (!(type != "") || (value.Type != null && TypeLibrary.IsSubClassOf(value.Type, type))))
-            //	{
-            //		yield return value;
-            //	}
-            //}
-
 #if DEBUG
             Stopwatch sw = new Stopwatch();
             sw.Start();
 #endif
-            Span<EbxAssetEntry> ebxAssetEntries = CollectionsMarshal.AsSpan(EBX.Values.ToList());
-            EbxAssetEntry[] assetEntriesArray = new EbxAssetEntry[ebxAssetEntries.Length];
-            for (var i = 0; i < ebxAssetEntries.Length; i++)
+            var list = EBX.Values.ToList();
+            //EbxAssetEntry[] assetEntriesArray = new EbxAssetEntry[ebxAssetEntries.Length];
+            for (var i = 0; i < list.Count; i++)
             {
-                var value = ebxAssetEntries[i];
+                var value = list[i];
                 if (
                     (!modifiedOnly
                     || (
@@ -1463,16 +1454,23 @@ namespace FrostySdk.Managers
                     )
                     && (!(type != "") || (value.Type != null && TypeLibrary.IsSubClassOf(value.Type, type))))
                 {
-                    assetEntriesArray[i] = value;
+                    //assetEntriesArray[i] = value;
+                    yield return value;
                 }
             }
+
+            //return assetEntriesArray.Where(x => x != null);
+
+            //foreach(var value in CacheManager.EnumerateEbx(null, type, modifiedOnly, includeLinked))
+            //    yield return value;
+
 #if DEBUG
             sw.Stop();
             Debug.WriteLine($"EnumerateEbx:Span:{sw.Elapsed}");
 #endif
-            return assetEntriesArray.Where(x => x != null);
 
-
+            list.Clear();
+            list = null;
         }
 
         public IEnumerable<ResAssetEntry> EnumerateRes(BundleEntry bentry)
@@ -1534,21 +1532,6 @@ namespace FrostySdk.Managers
                         }
                     }
                     yield return value;
-                }
-            }
-        }
-
-        public IEnumerable<ChunkAssetEntry> EnumerateChunks(BundleEntry bentry)
-        {
-            int bindex = Bundles.IndexOf(bentry);
-            if (bindex != -1)
-            {
-                foreach (ChunkAssetEntry value in Chunks.Values.OrderBy(x => x.ExtraData != null ? x.ExtraData.CasPath : string.Empty))
-                {
-                    if (value.Bundles.Contains(bindex))
-                    {
-                        yield return value;
-                    }
                 }
             }
         }
@@ -1728,7 +1711,7 @@ namespace FrostySdk.Managers
             if (Chunks.TryGetValue(id, out var entry))
                 return entry;
 
-            if (SuperBundleChunks.TryGetValue(Fnv1a.HashString(id.ToString()), out var sbChunkEntry))
+            if (SuperBundleChunks.TryGetValue(id, out var sbChunkEntry))
                 return sbChunkEntry;
 
             if (SuperBundleChunks.Any(x => x.Value.Id == id))
