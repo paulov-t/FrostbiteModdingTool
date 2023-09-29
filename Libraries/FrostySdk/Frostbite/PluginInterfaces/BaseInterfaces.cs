@@ -37,6 +37,8 @@ namespace FrostySdk.Frostbite.PluginInterfaces
         public bool Read();
 
         public EbxAssetEntry ReadEbxAssetEntry(NativeReader nativeReader);
+        public ResAssetEntry ReadResAssetEntry(NativeReader nativeReader);
+        public ChunkAssetEntry ReadChunkAssetEntry(NativeReader nativeReader);
     }
 
     public interface IAssetLoader

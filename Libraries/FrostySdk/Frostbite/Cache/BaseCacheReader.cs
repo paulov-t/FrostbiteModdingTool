@@ -226,8 +226,8 @@ namespace FMT.Cache
             if (nativeReader.ReadBoolean())
                 chunkAssetEntry.Bundle = nativeReader.ReadLengthPrefixedString();
 
-            int num6 = nativeReader.ReadInt();
-            for (int num7 = 0; num7 < num6; num7++)
+            int bundleCount = nativeReader.ReadInt();
+            for (int i = 0; i < bundleCount; i++)
             {
                 chunkAssetEntry.Bundles.Add(nativeReader.ReadInt());
             }

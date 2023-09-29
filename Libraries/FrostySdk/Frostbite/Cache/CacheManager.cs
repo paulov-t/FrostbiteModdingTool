@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using v2k4FIFAModdingCL;
 
 namespace FrostySdk.Frostbite
@@ -148,7 +150,7 @@ namespace FrostySdk.Frostbite
         {
             var reader = GetCacheReader();
 
-            var results = EnumerateEbx(name, string.Empty, false, false).Result;
+            var results = EnumerateEbx(name, string.Empty, false, false);
             if (results == null)
                 return null;
 
@@ -158,60 +160,153 @@ namespace FrostySdk.Frostbite
             return results.First();
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        protected static async ValueTask<IEnumerable<EbxAssetEntry>> EnumerateEbx(string name, string type, bool modifiedOnly, bool includeLinked)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        public static IEnumerable<EbxAssetEntry> EnumerateEbx(string name, string type, bool modifiedOnly, bool includeLinked)
         {
             using (NativeReader nativeReader = new NativeReader(AssetManager.CacheDecompress()))
             {
                 if (nativeReader.ReadLengthPrefixedString() != ProfileManager.ProfileName)
-                    return null;
+                    yield return null;
 
                 _ = nativeReader.ReadULong();
 
-                var EbxDataOffset = nativeReader.ReadULong();
-                var ResDataOffset = nativeReader.ReadULong();
-                var ChunkDataOffset = nativeReader.ReadULong();
-                var NameToPositionOffset = nativeReader.ReadULong();
+                ulong NameToPositionOffset = ReadHeaderOffsets(nativeReader);
 
-                var positionOfAsset = -1L;
-                if (Instance.NameToPositionsEbx.Count == 0)
+                ReadNameToPositionOffsets(nativeReader, NameToPositionOffset);
+
+                foreach (var entry in Instance.NameToPositionsEbx)
                 {
-                    nativeReader.Position = (long)NameToPositionOffset;
-                    var ebxCount = nativeReader.ReadUInt();
-                    for (var i = 0; i < ebxCount; i++)
+                    if (name != null)
                     {
-                        var ebxName = nativeReader.ReadLengthPrefixedString();
-                        var ebxPositions = nativeReader.ReadLong();
-                        Instance.NameToPositionsEbx.Add(ebxName, ebxPositions);
+                        if (entry.Key.Contains(name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            nativeReader.Position = Instance.NameToPositionsEbx[entry.Key];
+                            yield return GetCacheReader().ReadEbxAssetEntry(nativeReader);
+                        }
                     }
-                    var resCount = nativeReader.ReadUInt();
-                    for (var i = 0; i < resCount; i++)
+                }
+            }
+
+
+        }
+
+        public static ResAssetEntry GetRes(string name)
+        {
+            var reader = GetCacheReader();
+
+            var results = EnumerateRes(name);
+            if (results == null)
+                return null;
+
+            if (results.Count() == 0)
+                return null;
+
+            return results.First();
+        }
+
+
+        public static IEnumerable<ResAssetEntry> EnumerateRes(string name)
+        {
+            using (NativeReader nativeReader = new NativeReader(AssetManager.CacheDecompress()))
+            {
+                if (nativeReader.ReadLengthPrefixedString() != ProfileManager.ProfileName)
+                    yield return null;
+
+                _ = nativeReader.ReadULong();
+
+                ulong NameToPositionOffset = ReadHeaderOffsets(nativeReader);
+
+
+                ReadNameToPositionOffsets(nativeReader, NameToPositionOffset);
+
+                foreach (var entry in Instance.NameToPositionsResource.Keys)
+                {
+                    if (entry.Contains(name, StringComparison.OrdinalIgnoreCase))
                     {
-                        var nameI = nativeReader.ReadLengthPrefixedString();
-                        var position = nativeReader.ReadLong();
-                        Instance.NameToPositionsResource.Add(nameI, position);
-                    }
-                    var chunkCount = nativeReader.ReadUInt();
-                    for (var i = 0; i < chunkCount; i++)
-                    {
-                        var cName = nativeReader.ReadGuid();
-                        var position = nativeReader.ReadLong();
-                        if(!Instance.NameToPositionsChunk.ContainsKey(cName))
-                            Instance.NameToPositionsChunk.Add(cName, position);
+                        nativeReader.Position = Instance.NameToPositionsResource[entry];
+                        yield return GetCacheReader().ReadResAssetEntry(nativeReader);
                     }
                 }
 
-                positionOfAsset = Instance.NameToPositionsEbx.ContainsKey(name) ? Instance.NameToPositionsEbx[name] : -1;
+            }
+        }
 
-                if (positionOfAsset == -1)
-                    return null;
+        public static ChunkAssetEntry GetChunk(Guid guid)
+        {
+            var reader = GetCacheReader();
 
-                nativeReader.Position = positionOfAsset;
-                GetCacheReader().ReadEbxAssetEntry(nativeReader);
+            var results = EnumerateChunks(guid);
+            if (results == null)
+                return null;
+
+            if (results.Count() == 0)
+                return null;
+
+            return results.First();
+        }
+
+        public static IEnumerable<ChunkAssetEntry> EnumerateChunks(Guid guid)
+        {
+            using (NativeReader nativeReader = new NativeReader(AssetManager.CacheDecompress()))
+            {
+                if (nativeReader.ReadLengthPrefixedString() != ProfileManager.ProfileName)
+                    yield return null;
+
+                _ = nativeReader.ReadULong();
+
+                ulong NameToPositionOffset = ReadHeaderOffsets(nativeReader);
+
+                ReadNameToPositionOffsets(nativeReader, NameToPositionOffset);
+
+                foreach (var entry in Instance.NameToPositionsChunk.Keys)
+                {
+                    if (entry.ToString().Contains(guid.ToString(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        nativeReader.Position = Instance.NameToPositionsChunk[guid];
+                        yield return GetCacheReader().ReadChunkAssetEntry(nativeReader);
+                    }
+                }
 
             }
-            return new List<EbxAssetEntry>();
+        }
+
+        private static ulong ReadHeaderOffsets(NativeReader nativeReader)
+        {
+            var EbxDataOffset = nativeReader.ReadULong();
+            var ResDataOffset = nativeReader.ReadULong();
+            var ChunkDataOffset = nativeReader.ReadULong();
+            var NameToPositionOffset = nativeReader.ReadULong();
+            var SbChunkDataOffset = nativeReader.ReadULong();
+            return NameToPositionOffset;
+        }
+
+        private static void ReadNameToPositionOffsets(NativeReader nativeReader, ulong NameToPositionOffset)
+        {
+            if (Instance.NameToPositionsEbx.Count == 0)
+            {
+                nativeReader.Position = (long)NameToPositionOffset;
+                var ebxCount = nativeReader.ReadUInt();
+                for (var i = 0; i < ebxCount; i++)
+                {
+                    var ebxName = nativeReader.ReadLengthPrefixedString();
+                    var ebxPositions = nativeReader.ReadLong();
+                    Instance.NameToPositionsEbx.Add(ebxName, ebxPositions);
+                }
+                var resCount = nativeReader.ReadUInt();
+                for (var i = 0; i < resCount; i++)
+                {
+                    var nameI = nativeReader.ReadLengthPrefixedString();
+                    var position = nativeReader.ReadLong();
+                    Instance.NameToPositionsResource.Add(nameI, position);
+                }
+                var chunkCount = nativeReader.ReadUInt();
+                for (var i = 0; i < chunkCount; i++)
+                {
+                    var cName = nativeReader.ReadGuid();
+                    var position = nativeReader.ReadLong();
+                    if (!Instance.NameToPositionsChunk.ContainsKey(cName))
+                        Instance.NameToPositionsChunk.Add(cName, position);
+                }
+            }
         }
 
         private string LastMessage = null;
