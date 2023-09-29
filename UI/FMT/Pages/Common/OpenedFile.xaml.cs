@@ -294,8 +294,7 @@ namespace FMT.Pages.Common
             try
             {
                 SelectedEntry = ebxEntry;
-                await AssetEntryViewer.LoadEntry(SelectedEntry, MainEditorWindow);
-                //DisplayUnknownFileViewer(AssetManager.Instance.GetEbxStream(ebxEntry));
+                //await AssetEntryViewer.LoadEntry(SelectedEntry, MainEditorWindow);
 
                 SelectedEbxAsset = await AssetManager.Instance.GetEbxAsync(ebxEntry, cancellationToken: cancellationToken);
 
