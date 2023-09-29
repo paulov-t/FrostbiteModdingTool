@@ -243,9 +243,27 @@ namespace FrostySdk.Managers
                 throw new Exception(pluginAssembliesDontExistErrorMessage);
             }
 
+            // Load Game Profile Plugin
             foreach (var fiPlugin in pluginAssemblies)
             {
                 if (fiPlugin.Name.Contains(ProfileManager.ProfileName.Replace(" ", ""), StringComparison.OrdinalIgnoreCase))
+                {
+                    if (Assembly.UnsafeLoadFrom(fiPlugin.FullName) != null)
+                    {
+                        if (!PluginAssemblies.Contains(fiPlugin.FullName))
+                            PluginAssemblies.Add(fiPlugin.FullName);
+
+                        PluginsInitialised = true;
+
+                        return true;
+                    }
+                }
+            }
+
+            // Load Application wide Plugins
+            foreach (var fiPlugin in pluginAssemblies)
+            {
+                if (fiPlugin.Name.EndsWith("AppPlugin", StringComparison.OrdinalIgnoreCase))
                 {
                     if (Assembly.UnsafeLoadFrom(fiPlugin.FullName) != null)
                     {
