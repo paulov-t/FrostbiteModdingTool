@@ -124,10 +124,16 @@ namespace FC24Plugin
             parent.Logger.Log("Modifying TOC Chunks.");
             var modifiedTocChunks = ModifyTOCChunks();
 
+            // remove the modified toc chunks from the modifiedchunks list. this will prevent the not written error
+            foreach(var mtc in modifiedTocChunks)
+                parent.ModifiedChunks.Remove(mtc);
+
+            parent.Logger.Log("Modifying CAS files.");
             var entriesToNewPosition = WriteNewDataToCasFiles(dictOfModsToCas);
             if (entriesToNewPosition == null || entriesToNewPosition.Count == 0)
                 return true;
 
+            parent.Logger.Log("Modifying Superbundles");
             bool result = WriteNewDataChangesToSuperBundles(ref entriesToNewPosition);
             result = WriteNewDataChangesToSuperBundles(ref entriesToNewPosition, "native_data");
 
@@ -136,6 +142,10 @@ namespace FC24Plugin
                 var entriesErrorText = $"{entriesToNewPosition.Count} Entries were not written to TOC. Some parts of the mod may be removed.";
                 FileLogger.WriteLine(entriesErrorText);
                 parent.Logger.Log(entriesErrorText);
+                foreach (var entry in entriesToNewPosition)
+                {
+                    FileLogger.WriteLine(entry.Name);
+                }
             }
 
             return result;
