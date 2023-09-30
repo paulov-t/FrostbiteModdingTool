@@ -105,7 +105,7 @@ namespace FMT
             var sdkFiles = Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "SDK"));
             if (sdkFiles.Length == 0)
             {
-                var errorMessage = "FMT SDK Folder has not SDK.dll! It looks like your Anti Virus has deleted them. Please mark the FMT folder as safe and reinstall FMT.";
+                var errorMessage = "FMT SDK Folder has no SDK.dll! It looks like your Anti Virus has deleted them. Please mark the FMT folder as safe and reinstall FMT.";
                 MessageBox.Show(errorMessage);
                 FileLogger.WriteLine(errorMessage);
                 throw new FileNotFoundException(errorMessage);
