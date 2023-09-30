@@ -53,17 +53,17 @@ namespace FC24Plugin.Meshes
             // useful for resetting when live debugging
             var positionBeforeMeshTypeRead = nativeReader.Position;
             nativeReader.Position = positionBeforeMeshTypeRead;
-            //for (int n = 0; n < MaxLodCount * 2; n++)
-            //{
-            //    meshSet.LodFade.Add(nativeReader.ReadUInt16LittleEndian());
-            //}
+            for (int n = 0; n < MaxLodCount; n++)
+            {
+                meshSet.LodFade.Add(nativeReader.ReadUInt16LittleEndian());
+            }
             //positionBeforeMeshTypeRead = nativeReader.Position;
             //nativeReader.Position = positionBeforeMeshTypeRead;
 
             //if (meshSet.Type == MeshType.MeshType_Skinned)
             //{
 
-                meshSet.FIFA23_SkinnedUnknownBytes = nativeReader.ReadBytes(12);
+            //meshSet.FIFA23_SkinnedUnknownBytes = nativeReader.ReadBytes(12);
                 meshSet.boneCount = nativeReader.ReadUInt16LittleEndian();
                 meshSet.CullBoxCount = nativeReader.ReadUInt16LittleEndian();
                 if (meshSet.CullBoxCount != 0)
@@ -132,24 +132,7 @@ namespace FC24Plugin.Meshes
                     }
                 }
             }
-            nativeReader.Pad(16);
-            foreach (MeshSetLod lod in meshSet.Lods)
-            {
-                nativeReader.Position += lod.AdjacencyBufferSize;
-            }
-            nativeReader.Pad(16);
-            foreach (MeshSetLod lod in meshSet.Lods)
-            {
-                if (lod.Type == MeshType.MeshType_Skinned)
-                {
-                    nativeReader.Position += lod.BoneCount * 4;
-                }
-                else if (lod.Type == MeshType.MeshType_Composite)
-                {
-                    nativeReader.Position += lod.Sections.Count * 24;
-                }
-            }
-            //nativeReader.Pad(16);
+            
             if (meshSetLayoutSize.HasValue) // && meshSetVertexSize.HasValue)
             {
                 nativeReader.Position = meshSetLayoutSize.Value;

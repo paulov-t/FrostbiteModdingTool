@@ -326,6 +326,7 @@ namespace FMT.Pages.Common
                         this.btnExport.IsEnabled = ProfileManager.CanExportMeshes;
                         this.btnImport.IsEnabled = ProfileManager.CanImportMeshes;
                         this.btnRevert.IsEnabled = SelectedEntry.HasModifiedData;
+                        this.layoutMeshViewer.IsSelected = true;
                     });
 
                 }

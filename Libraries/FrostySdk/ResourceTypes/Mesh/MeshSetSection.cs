@@ -196,6 +196,8 @@ namespace FrostySdk.Resources
         {
             var startPosition = reader.Position;
 
+            reader.Position = startPosition;
+
             SectionIndex = index;
             Offset1 = reader.ReadInt64LittleEndian(); // 0
             long namePosition = reader.ReadInt64LittleEndian();
