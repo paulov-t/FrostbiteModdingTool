@@ -192,20 +192,20 @@ namespace FMT
                 string filename = "";
                 switch (newLanguage)
                 {
-                    case "pt":
-                        filename = "Resources\\Languages\\Portugese.xaml";
-                        break;
-                    case "de":
-                        filename = "Resources\\Languages\\German.xaml";
-                        break;
-                    case "en":
-                        filename = "Resources\\Languages\\English.xaml";
-                        Thread.CurrentThread.CurrentCulture = englishCulture;
-                        Thread.CurrentThread.CurrentUICulture = englishCulture;
-                        break;
-                    case "es":
-                        filename = "Resources\\Languages\\Spanish.xaml";
-                        break;
+                    //case "pt":
+                    //    filename = "Resources\\Languages\\Portugese.xaml";
+                    //    break;
+                    //case "de":
+                    //    filename = "Resources\\Languages\\German.xaml";
+                    //    break;
+                    //case "en":
+                    //    filename = "Resources\\Languages\\English.xaml";
+                    //    Thread.CurrentThread.CurrentCulture = englishCulture;
+                    //    Thread.CurrentThread.CurrentUICulture = englishCulture;
+                    //    break;
+                    //case "es":
+                    //    filename = "Resources\\Languages\\Spanish.xaml";
+                    //    break;
                     default:
                         filename = "Resources\\Languages\\English.xaml";
                         Thread.CurrentThread.CurrentCulture = englishCulture;
@@ -213,11 +213,17 @@ namespace FMT
                         break;
                 }
 
-                // add ResourceDictionary
+                // add English ResourceDictionary
+                var englishResourceDict = new ResourceDictionary { Source = new Uri(Path.Combine("Resources", "Languages", "English.xaml"), UriKind.Relative) };
                 Application.Current.Resources.MergedDictionaries.Add
                 (
-                 //new ResourceDictionary { Source = new Uri(String.Concat(_prefix + filename), UriKind.Relative) }
-                 new ResourceDictionary { Source = new Uri(String.Concat(filename), UriKind.Relative) }
+                    englishResourceDict
+                );
+
+                // add Language Specific ResourceDictionary
+                Application.Current.Resources.MergedDictionaries.Add
+                (
+                    new ResourceDictionary { Source = new Uri(String.Concat(filename), UriKind.Relative) }
                 );
 
 
