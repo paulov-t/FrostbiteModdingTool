@@ -5,6 +5,7 @@ using FrostySdk.Interfaces;
 using FrostySdk.Managers;
 using FrostySdk.Resources;
 using Ionic.Zip;
+using MahApps.Metro.Controls;
 using System;
 using System.IO;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace FMT.Windows
     /// <summary>
     /// Interaction logic for KitCreatorImport.xaml
     /// </summary>
-    public partial class KitCreatorImport : Window, ILogger
+    public partial class KitCreatorImport : MetroWindow, ILogger
     {
         public KitCreatorImport()
         {
@@ -50,9 +51,6 @@ namespace FMT.Windows
             var entries = zip.Entries.ToList();
             await Dispatcher.InvokeAsync(() =>
             {
-                pBar.Minimum = 0;
-                pBar.Maximum = entries.Count > 0 ? entries.Count : 1;
-                pBar.Value = 0;
             });
 
             for (var i = 0; i < entries.Count; i++)
@@ -209,7 +207,6 @@ namespace FMT.Windows
 
                 Dispatcher.Invoke(() =>
                 {
-                    pBar.Value = i;
                 });
             }
 
