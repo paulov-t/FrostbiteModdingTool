@@ -96,6 +96,24 @@ namespace FMT
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            HandleSDKEmptyFolder();
+            HandleAppArguments();
+        }
+
+        private void HandleSDKEmptyFolder()
+        {
+            var sdkFiles = Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "SDK"));
+            if (sdkFiles.Length == 0)
+            {
+                var errorMessage = "FMT SDK Folder has not SDK.dll! It looks like your Anti Virus has deleted them. Please mark the FMT folder as safe and reinstall FMT.";
+                MessageBox.Show(errorMessage);
+                FileLogger.WriteLine(errorMessage);
+                throw new FileNotFoundException(errorMessage);
+            }
+        }
+
+        private void HandleAppArguments()
+        {
             if (App.StartupArgs.Length == 0)
                 return;
 
@@ -123,7 +141,7 @@ namespace FMT
                             }
                         }
                     }
-                    
+
                 }
 
                 // File Association Arguments
@@ -132,7 +150,7 @@ namespace FMT
 
                     var filePath = App.StartupArgs[0];
                     var fileInfo = new FileInfo(filePath);
-                    
+
                     if (!fileInfo.Exists)
                         return;
 
@@ -140,9 +158,9 @@ namespace FMT
                     {
                         case ".fmtproj":
                             FileLogger.WriteLine($"Load with *.fmtproj");
-                            
+
                             FMTProject project = new FMTProject(filePath);
-                            if(project == null) return;
+                            if (project == null) return;
 
                             if (!ProfilesWithEditor.Any(x => x.DataVersion == project.GameDataVersion))
                             {
