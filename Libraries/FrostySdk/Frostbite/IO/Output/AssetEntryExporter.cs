@@ -1,7 +1,9 @@
 ﻿using FMT.FileTools;
+using Frostbite.Textures;
 using FrostbiteSdk;
 using FrostySdk.Ebx;
 using FrostySdk.Managers;
+using FrostySdk.Resources;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -22,12 +24,12 @@ namespace FrostySdk.Frostbite.IO.Output
             Entry = entry;
         }
 
-        public void Export(string filePath)
+        public void Export(string filePath, string fbxSkeleton = null)
         {
             if (Entry == null)
                 return;
 
-            if (Entry is EbxAssetEntry)
+            if (Entry is EbxAssetEntry ebxAssetEntry)
             {
                 var obj = AssetManager.Instance.GetEbx((EbxAssetEntry)Entry).RootObject;
 
@@ -41,6 +43,29 @@ namespace FrostySdk.Frostbite.IO.Output
 
                     File.WriteAllText(filePath, serialisedObj);
                 }
+
+                if (ebxAssetEntry.Type == "SkinnedMeshAsset" || ebxAssetEntry.Type == "CompositeMeshAsset" || ebxAssetEntry.Type == "RigidMeshAsset")
+                {
+                    var exporter = new MeshSetToFbxExport();
+                    MeshSet meshSet = exporter.LoadMeshSet(ebxAssetEntry);
+                    exporter.Export(AssetManager.Instance, obj, filePath + (fbxSkeleton != null ? ".fbx" : ".obj") , "FBX_2012", "Meters", true, fbxSkeleton, fbxSkeleton != null ? "*.fbx" : "*.obj", meshSet);
+                    exporter = null;
+                    meshSet = null;
+                }
+                else if (ebxAssetEntry.Type == "TextureAsset")
+                {
+                    var resEntry = AssetManager.Instance.GetResEntry(Entry.Name);
+                    if (resEntry != null)
+                    {
+                        using (var resStream = AssetManager.Instance.GetRes(resEntry))
+                        {
+                            Texture texture = new Texture(resStream, resEntry);
+                            TextureExporter textureExporter = new TextureExporter();
+                            textureExporter.Export(texture, filePath, "*.png");
+                        }
+                    }
+                }
+
             }
 
 
