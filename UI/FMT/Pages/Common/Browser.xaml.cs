@@ -336,8 +336,10 @@ namespace FIFAModdingUI.Pages.Common
                 }
                 MainEditorWindow.Log($"Exported {assetEntry.Filename} to {saveLocation}");
             }
-            else if (assetEntry is EbxAssetEntry)
+            else if (assetEntry is EbxAssetEntry ebxAssetEntry)
             {
+                AssetEntryExporter entryExporter = new AssetEntryExporter(assetEntry);
+
                 if (assetEntry.Type == "TextureAsset")
                 {
                     var resEntry = AssetManager.Instance.GetResEntry(assetEntry.Name);
@@ -354,23 +356,13 @@ namespace FIFAModdingUI.Pages.Common
                         }
                     }
                 }
+                else if (assetEntry.Type == "SkinnedMeshAsset" || assetEntry.Type == "CompositeMeshAsset" || assetEntry.Type == "RigidMeshAsset")
+                {
+                    entryExporter.Export(saveLocation);
+                }
                 else
                 {
-                    AssetEntryExporter entryExporter = new AssetEntryExporter(assetEntry);
-                    File.WriteAllText(!saveLocation.EndsWith(".json") && isFolder ? saveLocation + ".json" : saveLocation , entryExporter.ExportToJson());
-                    //var ebx = AssetManager.Instance.GetEbxStream((EbxAssetEntry)assetEntry);
-                    //if (ebx != null)
-                    //{
-                    //    if (isFolder)
-                    //        saveLocation += ".bin";
-                    //    File.WriteAllBytes(saveLocation, ((MemoryStream)ebx).ToArray());
-                    //    MainEditorWindow.Log($"Exported {assetEntry.Filename} to {saveLocation}");
-
-                    //}
-                    //else
-                    //{
-                    //    MainEditorWindow.Log("Failed to export file");
-                    //}
+                    File.WriteAllText(!saveLocation.EndsWith(".json") && isFolder ? saveLocation + ".json" : saveLocation, entryExporter.ExportToJson());
                 }
             }
         }
@@ -666,42 +658,50 @@ namespace FIFAModdingUI.Pages.Common
 
         private async void btnExportFolder_Click(object sender, RoutedEventArgs e)
         {
-            MenuItem parent = sender as MenuItem;
-            if (parent != null)
+            try
             {
-                var assetPath = parent.Tag as AssetPath;
-
-                FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-                folderBrowserDialog.AllowMultiSelect = false;
-                if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                MenuItem parent = sender as MenuItem;
+                if (parent != null)
                 {
-                    string folder = folderBrowserDialog.SelectedFolder;
-                    var ebxInPath = AssetManager.Instance.EnumerateEbx().Where(x => x.Name.Contains(assetPath.FullPath.Substring(1)));
-                    if (ebxInPath.Any())
+                    var assetPath = parent.Tag as AssetPath;
+
+                    FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+                    folderBrowserDialog.AllowMultiSelect = false;
+                    if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
-                        MainEditorWindow.ShowLoadingDialog("Exporting folder", "Exporting folder", 0);
-                        var countOfItemsInEbxPath = ebxInPath.Count();
-                        var indexOfItemInEbxPath = 0;
-                        foreach (var ebx in ebxInPath)
+                        string folder = folderBrowserDialog.SelectedFolder;
+                        Directory.CreateDirectory(folder);
+                        var ebxInPath = AssetManager.Instance.EnumerateEbx().Where(x => x.Name.Contains(assetPath.FullPath.Substring(1)));
+                        if (ebxInPath.Any())
                         {
-                            await ExportAsset(ebx, folder);
-                            indexOfItemInEbxPath++;
-                            MainEditorWindow.ShowLoadingDialog("Exporting file " + ebx.Name, "Exporting folder", (int)Math.Round((double)indexOfItemInEbxPath / countOfItemsInEbxPath));
+                            MainEditorWindow.ShowLoadingDialog("Exporting folder", "Exporting folder", 0);
+                            var countOfItemsInEbxPath = ebxInPath.Count();
+                            var indexOfItemInEbxPath = 0;
+                            foreach (var ebx in ebxInPath)
+                            {
+                                await ExportAsset(ebx, folder);
+                                indexOfItemInEbxPath++;
+                                MainEditorWindow.ShowLoadingDialog("Exporting file " + ebx.Name, "Exporting folder", (int)Math.Round((double)indexOfItemInEbxPath / countOfItemsInEbxPath));
+                            }
+                            MainEditorWindow.ShowLoadingDialog("", "", 0);
                         }
-                        MainEditorWindow.ShowLoadingDialog("", "", 0);
-                    }
 
-                    MainEditorWindow.Log($"Exported {assetPath.FullPath} to {folder}");
+                        MainEditorWindow.Log($"Exported {assetPath.FullPath} to {folder}");
 
-                    var legacyInPath = AssetManager.Instance.EnumerateCustomAssets("legacy").Where(x => x.Name.Contains(assetPath.FullPath.Substring(1)));
-                    if (legacyInPath.Any())
-                    {
-                        foreach (var l in legacyInPath)
+                        var legacyInPath = AssetManager.Instance.EnumerateCustomAssets("legacy").Where(x => x.Name.Contains(assetPath.FullPath.Substring(1)));
+                        if (legacyInPath.Any())
                         {
-                            await ExportAsset(l, folder);
+                            foreach (var l in legacyInPath)
+                            {
+                                await ExportAsset(l, folder);
+                            }
                         }
                     }
                 }
+            }
+            catch 
+            {
+                MainEditorWindow.ShowLoadingDialog("", "", 0);
             }
         }
 
