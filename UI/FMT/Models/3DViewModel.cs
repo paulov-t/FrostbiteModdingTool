@@ -9,6 +9,7 @@ using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.Wpf.SharpDX;
+using Newtonsoft.Json.Linq;
 using SharpDX;
 using System;
 using System.Collections.Generic;
@@ -40,6 +41,7 @@ namespace FrostbiteModdingUI.Models
         public SceneNodeGroupModel3D GroupModel { get; } = new SceneNodeGroupModel3D();
 
         public TextureModel EnvironmentMap { get; }
+        public EbxAsset variationDbAsset { get; private set; }
 
         //private bool renderEnvironmentMap = true;
         //public bool RenderEnvironmentMap
@@ -96,6 +98,7 @@ namespace FrostbiteModdingUI.Models
                         AssetManager.Instance.EnumerateEbx("MeshVariationDatabase")
                         .ToArray()
                         .FirstOrDefault(x => x.Name.StartsWith(ebxAssetEntry.Path + "_", StringComparison.OrdinalIgnoreCase));
+                    variationDbAsset = AssetManager.Instance.GetEbx(variationDbAssetEntry);
                 }
 
                 MeshNode firstModel = null;
@@ -169,9 +172,43 @@ namespace FrostbiteModdingUI.Models
             }
         }
 
+        /// <summary>
+        /// NOTE: This will only work with FIFA / FC24
+        /// </summary>
+        /// <param name="ebxAsset"></param>
+        /// <param name="materialId"></param>
+        /// <param name="textureName"></param>
+        /// <returns></returns>
+        private Stream SearchAndLoadFaceTexture(EbxAsset ebxAsset, int materialId, string textureName)
+        {
+            //var entries = ((List<object>)((dynamic)variationDbAsset.RootObject).Entries);
+            string name = ((dynamic)ebxAsset.RootObject).Name;
+
+            if (!name.EndsWith("mesh"))
+                return null;
+
+            //if (!name.Contains("head_"))
+            //    return null;
+
+            var textureColorAssetName = name.Replace("head", "face").Replace("mesh", "color").Replace("haircap", "face");
+            var textureColorAssetEntry = AssetManager.Instance.GetEbxEntry(textureColorAssetName);
+            if (textureColorAssetEntry == null)
+                return null;
+
+            var resEntry = AssetManager.Instance.GetResEntry(textureColorAssetEntry.Name);
+            if (resEntry == null)
+                return null;
+
+            using Texture textureAsset = new Texture(resEntry);
+            TextureExporter textureExporter = new TextureExporter();
+
+            return textureExporter.ExportToStream(textureAsset, TextureUtils.ImageFormat.PNG);
+        }
 
         private Stream LoadTexture(EbxAsset ebxAsset, int materialId, string textureName)
         {
+            Guid textureGuid = Guid.Empty;
+
             var rootObject = ((dynamic)ebxAsset.RootObject);
             if (rootObject == null)
                 return null;
@@ -201,7 +238,7 @@ namespace FrostbiteModdingUI.Models
                 Guid shaderGuid = ((PointerRef)shader.Shader).External.FileGuid;
                 if (shaderGuid == Guid.Empty)
                 {
-                    return null;
+                    return SearchAndLoadFaceTexture(ebxAsset, materialId, textureName);
                 }
                 EbxAssetEntry shaderAssetEntry = AssetManager.Instance.GetEbxEntry(shaderGuid.ToString());
                 if (shaderAssetEntry == null)
@@ -223,7 +260,7 @@ namespace FrostbiteModdingUI.Models
                     return null;
                 }
             }
-            Guid textureGuid = ((PointerRef)desiredTextureParameter.Value).External.FileGuid;
+            textureGuid = ((PointerRef)desiredTextureParameter.Value).External.FileGuid;
             if (textureGuid == Guid.Empty)
             {
                 return null;
