@@ -12,7 +12,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Security.Cryptography;
+using System.Security.Principal;
 
 namespace FrostySdk
 {
@@ -32,8 +34,6 @@ namespace FrostySdk
         public Dictionary<string, byte[]> MemoryFileSystem => memoryFs;
 
         private List<string> casFiles { get; } = new List<string>();
-
-        private string basePath;
 
         private string cacheName;
 
@@ -131,7 +131,7 @@ namespace FrostySdk
 
         public string CacheName => cacheName;
 
-        public string BasePath => basePath;
+        public string BasePath { get; private set; }
 
         public static FileSystem Instance;
 
@@ -153,11 +153,17 @@ namespace FrostySdk
             if (inBasePath.EndsWith(@"\"))
                 inBasePath = inBasePath.Substring(0, inBasePath.Length - 1);
 
-            basePath = inBasePath;
-            if (!basePath.EndsWith(@"\") && !basePath.EndsWith("/"))
+            BasePath = inBasePath;
+            if (!BasePath.EndsWith(@"\") && !BasePath.EndsWith("/"))
             {
-                basePath += @"\";
+                BasePath += @"\";
             }
+
+            if(!FileSystem.DirectoryHasPermission(BasePath, FileSystemRights.Write | FileSystemRights.Read | FileSystemRights.WriteData | FileSystemRights.Delete))
+            {
+                throw new AccessViolationException("You are unable to read & write to the Game Folder. Please restart the Application as Administrator.");
+            }
+
             cacheName = ProfileManager.CacheName;
             deobfuscatorType = ProfileManager.Deobfuscator;
 
@@ -291,17 +297,17 @@ namespace FrostySdk
 
         public void AddSource(string path, bool iterateSubPaths = false)
         {
-            if (Directory.Exists(basePath + path))
+            if (Directory.Exists(BasePath + path))
             {
                 if (iterateSubPaths)
                 {
-                    foreach (string item in Directory.EnumerateDirectories(basePath + path, "*", SearchOption.AllDirectories))
+                    foreach (string item in Directory.EnumerateDirectories(BasePath + path, "*", SearchOption.AllDirectories))
                     {
                         if (!item.ToLower().Contains("\\patch") && File.Exists(item + "\\package.mft"))
                         {
-                            //paths.Add("\\" + item.Replace(basePath, "").ToLower() + "\\data\\");
+                            //paths.Add("\\" + item.Replace(BasePath, "").ToLower() + "\\data\\");
 
-                            string addPath = !basePath.EndsWith(@"\") ? @"\" + path.ToLower() + @"\" : path.ToLower() + @"\";
+                            string addPath = !BasePath.EndsWith(@"\") ? @"\" + path.ToLower() + @"\" : path.ToLower() + @"\";
                             paths.Add(addPath);
                         }
                     }
@@ -314,8 +320,8 @@ namespace FrostySdk
             }
             else
             {
-                Debug.WriteLine(basePath + path + " doesn't exist");
-                throw new DirectoryNotFoundException(basePath + path + " doesn't exist");
+                Debug.WriteLine(BasePath + path + " doesn't exist");
+                throw new DirectoryNotFoundException(BasePath + path + " doesn't exist");
             }
         }
 
@@ -341,16 +347,16 @@ namespace FrostySdk
                 throw new ArgumentOutOfRangeException("Incorrect input filename given, expecting native_data or native patch but got " + filename);
 
             if (filename.Contains("native_data"))
-                resolvedPath = basePath + (checkModData ? "ModData\\" : "") + filename.Replace("native_data", "Data\\");
+                resolvedPath = BasePath + (checkModData ? "ModData\\" : "") + filename.Replace("native_data", "Data\\");
 
             if (filename.Contains("native_patch"))
-                resolvedPath = basePath + (checkModData ? "ModData\\" : "") + filename.Replace("native_patch", "Patch\\");
+                resolvedPath = BasePath + (checkModData ? "ModData\\" : "") + filename.Replace("native_patch", "Patch\\");
 
             if (
                 (ProfileManager.IsBF4DataVersion() || ProfileManager.IsGameVersion(EGame.FIFA17))
                 && !Directory.Exists(Directory.GetParent(resolvedPath).FullName) && filename.Contains("native_patch"))
             {
-                resolvedPath = basePath + (checkModData ? "ModData\\" : "") + filename.Replace("native_patch", "Update\\Patch\\Data\\");
+                resolvedPath = BasePath + (checkModData ? "ModData\\" : "") + filename.Replace("native_patch", "Update\\Patch\\Data\\");
             }
 
             if (!File.Exists(resolvedPath) && !created)
@@ -383,9 +389,9 @@ namespace FrostySdk
             {
                 for (int i = num; i < num2; i++)
                 {
-                    if (File.Exists(basePath + paths[i] + filename) || Directory.Exists(basePath + paths[i] + filename))
+                    if (File.Exists(BasePath + paths[i] + filename) || Directory.Exists(BasePath + paths[i] + filename))
                     {
-                        yield return basePath + paths[i] + filename;
+                        yield return BasePath + paths[i] + filename;
                     }
                 }
             }
@@ -769,7 +775,7 @@ namespace FrostySdk
 
         private void ProcessLayouts()
         {
-            var layoutFiles = Directory.GetFiles(this.basePath, "*layout.toc", new EnumerationOptions() { RecurseSubdirectories = true }).ToList();
+            var layoutFiles = Directory.GetFiles(this.BasePath, "*layout.toc", new EnumerationOptions() { RecurseSubdirectories = true }).ToList();
             layoutFiles = layoutFiles.Where(x => !x.Contains("ModData")).ToList();
 
             string dataPath = ResolvePath("native_data/layout.toc");
@@ -814,7 +820,7 @@ namespace FrostySdk
                 ProcessManifest(dataLayoutTOC);
             }
 
-            SystemIteration = baseNum + headNum + (ulong)new FileInfo(Directory.GetFiles(basePath, "*.exe").First()).LastWriteTime.Ticks;
+            SystemIteration = baseNum + headNum + (ulong)new FileInfo(Directory.GetFiles(BasePath, "*.exe").First()).LastWriteTime.Ticks;
         }
 
         private void ProcessCatalogs(DbObject patchLayout)
@@ -1218,6 +1224,42 @@ namespace FrostySdk
                 //ZipFile.CreateFromDirectory(FileSystem.Instance.BasePath + "\\Data", backupDataPath);
                 //ZipFile.CreateFromDirectory(FileSystem.Instance.BasePath + "\\Patch", backupPatchPath);
             }
+        }
+
+        /// <summary>
+        /// Test a directory for create file access permissions
+        /// </summary>
+        /// <param name="directoryPath">Full path to directory </param>
+        /// <param name="accessRight">File System right tested</param>
+        /// <returns>State [bool]</returns>
+        public static bool DirectoryHasPermission(string directoryPath, FileSystemRights accessRight)
+        {
+            if (string.IsNullOrEmpty(directoryPath)) 
+                return false;
+
+            var directoryInfo = new DirectoryInfo(directoryPath);
+            if (!directoryInfo.Exists)
+                return false;
+
+            try
+            {
+                AuthorizationRuleCollection rules = directoryInfo.GetAccessControl().GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier));
+                WindowsIdentity identity = WindowsIdentity.GetCurrent();
+
+                foreach (FileSystemAccessRule rule in rules)
+                {
+                    if (identity.Groups.Contains(rule.IdentityReference))
+                    {
+                        if ((accessRight & rule.FileSystemRights) == accessRight)
+                        {
+                            if (rule.AccessControlType == AccessControlType.Allow)
+                                return true;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return false;
         }
 
 
