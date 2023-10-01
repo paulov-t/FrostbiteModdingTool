@@ -9,6 +9,7 @@ using MahApps.Metro.Controls;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -43,7 +44,11 @@ namespace FMT.Windows
 
             if (string.IsNullOrEmpty(SelectedFile) || string.IsNullOrEmpty(txtTeamId.Text) || string.IsNullOrEmpty(txtKitType.Text))
             {
-                LogError("Unable to import as not all fields have been filled");
+                LogError("Unable to import. All fields must be filled");
+
+                await Task.Delay(3000);
+                this.IsEnabled = true;
+
                 return;
             }
 
