@@ -82,6 +82,7 @@
     <PackageReference Include="Microsoft.Identity.Client" Version="4.14.0" />
     <PackageReference Include="NetDiscordRpc" Version="1.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Opus" Version="1.0.0" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
@@ -99,6 +100,7 @@
 	  </ProjectReference>
     <ProjectReference Include="..\..\Libraries\FifaLibrary\FifaLibrary.csproj" />
     <ProjectReference Include="..\..\Libraries\FMT.Controls\FMT.Controls.csproj" />
+    <ProjectReference Include="..\..\Libraries\FMT.Sound\FMT.Sound.csproj" />
 	  
 	  <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj">
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>

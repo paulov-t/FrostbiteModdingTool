@@ -100,6 +100,19 @@ namespace FMT
 
         }
 
+        public static HashSet<string> AcceptedUnsupportedMessages = new();
+
+        public static void ShowUnsupportedMessageBox(string itemType)
+        {
+            if (AcceptedUnsupportedMessages.Contains(itemType))
+                return;
+#if !DEBUG
+            MessageBox.Show($"{itemType} is currently unsupported. Although, it has been identified as an item / feature to support in the future.");
+#endif
+            if (!AcceptedUnsupportedMessages.Contains(itemType))
+                AcceptedUnsupportedMessages.Add(itemType);
+        }
+
         private async Task StartDiscordRPC()
         {
             //DiscordRpcClient = new DiscordRPC.DiscordRpcClient("836520037208686652");
