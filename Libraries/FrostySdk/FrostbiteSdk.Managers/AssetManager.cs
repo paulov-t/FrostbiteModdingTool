@@ -1442,28 +1442,37 @@ namespace FrostySdk.Managers
             Stopwatch sw = new Stopwatch();
             sw.Start();
 #endif
-            HashSet<EbxAssetEntry> list = EBX
-                .Values
-                .Where(value => (!(type != "") || (value.Type != null && TypeLibrary.IsSubClassOf(value.Type, type))))
-                .Where(value =>
-                (!modifiedOnly
+            Span<EbxAssetEntry> ebxAssetEntries = CollectionsMarshal.AsSpan(EBX.Values.ToList());
+            EbxAssetEntry[] assetEntriesArray = new EbxAssetEntry[ebxAssetEntries.Length];
+            for (var i = 0; i < ebxAssetEntries.Length; i++)
+            {
+                var value = ebxAssetEntries[i];
+                if (
+                    (!modifiedOnly
                     || (
                         value.IsModified && (!value.IsIndirectlyModified || includeLinked || value.IsDirectlyModified)
                         )
                     )
-                )
-                .ToHashSet();
+                    && (!(type != "") || (value.Type != null && TypeLibrary.IsSubClassOf(value.Type, type))))
+                {
+                    assetEntriesArray[i] = value;
+                }
+            }
+#if DEBUG
+            sw.Stop();
+            Debug.WriteLine($"EnumerateEbx:Span:{sw.Elapsed}");
+#endif
 
-            foreach (var value in list)
-                yield return value;
 
-            foreach (var value in CacheManager.EnumerateEbx(null, type, modifiedOnly, includeLinked))
-                yield return value;
+            //foreach (var value in CacheManager.EnumerateEbx(null, type, modifiedOnly, includeLinked))
+            //    yield return value;
 
 #if DEBUG
             sw.Stop();
             Debug.WriteLine($"EnumerateEbx:Span:{sw.Elapsed}");
 #endif
+            return assetEntriesArray.Where(x => x != null);
+
 
         }
 
