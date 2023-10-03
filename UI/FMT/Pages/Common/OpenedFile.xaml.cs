@@ -1,6 +1,7 @@
 ﻿using AvalonDock.Layout;
 using CSharpImageLibrary;
 using FMT.FileTools;
+using FMT.FileTools.AssetEntry;
 using FMT.Logging;
 using FMT.Sound;
 using Frostbite.Textures;
@@ -131,6 +132,20 @@ namespace FMT.Pages.Common
 
         private async Task OpenAsset(IAssetEntry entry)
         {
+            if (entry is AssetEntryStub stub)
+            {
+                switch (stub.StubType)
+                {
+                    case AssetEntryStub.EntryStubType.Frostbite_LTU:
+                        entry = FileSystem.Instance.LiveTuningUpdate.LiveTuningUpdateEntries[entry.Name];
+                        break;
+                    case AssetEntryStub.EntryStubType.Frostbite_Ebx:
+                    default:
+                        entry = AssetManager.Instance.GetEbxEntry(entry.Name);
+                        break;
+                }
+            }
+
             if (entry is EbxAssetEntry ebxEntry)
             {
                 await OpenEbxAsset(ebxEntry);

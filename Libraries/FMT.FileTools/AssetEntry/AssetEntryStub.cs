@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FMT.FileTools.AssetEntry
 {
-    public class AssetEntryStub : IAssetEntry
+    public record AssetEntryStub : IAssetEntry
     {
         public string Filename { get; set; } = null;
 
@@ -26,6 +26,7 @@ namespace FMT.FileTools.AssetEntry
             Frostbite_Chunk = 3,
             Frostbite_ChunkFile = 4,
             Frostbite_File = 5,
+            Frostbite_LTU = 6,
         }
 
         public EntryStubType StubType { get; set; }
@@ -34,5 +35,29 @@ namespace FMT.FileTools.AssetEntry
 
         public List<int> Bundles { get; set; }
         public string ExtraInformation { get; set; }
+
+        public AssetEntryStub(
+            EntryStubType stubType
+            , string fn
+            , string p
+            , string n
+            , string dn
+            , Sha1 sha
+            , long? originalSize = null
+            , List<int> bundles = null
+            , IModifiedAssetEntry modifiedAssetEntry = null
+            , string extraInfo = null)
+        {
+            StubType = stubType;
+            Filename = fn;
+            Path = p;
+            Name = n;
+            DisplayName = dn;
+            Sha1 = sha;
+            OriginalSize = originalSize.HasValue ? originalSize.Value : 0;
+            Bundles = bundles;
+            ModifiedEntry = modifiedAssetEntry;
+            ExtraInformation = extraInfo;
+        }
     }
 }
