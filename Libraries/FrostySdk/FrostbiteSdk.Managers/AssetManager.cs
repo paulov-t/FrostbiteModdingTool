@@ -15,6 +15,7 @@ using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Resources;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SharpDX.Direct3D11;
 using System;
 using System.Buffers;
@@ -1441,36 +1442,29 @@ namespace FrostySdk.Managers
             Stopwatch sw = new Stopwatch();
             sw.Start();
 #endif
-            var list = EBX.Values.ToList();
-            //EbxAssetEntry[] assetEntriesArray = new EbxAssetEntry[ebxAssetEntries.Length];
-            for (var i = 0; i < list.Count; i++)
-            {
-                var value = list[i];
-                if (
-                    (!modifiedOnly
+            HashSet<EbxAssetEntry> list = EBX
+                .Values
+                .Where(value => (!(type != "") || (value.Type != null && TypeLibrary.IsSubClassOf(value.Type, type))))
+                .Where(value =>
+                (!modifiedOnly
                     || (
                         value.IsModified && (!value.IsIndirectlyModified || includeLinked || value.IsDirectlyModified)
                         )
                     )
-                    && (!(type != "") || (value.Type != null && TypeLibrary.IsSubClassOf(value.Type, type))))
-                {
-                    //assetEntriesArray[i] = value;
-                    yield return value;
-                }
-            }
+                )
+                .ToHashSet();
 
-            //return assetEntriesArray.Where(x => x != null);
+            foreach (var value in list)
+                yield return value;
 
-            //foreach(var value in CacheManager.EnumerateEbx(null, type, modifiedOnly, includeLinked))
-            //    yield return value;
+            foreach (var value in CacheManager.EnumerateEbx(null, type, modifiedOnly, includeLinked))
+                yield return value;
 
 #if DEBUG
             sw.Stop();
             Debug.WriteLine($"EnumerateEbx:Span:{sw.Elapsed}");
 #endif
 
-            list.Clear();
-            list = null;
         }
 
         public IEnumerable<ResAssetEntry> EnumerateRes(BundleEntry bentry)
@@ -2555,7 +2549,7 @@ namespace FrostySdk.Managers
                 bytes = newImage.Save(
                     new ImageFormats.ImageEngineFormatDetails(
                         ImageEngineFormat.DDS_DXT3
-                        , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC2_UNORM_SRGB)
+                        , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM)
                     , MipHandling.KeepTopOnly
                     , removeAlpha: false);
             }
@@ -2564,7 +2558,7 @@ namespace FrostySdk.Managers
                 bytes = newImage.Save(
                     new ImageFormats.ImageEngineFormatDetails(
                         ImageEngineFormat.DDS_DXT1
-                        , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
+                        , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM)
                     , mipHandling
                     , removeAlpha: false);
             }
@@ -2573,7 +2567,7 @@ namespace FrostySdk.Managers
                 bytes = newImage.Save(
                     new ImageFormats.ImageEngineFormatDetails(
                         ImageEngineFormat.DDS_DXT1
-                        , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
+                        , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM)
                     , mipHandling
                     , removeAlpha: false);
             }
@@ -2615,7 +2609,7 @@ namespace FrostySdk.Managers
             }
         }
         //public static byte[] ConvertImageToDDS(byte[] inputData, TextureUtils.ImageFormat inputDataFormat, DXGI_FORMAT outputFormat, TextureType textureType, ConversionOptions? options = null)
-        public static byte[] ConvertImageToDDS(byte[] inputData, TextureUtils.ImageFormat inputDataFormat, DXGI_FORMAT outputFormat, TextureType textureType)
+        public static bool TryConvertImageToDDS(byte[] inputData, TextureUtils.ImageFormat inputDataFormat, DXGI_FORMAT outputFormat, TextureType textureType, out byte[] outputData)
         {
             if (inputData == null)
             {
@@ -2741,15 +2735,22 @@ namespace FrostySdk.Managers
                                                                                         select image.GetImage(index)).ToArray(), outputMetadata);
                 //using UnmanagedMemoryStream unmanagedOutputStream = finalImage.SaveToDDSMemory(options.OutputFlags);
                 using UnmanagedMemoryStream unmanagedOutputStream = finalImage.SaveToDDSMemory(DDS_FLAGS.FORCE_DX9_LEGACY);
-                byte[] outputArray = new byte[unmanagedOutputStream.Length];
-                unmanagedOutputStream.Read(outputArray);
-                return outputArray;
+                outputData = new byte[unmanagedOutputStream.Length];
+                unmanagedOutputStream.Read(outputData);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                FileLogger.WriteLine("ConvertImageToDDS failed!");
+                FileLogger.WriteLine(ex.ToString());
+                outputData = null;
             }
             finally
             {
                 image?.Dispose();
                 tmpScratchImage?.Dispose();
             }
+            return false;
         }
 
         public bool DoLegacyImageImport(string importFilePath, LegacyFileEntry lfe)
@@ -2787,7 +2788,15 @@ namespace FrostySdk.Managers
                         {
 
                         }
-                    bytes = ConvertImageToDDS(File.ReadAllBytes(importFilePath), imageFormatOfImportedFile, DXGI_FORMAT.BC3_UNORM, TextureType.TT_2d);
+                    var inputBytes = File.ReadAllBytes(importFilePath);
+                    if (TryConvertImageToDDS(inputBytes, imageFormatOfImportedFile, DXGI_FORMAT.BC3_UNORM, TextureType.TT_2d, out var outputData))
+                    {
+                        bytes = outputData;
+                    }
+                    else
+                    {
+                        return DoLegacyImageImport(new MemoryStream(inputBytes), lfe);
+                    }
                     break;
                 case TextureUtils.ImageFormat.DDS:
                     bytes = File.ReadAllBytes(importFilePath);
@@ -2796,127 +2805,7 @@ namespace FrostySdk.Managers
                     throw new NotImplementedException("Incorrect file type used in Texture Importer");
             }
 
-            //File.WriteAllBytes("tempExport.dds", bytes);
-            //using (var image = TexHelper.Instance.LoadFromDDSFile("tempExport.dds", DDS_FLAGS.NONE))
-            //{
-            //    var metaData = image.GetMetadata();
-
-            //    if (imageFormatOfImportedFile == TextureUtils.ImageFormat.PNG)
-            //    {
-            //        using (var importedImage = TexHelper.Instance.LoadFromWICFile(importFilePath, WIC_FLAGS.NONE))
-            //        {
-
-            //        }
-            //        var scratch = LoadScratchImage(File.ReadAllBytes(importFilePath), imageFormatOfImportedFile);
-            //    }
-            //}
-
-
-            ////TextureUtils.BlobData pOutData = default(TextureUtils.BlobData);
-            //if (imageFormatOfImportedFile == TextureUtils.ImageFormat.DDS)
-            //{
-            //    ImageEngineImage originalImage = new ImageEngineImage(bytes);
-            //    TextureUtils.DDSHeader dDSHeader = new TextureUtils.DDSHeader();
-            //    using(var nr = new NativeReader(new MemoryStream(bytes)))
-            //    if (dDSHeader.Read(nr))
-            //    {
-
-            //    }
-            //    ImageEngineImage newImage = new ImageEngineImage(importFilePath);
-            //    if (originalImage.Format != newImage.Format)
-            //    {
-            //        var mipHandling = originalImage.MipMaps.Count > 1 ? MipHandling.GenerateNew : MipHandling.KeepTopOnly;
-
-            //        bytes = newImage.Save(
-            //            new ImageFormats.ImageEngineFormatDetails(
-            //               originalImage.Format
-            //                //, CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB
-            //                )
-            //            , mipHandling
-            //            , removeAlpha: false);
-
-            //        //bytes = newImage.Save(
-            //        //    new ImageFormats.ImageEngineFormatDetails(
-            //        //        ImageEngineFormat.DDS_DXT1
-            //        //        , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
-            //        //    , mipHandling
-            //        //    , removeAlpha: false);
-            //    }
-            //    else
-            //    {
-            //        bytes = File.ReadAllBytes(importFilePath);
-            //    }
-            //}
-            //else
-            //{
-
-            //    ImageEngineImage originalImage = new ImageEngineImage(bytes);
-
-            //    ImageEngineImage imageEngineImage = new ImageEngineImage(importFilePath);
-            //    //imageEngineImage.Resize(
-            //    //	(imageEngineImage.Height + imageEngineImage.Width)
-            //    //	/ (originalImage.Height + originalImage.Width)
-            //    //	);
-            //    if (imageEngineImage.Height > originalImage.Height)
-            //    {
-            //        //imageEngineImage.Resize(
-            //        //	(imageEngineImage.Height + imageEngineImage.Width)
-            //        //	*
-            //        //	(originalImage.Height + originalImage.Width)
-            //        //	- (imageEngineImage.Height + imageEngineImage.Width)
-            //        //	);
-            //    }
-            //    var mipHandling = originalImage.MipMaps.Count > 1 ? MipHandling.GenerateNew : MipHandling.KeepTopOnly;
-
-
-            //    if (originalImage.Format == ImageEngineFormat.DDS_DXT5)
-            //    {
-            //        bytes = imageEngineImage.Save(
-            //            new ImageFormats.ImageEngineFormatDetails(
-            //                ImageEngineFormat.DDS_DXT5
-            //                , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM)
-            //            , mipHandling
-            //            , removeAlpha: false);
-            //    }
-            //    else if (originalImage.Format == ImageEngineFormat.DDS_DXT3)
-            //    {
-            //        bytes = imageEngineImage.Save(
-            //            new ImageFormats.ImageEngineFormatDetails(
-            //                ImageEngineFormat.DDS_DXT3
-            //                , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC2_UNORM_SRGB)
-            //            , MipHandling.KeepTopOnly
-            //            , removeAlpha: false);
-            //    }
-            //    else if (originalImage.Format == ImageEngineFormat.DDS_DXT1)
-            //    {
-            //        bytes = imageEngineImage.Save(
-            //            new ImageFormats.ImageEngineFormatDetails(
-            //                ImageEngineFormat.DDS_DXT1
-            //                , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
-            //            , mipHandling
-            //            , removeAlpha: false);
-            //    }
-            //    else if (originalImage.Format == ImageEngineFormat.DDS_ARGB_8)
-            //    {
-            //        bytes = imageEngineImage.Save(
-            //            new ImageFormats.ImageEngineFormatDetails(
-            //                ImageEngineFormat.DDS_ARGB_8
-            //                //, CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM
-            //                )
-            //            , mipHandling
-            //            , removeAlpha: false);
-            //    }
-            //    else
-            //    {
-            //        bytes = imageEngineImage.Save(
-            //            new ImageFormats.ImageEngineFormatDetails(
-            //                ImageEngineFormat.DDS_DXT1
-            //                , CSharpImageLibrary.Headers.DDS_Header.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB)
-            //            , mipHandling
-            //            , removeAlpha: false);
-            //    }
-
-            //}
+            
 
             AssetManager.Instance.ModifyLegacyAsset(lfe.Name, bytes, false);
             return true;

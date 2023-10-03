@@ -17,7 +17,9 @@
 	</PropertyGroup>-->
 
     <ItemGroup>
-		<PackageReference Include="DirectXTexNet" Version="1.0.3" />
+		<PackageReference Include="DirectXTexNet" Version="1.0.3" CopyToPublishDirectory="Always">
+			<ExcludeAssets></ExcludeAssets>
+		</PackageReference>
 		<PackageReference Include="DotNetProjects.Extended.Wpf.Toolkit" Version="4.6.97" />
 		<PackageReference Include="DotNetZip" Version="1.16.0" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
@@ -67,6 +69,10 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+	  <None Update="DirectXTexNetImpl.dll">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="FrostbiteProfiles\BF4Profile.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
