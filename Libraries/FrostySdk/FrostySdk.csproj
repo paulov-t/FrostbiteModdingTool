@@ -17,9 +17,6 @@
 	</PropertyGroup>-->
 
     <ItemGroup>
-		<PackageReference Include="DirectXTexNet" Version="1.0.3" CopyToPublishDirectory="Always">
-			<ExcludeAssets></ExcludeAssets>
-		</PackageReference>
 		<PackageReference Include="DotNetProjects.Extended.Wpf.Toolkit" Version="4.6.97" />
 		<PackageReference Include="DotNetZip" Version="1.16.0" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
@@ -69,6 +66,21 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+	  <Reference Include="DirectXTexNet">
+	    <HintPath>ThirdParty\DirectXTex\DirectXTexNet.dll</HintPath>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </Reference>
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <None Update="assimp.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
+		<None Update="Ijwhost.dll">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</None>
 	  <None Update="DirectXTexNetImpl.dll">
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -165,6 +177,9 @@
 	  <None Update="FrostbiteProfiles\Madden21Profile.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
+	  <None Update="Ijwhost.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Update="ThirdParty\config.ini">
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
