@@ -505,14 +505,14 @@ namespace FIFAModdingUI.Pages.Common
             }
         }
 
-        private void chkShowOnlyModified_Checked(object sender, RoutedEventArgs e)
+        private async void chkShowOnlyModified_Checked(object sender, RoutedEventArgs e)
         {
-            Update();
+            await Update();
         }
 
-        private void chkShowOnlyModified_Unchecked(object sender, RoutedEventArgs e)
+        private async void chkShowOnlyModified_Unchecked(object sender, RoutedEventArgs e)
         {
-            Update();
+            await Update();
         }
 
         private void assetTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
