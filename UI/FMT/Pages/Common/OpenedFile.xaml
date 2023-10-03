@@ -136,9 +136,44 @@
 
                                 </local:AssetEntryViewer>
                             </LayoutDocument>-->
-                            <LayoutDocument x:Name="layoutSoundViewer" CanClose="False" Title="Sound Viewer">
+                            <LayoutDocument x:Name="layoutSoundViewer" CanClose="False" Title="Sound Viewer" IsEnabled="False">
                                 <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                                    
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="30"></RowDefinition>
+                                        <RowDefinition></RowDefinition>
+                                    </Grid.RowDefinitions>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition></ColumnDefinition>
+                                            <ColumnDefinition></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <Button x:Name="btnPlaySound" Click="btnPlaySound_Click" IsEnabled="False">Play</Button>
+                                        <Button x:Name="btnPauseSound" Click="btnPauseSound_Click" Grid.Column="1" IsEnabled="False">Stop</Button>
+                                    </Grid>
+                                    <Grid Grid.Row="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition></ColumnDefinition>
+                                            <ColumnDefinition></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <ListBox x:Name="lbTracksList" Grid.Column="0" ItemsSource="{Binding TracksList}" SelectionChanged="lbTracksList_SelectionChanged">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Name}"></TextBlock>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                        <Border Padding="10"  Grid.Column="1">
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock Text="{Binding SelectedTrack.Name}"></TextBlock>
+                                                <TextBlock Text="{Binding SelectedTrack.Codec}"></TextBlock>
+                                                <TextBlock Text="{Binding SelectedTrack.Duration}"></TextBlock>
+                                                <TextBlock Text="{Binding SelectedTrack.SegmentCount}"></TextBlock>
+                                                <TextBlock Text="{Binding SelectedTrack.SampleRate}"></TextBlock>
+                                                <TextBlock Text="{Binding SelectedTrack.ChannelCount}"></TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                  
                                     
                                 </Grid>
                             </LayoutDocument>
