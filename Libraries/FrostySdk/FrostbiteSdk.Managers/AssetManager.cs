@@ -446,6 +446,7 @@ namespace FrostySdk.Managers
             bool writtenToCache = false;
             if (!CacheRead(out prePatchCache))
             {
+                Logger.Log($"CacheGeneration:Start");
                 Logger.Log($"Cache Needs to Built/Updated");
 
                 BinarySbDataHelper binarySbDataHelper = new BinarySbDataHelper(this);
@@ -468,6 +469,8 @@ namespace FrostySdk.Managers
 
             //if (writtenToCache)
             DoEbxIndexing();
+
+            Logger.Log($"CacheGeneration:End");
 
             TimeSpan timeSpan = DateTime.Now - dtAtStart;
             Logger.Log($"Loading complete {timeSpan.ToString(@"mm\:ss")}");

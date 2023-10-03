@@ -192,12 +192,12 @@ namespace FMT
             if (stopLoggingUntilComplete)
                 return;
 
-            if (in_text.Contains("Read out of Cache"))
+            if (in_text.Contains("Read out of Cache") || in_text == "CacheGeneration:Start")
             {
                 stopLoggingUntilComplete = true;
 
             }
-            if (in_text.Contains("Loading complete "))
+            if (in_text.Contains("Loading complete ") || in_text == "CacheGeneration:End")
             {
                 stopLoggingUntilComplete = false;
             }
