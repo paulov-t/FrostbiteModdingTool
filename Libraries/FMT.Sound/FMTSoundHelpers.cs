@@ -23,7 +23,7 @@ namespace FMT.Sound
             public int sampleRate;
         }
 
-        [DllImport("../thirdparty/ealayer3.dll", EntryPoint = "Decode")]
+        [DllImport("ThirdParty/ealayer3.dll", EntryPoint = "Decode")]
         public static extern void Decode([MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] buffer, int length, AudioCallback callback);
     }
 
