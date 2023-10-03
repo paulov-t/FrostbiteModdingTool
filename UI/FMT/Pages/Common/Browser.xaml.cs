@@ -288,11 +288,15 @@ namespace FIFAModdingUI.Pages.Common
         private async Task ExportAsset(AssetEntry assetEntry, string saveLocation)
         {
             bool isFolder = false;
-            if (new DirectoryInfo(saveLocation).Exists)
+            var saveLocationDirectoryInfoRoot = new DirectoryInfo(saveLocation);
+            if (saveLocationDirectoryInfoRoot.Exists)
             {
-                saveLocation += "\\" + assetEntry.Filename;
+                saveLocation += "\\" + assetEntry.Name;
                 isFolder = true;
             }
+
+            var saveLocationDirectoryInfoFinal = new DirectoryInfo(saveLocation);
+            Directory.CreateDirectory(saveLocationDirectoryInfoFinal.Parent.FullName);
 
             if (assetEntry is LegacyFileEntry)
             {
