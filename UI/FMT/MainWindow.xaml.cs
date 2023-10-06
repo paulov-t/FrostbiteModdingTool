@@ -6,6 +6,7 @@ using FMT.Windows;
 using FrostbiteModdingUI.Models;
 using FrostbiteModdingUI.Windows;
 using FrostySdk;
+using FrostySdk.FrostbiteSdk.Managers;
 using FrostySdk.Managers;
 using FrostySdk.ModsAndProjects.Projects;
 using MahApps.Metro.Controls;
@@ -44,6 +45,22 @@ namespace FMT
 
             }
             set { profiles = value; }
+        }
+
+        public List<Profile> InstalledGamesWithEditor
+        {
+            get
+            {
+                var foundInstalls = new List<Profile>();
+                var pwe = ProfilesWithEditor;
+                foreach (var p in pwe) 
+                {
+                    if(!string.IsNullOrEmpty(RegistryManager.FindGameExeFromProfile(p)))
+                        foundInstalls.Add(p);
+                }
+
+                return foundInstalls;
+            }
         }
 
         public string WindowTitle { get; set; }
@@ -273,28 +290,28 @@ namespace FMT
 
         private void cbLanguageSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (cbLanguageSelection.SelectedItem != null && cbLanguageSelection.SelectedIndex >= 1)
-            {
-                string selectedLanguage = null;
-                var selectedItem = ((ComboBoxItem)cbLanguageSelection.SelectedItem).Content.ToString();
-                switch (selectedItem)
-                {
-                    case "English":
-                        selectedLanguage = "en";
-                        break;
-                    case "Deutsch":
-                        selectedLanguage = "de";
-                        break;
-                    case "Português":
-                        selectedLanguage = "pt";
-                        break;
-                }
+            //if (cbLanguageSelection.SelectedItem != null && cbLanguageSelection.SelectedIndex >= 1)
+            //{
+            //    string selectedLanguage = null;
+            //    var selectedItem = ((ComboBoxItem)cbLanguageSelection.SelectedItem).Content.ToString();
+            //    switch (selectedItem)
+            //    {
+            //        case "English":
+            //            selectedLanguage = "en";
+            //            break;
+            //        case "Deutsch":
+            //            selectedLanguage = "de";
+            //            break;
+            //        case "Português":
+            //            selectedLanguage = "pt";
+            //            break;
+            //    }
 
-                if (!string.IsNullOrEmpty(selectedLanguage))
-                {
-                    App.LoadLanguageFile(selectedLanguage);
-                }
-            }
+            //    if (!string.IsNullOrEmpty(selectedLanguage))
+            //    {
+            //        App.LoadLanguageFile(selectedLanguage);
+            //    }
+            //}
         }
 
 

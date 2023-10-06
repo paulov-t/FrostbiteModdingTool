@@ -1,6 +1,6 @@
 {
-  "Name": "Madden24",
-  "DisplayName": "Madden 24",
+  "Name": "MADDEN24",
+  "DisplayName": "Madden NFL 24",
   "DataVersion": 20230815,
   "CacheName": "Madden24",
   "Deobfuscator": "NullDeobfuscator",
@@ -39,7 +39,7 @@
   "EBXTypeDescriptor": "EBXSharedTypeDescriptorV2",
 
   // Supported Launcher Filetypes
-  "SupportedLauncherFileTypes": [ "fbmod", "fifamod", "zip" ],
+  "SupportedLauncherFileTypes": [ "fbmod" ],
   // Will the Launcher support this Game?
   "CanLaunchMods": false,
   // Can this Application Edit this Game?

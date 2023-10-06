@@ -12,43 +12,77 @@
                 >
     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>
-            <RowDefinition Height="75"></RowDefinition>
-            <RowDefinition Height="10"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <DockPanel>
-            <Label Content="{Binding WindowTitle}"  Margin="0,30,0,0" VerticalAlignment="Bottom" HorizontalAlignment="Center" FontSize="28" FontFamily="Arial Bold"></Label>
-        </DockPanel>
-        <ComboBox Width="100" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,20,20" x:Name="cbLanguageSelection" SelectionChanged="cbLanguageSelection_SelectionChanged">
-            <ComboBoxItem></ComboBoxItem>
-            <ComboBoxItem>English</ComboBoxItem>
-            <ComboBoxItem>Português</ComboBoxItem>
-        </ComboBox>
-        <ItemsControl Grid.Row="2" ItemsSource="{Binding ProfilesWithEditor}" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Visible" HorizontalAlignment="Center" HorizontalContentAlignment="Stretch">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate >
-                    <mah:Tile Title="{Binding DisplayName}" Tag="{Binding}" Background="Black" Padding="0" Margin="1" Click="Tile_Click">
-                        <Grid Margin="1">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="2*"></RowDefinition>
-                                <RowDefinition Height="1*"></RowDefinition>
-                            </Grid.RowDefinitions>
-                            <Image Grid.Row="0" Source="{Binding EditorIcon}" Stretch="Fill" Margin="1" />
-                            <!--<TextBlock Text="{Binding DisplayName}"></TextBlock>-->
-                        </Grid>
-                    </mah:Tile>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel  >
-                    </WrapPanel>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ItemsControl>
+        <mah:MetroAnimatedTabControl Grid.Row="0" DockPanel.Dock="Top" Margin="0,0,0,0" x:Name="MainViewer" VerticalAlignment="Stretch" VerticalContentAlignment="Stretch" 
+                                        >
+            <mah:MetroTabItem Selector.IsSelected="True" Visibility="Visible" VerticalContentAlignment="Stretch" VerticalAlignment="Stretch">
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                        <MaterialDesign:PackIcon Kind="Server" VerticalAlignment="Center" />
+                        <Label Content="Installed Games"></Label>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                <ScrollViewer>
+                    <ItemsControl Grid.Row="2" ItemsSource="{Binding InstalledGamesWithEditor}" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Visible" HorizontalAlignment="Center" HorizontalContentAlignment="Stretch">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate >
+                                <mah:Tile Title="{Binding DisplayName}" Tag="{Binding}" Background="Black" Padding="0" Margin="1" Click="Tile_Click">
+                                    <Grid Margin="1">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="2*"></RowDefinition>
+                                            <RowDefinition Height="1*"></RowDefinition>
+                                        </Grid.RowDefinitions>
+                                        <Image Grid.Row="0" Source="{Binding EditorIcon}" Stretch="Fill" Margin="1" />
+                                    </Grid>
+                                </mah:Tile>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel  >
+                                </WrapPanel>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </ScrollViewer>
+            </mah:MetroTabItem>
+            <mah:MetroTabItem Selector.IsSelected="True" Visibility="Visible" VerticalContentAlignment="Stretch" VerticalAlignment="Stretch">
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                        <MaterialDesign:PackIcon Kind="RocketLaunch" VerticalAlignment="Center" />
+                        <Label Content="All Supported Games"></Label>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                <ScrollViewer>
+                    <ItemsControl Grid.Row="2" ItemsSource="{Binding ProfilesWithEditor}" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Visible" HorizontalAlignment="Center" HorizontalContentAlignment="Stretch">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate >
+                                <mah:Tile Title="{Binding DisplayName}" Tag="{Binding}" Background="Black" Padding="0" Margin="1" Click="Tile_Click">
+                                    <Grid Margin="1">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="2*"></RowDefinition>
+                                            <RowDefinition Height="1*"></RowDefinition>
+                                        </Grid.RowDefinitions>
+                                        <Image Grid.Row="0" Source="{Binding EditorIcon}" Stretch="Fill" Margin="1" />
+                                    </Grid>
+                                </mah:Tile>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel  >
+                                </WrapPanel>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </ScrollViewer>
+            </mah:MetroTabItem>
+        </mah:MetroAnimatedTabControl>
+        
         <!--<WrapPanel Grid.Row="4" Width="940" Height="382" HorizontalAlignment="Left" VerticalAlignment="Top">
             <mah:Tile Title="Mail" Style="{StaticResource }" Content="ImageHere" Background="Teal" Margin="3">
             </mah:Tile>

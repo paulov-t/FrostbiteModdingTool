@@ -634,7 +634,9 @@ namespace FrostySdk
         {
             DbObject dbObject = null;
 
-            string initfsFilePath = ResolvePath((patched ? "native_patch/" : "native_data/") + "initfs_win32");
+            var initfsFiles = Directory.GetFiles(Path.Combine(BasePath, ((patched ? "Patch" : "Data"))), "initfs_*", SearchOption.TopDirectoryOnly);
+
+            string initfsFilePath = initfsFiles.First();// ResolvePath((patched ? "native_patch/" : "native_data/") + "initfs_win32");
             if (initfsFilePath == "")
             {
                 return dbObject;
@@ -646,6 +648,7 @@ namespace FrostySdk
 
             dbObject = ReadInitfs(msInitFs, key);
 
+            
             if (memoryFs.ContainsKey("__fsinternal__"))
             {
                 DbObject dbObject2 = null;
@@ -654,9 +657,12 @@ namespace FrostySdk
                     dbObject2 = dbReader3.ReadDbObject();
                 }
                 memoryFs.Remove("__fsinternal__");
-                if (dbObject2.GetValue("inheritContent", defaultValue: false))
+                if (ProfileManager.Sources.Any(x => x.Path == "Data"))
                 {
-                    ReadInitfs(key, false);
+                    if (dbObject2.GetValue("inheritContent", defaultValue: false))
+                    {
+                        ReadInitfs(key, false);
+                    }
                 }
             }
 
@@ -835,7 +841,7 @@ namespace FrostySdk
 
                     //{
                     bool alwaysInstalled = item.GetValue("alwaysInstalled", defaultValue: false);
-                    string path = "win32/" + item.GetValue<string>("name");
+                    string path = item.HasValue("installBundle") ? item.GetValue<string>("installBundle") : "win32/" + item.GetValue<string>("name");
 
                     if (ProfileManager.IsLoaded(EGame.StarWarsSquadrons, EGame.BFV))
                     {

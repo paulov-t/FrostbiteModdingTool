@@ -35,32 +35,12 @@ namespace FrostySdk.ThirdParty
 
         public static void Bind(string basePath)
         {
-            //if (!ProfilesLibrary.IsFIFADataVersion()
-            //	&& !ProfilesLibrary.IsMadden21DataVersion()
-            //	&& !ProfilesLibrary.IsFIFA21DataVersion()
-            //	)
-            //{
-            //	return;
-            //}
-
             string lib = Directory.EnumerateFiles(basePath, "oo2core_*").FirstOrDefault();
+            if (lib == null)
+            {
+                lib = Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "ThirdParty"), "oo2core_*", enumerationOptions: new EnumerationOptions() { RecurseSubdirectories = true }).FirstOrDefault();
+            }
 
-            //string lib = basePath + "/oo2core_4_win64.dll";
-            //if (ProfilesLibrary.DataVersion == 20180914 || ProfilesLibrary.DataVersion == 20190905)
-            //{
-            //	lib = basePath + "/oo2core_6_win64.dll";
-            //}
-            //else if (
-            //	ProfilesLibrary.IsMadden21DataVersion()
-            //	)
-            //{
-            //	lib = basePath + "/oo2core_7_win64.dll";
-            //}
-            //else if (ProfilesLibrary.IsFIFA21DataVersion()
-            //	)
-            //{
-            //	lib = basePath + "/oo2core_8_win64.dll";
-            //}
             if (!string.IsNullOrEmpty(lib) && File.Exists(lib))
             {
                 handle = new LoadLibraryHandle(lib);
@@ -75,6 +55,10 @@ namespace FrostySdk.ThirdParty
                     }
                     MemorySizeNeeded = Marshal.GetDelegateForFunctionPointer<MemorySizeNeededFunc>(NativeLibrary.GetExport(handle, "OodleLZDecoder_MemorySizeNeeded"));
                 }
+            }
+            else
+            {
+
             }
         }
 

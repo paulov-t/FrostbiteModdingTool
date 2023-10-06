@@ -41,5 +41,32 @@ namespace FrostySdk.FrostbiteSdk.Managers
         }
 
         public static bool FoundExe => GamePathEXE != string.Empty;
+
+
+        public static string FindGameExeFromProfile(ProfileManager.Profile profile)
+        {
+            using (RegistryKey key = Registry.LocalMachine.OpenSubKey($"Software\\EA Sports\\{profile.DisplayName}"))
+            {
+                if (key != null)
+                {
+                    string installDir = key.GetValue("Install Dir").ToString();
+                    installDir += $"{profile.Name}.exe";
+                    if (File.Exists(installDir))
+                        return installDir;
+                }
+            }
+
+            using (RegistryKey key = Registry.LocalMachine.OpenSubKey($"Software\\EA Games\\{profile.DisplayName}"))
+            {
+                if (key != null)
+                {
+                    string installDir = key.GetValue("Install Dir").ToString();
+                    installDir += $"{profile.Name}.exe";
+                    if (File.Exists(installDir))
+                        return installDir;
+                }
+            }
+            return string.Empty;
+        }
     }
 }

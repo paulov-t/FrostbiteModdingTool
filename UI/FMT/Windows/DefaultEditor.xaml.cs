@@ -1121,6 +1121,10 @@ namespace FrostbiteModdingUI.Windows
 
             List<IAssetEntry> textureAssets = ProjectManagement.Project.AssetManager
                                 .EnumerateEbx("TextureAsset").OrderBy(x => x.Path).Select(x => (IAssetEntry)x).ToList();
+            await Dispatcher.InvokeAsync(() =>
+            {
+                TabTextureBrowser.Visibility = textureAssets.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            });
 
             List<IAssetEntry> meshAssets = new List<IAssetEntry>();
             if (ProfileManager.CanImportMeshes || ProfileManager.CanExportMeshes)

@@ -1,0 +1,84 @@
+{
+  "Name": "NHL23PS4",
+  "DisplayName": "NHL23 [PS4]",
+  "DataVersion": 20221011,
+  "CacheName": "nhl23ps4",
+  "Deobfuscator": "NullDeobfuscator",
+  "AssetLoader": "Frostbite2022AssetLoader",
+  "AssetCompiler": "NullAssetCompiler",
+  "EditorScreen": "DefaultEditor",
+  "TextureImporter": "TextureImporter",
+  "TextureExporter": "TextureExporter",
+  "EBXReader": "EbxReader22B",
+  "EBXWriter": "EbxWriter2023",
+  "EBXImporter": null,
+  "EBXExporter": null,
+
+  "ProjectEbxWriter": "EbxWriter2023",
+  "ProjectEbxReader": "EbxReader22B",
+
+
+  "Sources": [
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+
+  // --------------------------------------------------------
+  // SDK Generating Info
+  //
+  "SDKFilename": "NHL23SDK",
+  "SDKAOBScan": null,
+  "SDKClassesFile": null,
+  "SDKGeneratorClassInfoType": null,
+  "EBXTypeDescriptor": "EBXSharedTypeDescriptorV2",
+
+  // Supported Launcher Filetypes
+  "SupportedLauncherFileTypes": [],
+  // Will the Launcher support this Game?
+  "CanLaunchMods": false,
+  // Can this Application Edit this Game?
+  "CanEdit": true,
+
+  // Custom .cache file Writer - Write these exclusively (example - BaseCacheWriter)
+  "CacheWriter": "BaseCacheWriter",
+  // Custom .cache file Reader - Write these exclusively (example - BaseCacheReader)
+  "CacheReader": "BaseCacheReader",
+
+  "Banner": "",
+  "EbxVersion": 4,
+  "RequiresKey": true,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "SharedBundles": {},
+  "IgnoredResTypes": [],
+  "CanImportMeshes": false,
+  "CanExportMeshes": false,
+  // GeometryDeclarationDesc stream count
+  "GDDMaxStreams": 16,
+  "CompressedFormatEBX": "Oodle", // Checked on GP files. FIFA 23 only uses Oodle!
+  "CompressedFormatRES": "Oodle",
+  "CompressedFormatChunk": "Oodle",
+  "CompressedFormatLegacy": "Oodle",
+  "LegacyFileManager": "ChunkFileManager2022",
+  "CanUseModData": false,
+  "ForceUseModData": false,
+  "SupportLowMemoryFootprint": true,
+  "GameIdentifier": 16115019,
+  "UseACBypass": false, // Can only be used with TU2 or below
+  "EADesktopCommandLineSetting": null,
+  "SteamId": null,
+  "HasAntiCheat": true,
+  "Tools": {
+    "Internal": [
+      {
+        "Name": "Initfs Editor",
+        "Window": "InitfsEditor"
+      }
+    ],
+    "External": []
+  },
+  "MaxBufferSize": 262144,
+  "DoesNotUsePlugin": true
+}
