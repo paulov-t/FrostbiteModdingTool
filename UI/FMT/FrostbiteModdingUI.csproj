@@ -260,6 +260,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
+    <None Update="SDK\NHL22SDK.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
+    <None Update="SDK\NHL23SDK.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
     <None Update="SDK\FIFA23SDK.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -346,6 +354,10 @@
 	  </None>
 	  <None Include="..\..\Plugins\NFSUnboundPlugin\bin\Debug\net7.0-windows\NeedForSpeedUnboundPlugin.dll" Link="Plugins\NeedForSpeedUnboundPlugin.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
+	  <None Include="..\..\Plugins\NHL22PS4Plugin\bin\Debug\net7.0-windows\NHL22PS4Plugin.dll" Link="Plugins\NHL22PS4Plugin.dll">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
 	  <None Include="..\..\Plugins\PGATourPlugin\bin\Debug\net7.0-windows\PGATourPlugin.dll" Link="Plugins\PGATourPlugin.dll">

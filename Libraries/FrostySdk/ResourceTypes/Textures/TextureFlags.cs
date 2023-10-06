@@ -13,6 +13,7 @@ namespace FrostySdk.Resources
         NoSkipmip = 0x20,
         XenonPackedMipmaps = 0x100,
         Ps3MemoryCell = 0x100,
-        Ps3MemoryRsx = 0x200
+        Ps3MemoryRsx = 0x200,
+        Ps4 = 2049
     }
 }

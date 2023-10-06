@@ -1,7 +1,9 @@
 ﻿<Application x:Class="FMT.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             
+             xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                      xmlns:MaterialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+                      xmlns:materialDesignColors="clr-namespace:MaterialDesignColors;assembly=MaterialDesignColors"
              StartupUri="MainWindow.xaml"
               ShutdownMode="OnLastWindowClose"
 xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -28,6 +30,30 @@ xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
             <Style TargetType="{x:Type TextBox}">
                 <Setter Property="BorderThickness" Value="1" />
                 <Setter Property="Padding" Value="2" />
+            </Style>
+
+            <Style TargetType="{x:Type mah:MetroTabItem}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type mah:MetroTabItem}">
+                            <Grid Name="Panel">
+                                <ContentPresenter x:Name="ContentSite"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        ContentSource="Header"
+                                        Margin="10,2"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Panel" Property="Background" Value="#2233BB" />
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="False">
+                                    <Setter TargetName="Panel" Property="Background" Value="#232323" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <!--<Style TargetType="ScrollViewer" BasedOn="{StaticResource DefaultScrollViewerStyle}">
