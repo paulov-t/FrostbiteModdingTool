@@ -33,7 +33,7 @@ namespace FrostySdk.ModsAndProjects.Projects
         private string projectFilePath { get; set; }
 
         public int ProjectVersion { get; private set; } = 2;
-        public int GameDataVersion { get; private set; }
+        public uint GameDataVersion { get; private set; }
 
         public FileInfo projectFileInfo { get { return new FileInfo(projectFilePath); } }
 
@@ -138,8 +138,14 @@ namespace FrostySdk.ModsAndProjects.Projects
             using (NativeReader nr = new NativeReader(stream))
             {
                 project.ProjectVersion = nr.ReadInt();
-                project.GameDataVersion = nr.ReadInt();
-                if(project.GameDataVersion != ProfileManager.DataVersion)
+                project.GameDataVersion = nr.ReadUInt();
+
+                if (!ProfileManager.Initialize(project.GameDataVersion))
+                {
+                    return project;
+                }
+
+                if (project.GameDataVersion != ProfileManager.DataVersion)
                 {
                     if (AssetManager.Instance != null && AssetManager.Instance.Logger != null)
                         AssetManager.Instance.Logger.LogWarning("You are loading a Project for a different game.");
@@ -322,6 +328,9 @@ namespace FrostySdk.ModsAndProjects.Projects
                 // EBX Stream to Json
                 var json = nr.ReadLengthPrefixedString();
 
+                if (AssetManager.Instance == null)
+                    continue;
+
                 var ebxAssetEntry = AssetManager.Instance.GetEbxEntry(assetName);
                 if (ebxAssetEntry == null)
                 {
@@ -372,6 +381,9 @@ namespace FrostySdk.ModsAndProjects.Projects
                 var assetName = nr.ReadLengthPrefixedString();
                 // Item Data
                 var data = nr.ReadLengthPrefixedBytes();
+
+                if (AssetManager.Instance == null)
+                    continue;
 
                 var resAssetEntry = AssetManager.Instance.GetResEntry(assetName);
                 if (resAssetEntry == null)
@@ -445,6 +457,10 @@ namespace FrostySdk.ModsAndProjects.Projects
                 int h = nr.ReadInt();
                 var userData = nr.ReadLengthPrefixedString();
                 byte[] data = nr.ReadLengthPrefixedBytes();
+
+                if (AssetManager.Instance == null)
+                    continue;
+
                 ChunkAssetEntry chunkAssetEntry = AssetManager.GetChunkEntry(assetName);
                 if (chunkAssetEntry == null)
                     continue;
@@ -532,6 +548,9 @@ namespace FrostySdk.ModsAndProjects.Projects
                 };
                 legacyFileEntries.Add(lfe);
             }
+
+            if (AssetManager.Instance == null)
+                return;
 
             if (!AssetManager.Instance.CustomAssetManagers.ContainsKey("legacy"))
                 return;
