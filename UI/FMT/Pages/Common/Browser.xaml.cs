@@ -3,6 +3,7 @@ using CSharpImageLibrary;
 using FMT;
 using FMT.FileTools;
 using FMT.Pages.Common;
+using FMT.Sound;
 using FolderBrowserEx;
 using Frostbite.Textures;
 using FrostbiteModdingUI.Models;
@@ -17,6 +18,7 @@ using FrostySdk.Resources;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -182,7 +184,12 @@ namespace FIFAModdingUI.Pages.Common
         }
 
 
-        public ObservableCollection<AssetPath> BrowserItems { get; set; } = new ObservableCollection<AssetPath>();
+        public static readonly DependencyProperty BrowserItemsProperty = DependencyProperty.Register("BrowserItems", typeof(ObservableCollection<AssetPath>), typeof(Browser), new FrameworkPropertyMetadata(null));
+        public ObservableCollection<AssetPath> BrowserItems
+        {
+            get => (ObservableCollection<AssetPath>)GetValue(BrowserItemsProperty);
+            set => SetValue(BrowserItemsProperty, value);
+        }
 
         public bool IsUpdating { get; set; } = false;
 
@@ -274,11 +281,12 @@ namespace FIFAModdingUI.Pages.Common
                 GC.Collect();
             });
 
-            BrowserItems.Clear();
-            foreach (var aP in AssetPath.Children.OrderBy(x => x.PathName).ToList())
-            {
-                BrowserItems.Add(aP);
-            }
+            //BrowserItems.Clear();
+            //foreach (var aP in AssetPath.Children.OrderBy(x => x.PathName).ToList())
+            //{
+            //    BrowserItems.Add(aP);
+            //}
+            BrowserItems = new ObservableCollection<AssetPath>(AssetPath.Children.OrderBy(x => x.PathName));
 
             
             IsUpdating = false;
