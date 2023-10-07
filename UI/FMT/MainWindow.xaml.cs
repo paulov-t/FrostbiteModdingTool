@@ -18,6 +18,8 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using v2k4FIFAModdingCL;
 using static FrostySdk.ProfileManager;
@@ -110,11 +112,32 @@ namespace FMT
                 }
             }
         }
-
+        
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             HandleSDKEmptyFolder();
             HandleAppArguments();
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            var hwndSource = PresentationSource.FromVisual(this) as HwndSource;
+
+            if (hwndSource != null)
+            {
+                int displayTier = (RenderCapability.Tier >> 16);
+                if (displayTier <= 1)
+                {
+                    //partial hardware acceleration
+                    hwndSource.CompositionTarget.RenderMode = RenderMode.SoftwareOnly;
+                }
+                else
+                {
+                    //supports hardware acceleration
+                    hwndSource.CompositionTarget.RenderMode = RenderMode.SoftwareOnly;
+                }
+            }
+            base.OnSourceInitialized(e);
         }
 
         private void HandleSDKEmptyFolder()
@@ -176,8 +199,9 @@ namespace FMT
                         case ".fmtproj":
                             FileLogger.WriteLine($"Load with *.fmtproj");
 
-                            FMTProject project = new FMTProject(filePath);
-                            if (project == null) return;
+                            FMTProject project = FMTProject.Read(filePath);
+                            if (project == null) 
+                                return;
 
                             if (!ProfilesWithEditor.Any(x => x.DataVersion == project.GameDataVersion))
                             {
