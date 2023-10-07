@@ -388,6 +388,7 @@ namespace FrostySdk.Frostbite
             if (!File.Exists(CachePath))
             {
                 AssetManager.Instance.WriteToLog($"Did not find {CachePath}.");
+                FileLogger.WriteLine($"Did not find {CachePath}.");
                 return false;
             }
             AssetManager.Instance.WriteToLog($"Loading data ({FileSystem.Instance.CacheName}.cache)");
