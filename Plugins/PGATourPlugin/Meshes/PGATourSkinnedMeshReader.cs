@@ -56,7 +56,7 @@ namespace FIFA23Plugin.Meshes
             if (meshSet.Type == MeshType.MeshType_Skinned)
             {
 
-                meshSet.unknownBytes.Add(nativeReader.ReadBytes(14));
+                meshSet.UnknownBytes.Add(nativeReader.ReadBytes(14));
                 meshSet.boneCount = nativeReader.ReadUInt16LittleEndian();
                 meshSet.CullBoxCount = nativeReader.ReadUInt16LittleEndian();
                 if (meshSet.CullBoxCount != 0)

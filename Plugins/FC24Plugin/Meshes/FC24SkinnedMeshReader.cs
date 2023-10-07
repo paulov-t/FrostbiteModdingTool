@@ -32,7 +32,7 @@ namespace FC24Plugin.Meshes
             meshSet.nameHash = nativeReader.ReadUInt();
             meshSet.Type = (MeshType)nativeReader.ReadByte();
             meshSet.FIFA23_Type2 = (MeshType)nativeReader.ReadByte();
-            meshSet.FIFA23_TypeUnknownBytes = nativeReader.ReadBytes(10);
+            meshSet.UnknownBytes.Add(nativeReader.ReadBytes(10));
 
             for (int n = 0; n < MaxLodCount * 2; n++)
             {
@@ -53,10 +53,11 @@ namespace FC24Plugin.Meshes
             // useful for resetting when live debugging
             var positionBeforeMeshTypeRead = nativeReader.Position;
             nativeReader.Position = positionBeforeMeshTypeRead;
-            for (int n = 0; n < MaxLodCount; n++)
-            {
-                meshSet.LodFade.Add(nativeReader.ReadUInt16LittleEndian());
-            }
+            //for (int n = 0; n < MaxLodCount; n++)
+            //{
+            //    meshSet.LodFade.Add(nativeReader.ReadUInt16LittleEndian());
+            //}
+            meshSet.UnknownBytes.Add(nativeReader.ReadBytes(12));
             //positionBeforeMeshTypeRead = nativeReader.Position;
             //nativeReader.Position = positionBeforeMeshTypeRead;
 
@@ -64,7 +65,7 @@ namespace FC24Plugin.Meshes
             //{
 
             //meshSet.FIFA23_SkinnedUnknownBytes = nativeReader.ReadBytes(12);
-                meshSet.boneCount = nativeReader.ReadUInt16LittleEndian();
+            meshSet.boneCount = nativeReader.ReadUInt16LittleEndian();
                 meshSet.CullBoxCount = nativeReader.ReadUInt16LittleEndian();
                 if (meshSet.CullBoxCount != 0)
                 {

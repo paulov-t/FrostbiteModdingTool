@@ -36,11 +36,12 @@ namespace FC24Plugin.Meshes
             section.StartIndex = nativeReader.ReadUInt32LittleEndian(); // 0
             section.VertexOffset = nativeReader.ReadUInt32LittleEndian(); // 0
             section.VertexCount = (uint)nativeReader.ReadUInt32LittleEndian(); // 3157
-            section.UnknownInt = nativeReader.ReadUInt();
-            section.UnknownInt = nativeReader.ReadUInt();
-            section.UnknownInt = nativeReader.ReadUInt();
-            section.UnknownInt = nativeReader.ReadUInt();
-            section.UnknownInt = nativeReader.ReadUInt();
+            //section.UnknownInt = nativeReader.ReadUInt();
+            //section.UnknownInt = nativeReader.ReadUInt();
+            //section.UnknownInt = nativeReader.ReadUInt();
+            //section.UnknownInt = nativeReader.ReadUInt();
+            //section.UnknownInt = nativeReader.ReadUInt();
+            section.UnknownBytes.Add(nativeReader.ReadBytes(20));
 
             section.TextureCoordinateRatios.Clear();
             for (int i = 0; i < 6; i++)
@@ -82,7 +83,8 @@ namespace FC24Plugin.Meshes
             }
 
             _ = nativeReader.Position;
-            section.UnknownData = nativeReader.ReadBytes(64);
+            section.UnknownBytes.Add(nativeReader.ReadBytes(64));
+            //section.UnknownData = nativeReader.ReadBytes(64);
             section.ReadBones(nativeReader, bonePositions);
         }
 

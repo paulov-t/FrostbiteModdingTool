@@ -4,6 +4,7 @@ using FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace FrostySdk.Resources
 {
@@ -33,6 +34,8 @@ namespace FrostySdk.Resources
         public int MaterialId { get; set; }
 
         public uint UnknownInt { get; set; }
+
+        public List<byte[]> UnknownBytes { get; } = new List<byte[]>();
 
         public uint PrimitiveCount { get; set; }
 
@@ -415,8 +418,15 @@ namespace FrostySdk.Resources
             }
         }
 
-        internal void Process(NativeWriter writer, MeshContainer meshContainer)
+        public void Process(NativeWriter writer, MeshContainer meshContainer)
         {
+            var meshSetSectionWriter = AssetManager.Instance.LoadTypeFromPluginByInterface(typeof(IMeshSetSectionWriter).FullName);
+            if (meshSetSectionWriter != null)
+            {
+                ((IMeshSetSectionWriter)meshSetSectionWriter).Write(writer, this, meshContainer);
+                return;
+            }
+
             if (ProfileManager.IsFIFA23DataVersion())
             {
                 Process23(writer, meshContainer);

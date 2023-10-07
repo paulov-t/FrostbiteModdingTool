@@ -32,7 +32,7 @@ public class MeshSet
 
     public readonly List<long> unknownOffsets = new List<long>();
 
-    public readonly List<byte[]> unknownBytes = new List<byte[]>();
+    public List<byte[]> UnknownBytes { get; } = new List<byte[]>();
 
     public ushort boneCount { get; set; }
 
@@ -191,7 +191,7 @@ public class MeshSet
 
         nameHash = nativeReader.ReadUInt();
         Type = (MeshType)nativeReader.ReadByte();
-        unknownBytes.Add(nativeReader.ReadBytes(15));
+        UnknownBytes.Add(nativeReader.ReadBytes(15));
         for (int n = 0; n < MaxLodCount * 2; n++)
         {
             LodFade.Add(nativeReader.ReadUInt16LittleEndian());
@@ -649,6 +649,15 @@ public class MeshSet
         {
             throw new ArgumentNullException("meshContainer");
         }
+
+
+        var meshSetWriter = AssetManager.Instance.LoadTypeFromPluginByInterface(typeof(IMeshSetWriter).FullName);
+        if (meshSetWriter != null)
+        {
+            ((IMeshSetWriter)meshSetWriter).Write(writer, this, meshContainer);
+            return;
+        }
+
         writer.WriteAxisAlignedBox(BoundingBox);
         for (int i = 0; i < MaxLodCount; i++)
         {
@@ -709,7 +718,7 @@ public class MeshSet
             writer.Write((ushort)Lods.Count);
             writer.WriteUInt32LittleEndian(sumOfLOD);
             writer.Write((ushort)Lods.Count);
-            writer.Write(unknownBytes[0]);
+            writer.Write(UnknownBytes[0]);
         }
         else
         {
