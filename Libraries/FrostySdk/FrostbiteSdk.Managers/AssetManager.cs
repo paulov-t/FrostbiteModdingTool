@@ -446,7 +446,7 @@ namespace FrostySdk.Managers
             //	return;
             //}
             List<EbxAssetEntry> prePatchCache = new List<EbxAssetEntry>();
-            bool writtenToCache = false;
+            //bool writtenToCache = false;
             if (!CacheRead(out prePatchCache))
             {
                 Logger.Log($"CacheGeneration:Start");
@@ -462,7 +462,7 @@ namespace FrostySdk.Managers
                 }
                 GC.Collect();
                 CacheWrite();
-                writtenToCache = true;
+                //writtenToCache = true;
             }
 
             if (!additionalStartup || TypeLibrary.ExistingAssembly == null)

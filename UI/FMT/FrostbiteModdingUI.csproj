@@ -170,10 +170,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
-    <None Update="Resources\images\EASFC24Cover.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	</None>
     <None Update="Resources\images\FC24Cover.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>

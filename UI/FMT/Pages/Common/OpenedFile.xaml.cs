@@ -1090,13 +1090,13 @@ namespace FMT.Pages.Common
             }
             finally
             {
-                UpdateLoadingVisibility(false);
+                _ = UpdateLoadingVisibility(false);
             }
         }
 
         private async void btnRevert_Click(object sender, RoutedEventArgs e)
         {
-            UpdateLoadingVisibility(true);
+            _ = UpdateLoadingVisibility(true);
             try
             {
                 if (SelectedEntry != null)
@@ -1130,7 +1130,7 @@ namespace FMT.Pages.Common
             }
             finally
             {
-                UpdateLoadingVisibility(false);
+                _ = UpdateLoadingVisibility(false);
             }
 
         }

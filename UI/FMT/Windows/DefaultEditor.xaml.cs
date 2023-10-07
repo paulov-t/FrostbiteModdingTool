@@ -2,6 +2,7 @@
 using FIFAModdingUI.Windows;
 using FMT;
 using FMT.FileTools;
+using FMT.Logging;
 using FMT.Pages.Common;
 using FMT.Windows;
 using FolderBrowserEx;
@@ -72,12 +73,14 @@ namespace FrostbiteModdingUI.Windows
             if (CacheManager.DoesCacheNeedsRebuilding())
             {
                 loadingDialog.Update("", "");
-                Dispatcher.Invoke(() => {
+                Dispatcher.Invoke(() =>
+                {
                     cacheManagerControl.Visibility = Visibility.Visible;
                 });
                 await cacheManagerControl.Rebuild(forceRebuild: true);
             }
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 cacheManagerControl.Visibility = Visibility.Collapsed;
             });
 
@@ -101,14 +104,22 @@ namespace FrostbiteModdingUI.Windows
                 }
             }
 
+            SetupIcon();
+            HandleAppArguments();
 
+            launcherOptions = await LauncherOptions.LoadAsync();
+
+        }
+
+        private void SetupIcon()
+        {
             try
             {
                 Uri iconUri = null;
                 if (File.Exists(ProfileManager.LoadedProfile.EditorIcon))
                 {
-                    
-                    switch(new FileInfo(ProfileManager.LoadedProfile.EditorIcon).Extension)
+
+                    switch (new FileInfo(ProfileManager.LoadedProfile.EditorIcon).Extension)
                     {
                         case ".ico":
                             break;
@@ -145,8 +156,8 @@ namespace FrostbiteModdingUI.Windows
                     iconUri = new Uri("pack://application:,,,/FMT;component/FMTIcon24.ico");
                 }
 
-                if(iconUri != null) 
-                { 
+                if (iconUri != null)
+                {
                     Icon = BitmapFrame.Create(iconUri);
                 }
             }
@@ -154,8 +165,20 @@ namespace FrostbiteModdingUI.Windows
             {
 
             }
+        }
 
-            launcherOptions = await LauncherOptions.LoadAsync();
+        private void HandleAppArguments()
+        {
+            if (App.StartupArgs.Length == 0)
+                return;
+
+            var projectFilePath = App.StartupArgs[0];
+            App.StartupArgs = new string[0];
+
+            var projectFileInfo = new FileInfo(projectFilePath);
+            if (!projectFileInfo.Exists)
+                return;
+
 
         }
 
@@ -358,7 +381,7 @@ namespace FrostbiteModdingUI.Windows
 
         private void InitialiseBrowsers()
         {
-            UpdateBrowsersAllFull();
+            _ = UpdateBrowsersAllFull();
         }
 
         LauncherOptions LauncherOptions { get; set; }

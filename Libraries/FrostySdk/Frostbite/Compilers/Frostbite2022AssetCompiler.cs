@@ -256,7 +256,7 @@ namespace FrostySdk.Frostbite.Compilers
             return false;
         }
 
-        public virtual bool Cleanup(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public override bool Cleanup(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             return false;
         }

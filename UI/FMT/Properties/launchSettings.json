@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Debug Normally": {
+      "commandName": "Project"
+    },
+    "Debug with Args": {
+      "commandName": "Project",
+      "commandLineArgs": "\"G:\\Work\\FIFA Modding\\Gameplay mod\\FC 24\\FC 24 Vanilla Referees.fmtproj\""
+    }
+  }
+}

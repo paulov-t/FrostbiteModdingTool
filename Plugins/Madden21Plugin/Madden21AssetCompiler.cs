@@ -88,7 +88,7 @@ namespace Madden21Plugin
         /// <param name="logger"></param>
         /// <param name="frostyModExecuter">Frosty Mod Executer object</param>
         /// <returns></returns>
-        public bool Compile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
+        public override bool Compile(FileSystem fs, ILogger logger, ModExecutor modExecuter)
         {
             ModExecuter = modExecuter;
             // ------------------------------------------------------------------------------------------
