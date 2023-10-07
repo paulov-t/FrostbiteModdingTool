@@ -717,6 +717,23 @@ namespace FrostySdk
         }
 
         [SupportedOSPlatform("windows")]
+        public static bool Initialize(uint gameDataVersion)
+        {
+            foreach(var profilePath in Directory.GetFiles(AppContext.BaseDirectory, "*Profile.json", new EnumerationOptions() { RecurseSubdirectories = true }))
+            {
+                Profile profile = default(Profile);
+                profile = JsonConvert.DeserializeObject<Profile>(System.IO.File.ReadAllText(profilePath));
+                if (profile.DataVersion == gameDataVersion)
+                {
+                    LoadedProfile = profile;
+                    return true;
+                }
+            }
+            return false;
+
+        }
+
+        [SupportedOSPlatform("windows")]
         public static bool Initialize(string profileKey)
         {
             if (!Directory.Exists("Debugging"))
