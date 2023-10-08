@@ -139,6 +139,9 @@ namespace FMT.Pages.Common
                     case AssetEntryStub.EntryStubType.Frostbite_LTU:
                         entry = FileSystem.Instance.LiveTuningUpdate.LiveTuningUpdateEntries[entry.Name];
                         break;
+                    case AssetEntryStub.EntryStubType.Frostbite_ChunkFile:
+                        entry = AssetManager.Instance.GetLegacyAssetManager().GetAssetEntry(entry.Name);
+                        break;
                     case AssetEntryStub.EntryStubType.Frostbite_Ebx:
                     default:
                         entry = AssetManager.Instance.GetEbxEntry(entry.Name);
@@ -163,11 +166,16 @@ namespace FMT.Pages.Common
 
 
 
-                LegacyFileEntry legacyFileEntry = entry as LegacyFileEntry;
-                if (legacyFileEntry != null)
+                LegacyFileEntry chunkFileEntry = entry as LegacyFileEntry;
+                if (chunkFileEntry != null)
                 {
-                    SelectedLegacyEntry = legacyFileEntry;
+                    SelectedLegacyEntry = chunkFileEntry;
                     btnImport.IsEnabled = true;
+                    if(layoutEbxViewer.Content != null)
+                        layoutEbxViewer.Close();
+
+                    if(layoutMeshViewer.Content != null)
+                        layoutMeshViewer.Close();
 
                     List<string> textViewers = new List<string>()
                         {
@@ -198,10 +206,10 @@ namespace FMT.Pages.Common
                             "AST"
                         };
 
-                    var legacyAssetStream = (MemoryStream)ProjectManagement.Instance.Project.AssetManager.GetCustomAsset("legacy", legacyFileEntry);
+                    var legacyAssetStream = (MemoryStream)ProjectManagement.Instance.Project.AssetManager.GetCustomAsset("legacy", chunkFileEntry);
                     //DisplayUnknownFileViewer(legacyAssetStream);
 
-                    if (textViewers.Contains(legacyFileEntry.Type))
+                    if (textViewers.Contains(chunkFileEntry.Type))
                     {
                         MainEditorWindow.Log("Loading Legacy File " + SelectedLegacyEntry.Filename);
 
@@ -212,27 +220,36 @@ namespace FMT.Pages.Common
                         TextViewer.Visibility = Visibility.Visible;
                         using (var nr = new NativeReader(legacyAssetStream))
                         {
-                            //TextViewer.Text = ASCIIEncoding.ASCII.GetString(nr.ReadToEnd());
-                            TextViewer.Text = UTF8Encoding.UTF8.GetString(nr.ReadToEnd());
+                            TextViewer.Text = Encoding.UTF8.GetString(nr.ReadToEnd());
                         }
                     }
-                    else if (imageViewers.Contains(legacyFileEntry.Type))
+                    else if (imageViewers.Contains(chunkFileEntry.Type))
                     {
                         MainEditorWindow.Log("Loading Legacy File " + SelectedLegacyEntry.Filename);
                         btnImport.IsEnabled = true;
                         btnExport.IsEnabled = true;
-                        //layoutImageViewer.Visibility = Visibility.Visible;
+
+                        if (layoutTextViewer.Content != null)
+                            layoutTextViewer.Close();
+
+                        if (layoutUnknownDocument.Content != null)
+                            layoutUnknownDocument.Close();
+
+                        if (layoutSoundViewer.Content != null)
+                            layoutSoundViewer.Close();
+
+                        layoutImageViewer.IsSelected = true;
 
                         BuildTextureViewerFromStream(legacyAssetStream);
 
 
                     }
-                    else if (bigViewers.Contains(legacyFileEntry.Type))
+                    else if (bigViewers.Contains(chunkFileEntry.Type))
                     {
                         BIGViewer.Visibility = Visibility.Visible;
-                        BIGViewer.AssetEntry = legacyFileEntry;
+                        BIGViewer.AssetEntry = chunkFileEntry;
                         //BIGViewer.ParentBrowser = this;
-                        switch (legacyFileEntry.Type)
+                        switch (chunkFileEntry.Type)
                         {
                             //case "BIG":
                             //	BIGViewer.LoadBig();
@@ -1188,6 +1205,7 @@ namespace FMT.Pages.Common
                     //ImageViewerScreen.Visibility = Visibility.Visible;
                     ImageViewer.MaxHeight = textureAsset.Height;
                     ImageViewer.MaxWidth = textureAsset.Width;
+                    layoutImageViewer.IsSelected = true;
 
                     btnExport.IsEnabled = true;
                     btnImport.IsEnabled = true;
