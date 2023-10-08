@@ -349,7 +349,13 @@ namespace FMT.Pages.Common
                     return;
 
                 SelectedEbxAsset = await AssetManager.Instance.GetEbxAsync(ebxEntry, cancellationToken: cancellationToken);
-               
+
+                Dispatcher.Invoke(() =>
+                {
+                    btnRevert.IsEnabled = true;
+                    btnImport.IsEnabled = true;
+                    btnExport.IsEnabled = true;
+                });
 
                 OpenEbxTextureAsset(ebxEntry, cancellationToken);
                 await OpenEbxMeshAsset(ebxEntry, cancellationToken);
@@ -359,6 +365,12 @@ namespace FMT.Pages.Common
 
                 if (string.IsNullOrEmpty(ebxEntry.Type) || ebxEntry.Type == "UnknownType")
                 {
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        btnRevert.IsEnabled = false;
+                        btnImport.IsEnabled = false;
+                        btnExport.IsEnabled = false;
+                    });
                     return;
                 }
 
@@ -371,16 +383,11 @@ namespace FMT.Pages.Common
                 }
 
                 var successful = await EBXViewer.LoadEbx(ebxEntry, SelectedEbxAsset, MainEditorWindow);
-                Dispatcher.Invoke(() =>
+                await Dispatcher.InvokeAsync(() =>
                 {
                     EBXViewer.Visibility = Visibility.Visible;
                 });
-                Dispatcher.Invoke(() =>
-                {
-                    btnRevert.IsEnabled = true;
-                    btnImport.IsEnabled = true;
-                    btnExport.IsEnabled = true;
-                });
+               
             }
             catch (Exception e)
             {
@@ -457,12 +464,12 @@ namespace FMT.Pages.Common
 
                 await ModelViewerEBX.LoadEbx(ebxEntry, SelectedEbxAsset, MainEditorWindow);
 
-                Dispatcher.Invoke(() =>
+                await Dispatcher.InvokeAsync(() =>
                 {
-                    this.btnExport.IsEnabled = ProfileManager.CanExportMeshes;
-                    this.btnImport.IsEnabled = ProfileManager.CanImportMeshes;
-                    this.btnRevert.IsEnabled = SelectedEntry.HasModifiedData;
                     this.layoutMeshViewer.IsSelected = true;
+                    this.btnExport.IsEnabled = ProfileManager.CanExportMeshes;
+                    this.btnImport.IsEnabled = ProfileManager.Instance.CanImportMeshes;
+                    this.btnRevert.IsEnabled = SelectedEntry.HasModifiedData;
                 });
 
             }

@@ -1,4 +1,6 @@
 using FMT.FileTools;
+using FrostySdk.Frostbite.PluginInterfaces;
+using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -8,7 +10,7 @@ namespace FrostySdk.Resources
     public class MeshSetLod
     {
         [StructLayout(LayoutKind.Explicit)]
-        private struct IndexBufferFormatStruct
+        public struct IndexBufferFormatStruct
         {
             [FieldOffset(0)]
             public int format;
@@ -17,29 +19,29 @@ namespace FrostySdk.Resources
             public IndexBufferFormat formatEnum;
         }
 
-        private readonly uint maxInstances;
+        public uint maxInstances;
 
-        private IndexBufferFormatStruct indexBufferFormat;
+        public IndexBufferFormatStruct indexBufferFormat;
 
-        private readonly string shaderDebugName;
+        public string shaderDebugName;
 
-        private readonly string name;
+        public string name;
 
-        private readonly string shortName;
+        public string shortName;
 
-        private readonly uint nameHash;
+        public uint nameHash;
 
-        private List<AxisAlignedBox> partBoundingBoxes = new List<AxisAlignedBox>();
+        public List<AxisAlignedBox> partBoundingBoxes = new List<AxisAlignedBox>();
 
-        private List<LinearTransform> partTransforms = new List<LinearTransform>();
+        public List<LinearTransform> partTransforms = new List<LinearTransform>();
 
-        private byte[] inlineData;
+        public byte[] inlineData;
 
-        private uint inlineDataOffset { get; set; }
+        public uint inlineDataOffset { get; set; }
 
-        private readonly byte[] adjacencyData;
+        public byte[] adjacencyData;
 
-        private readonly bool hasBoneShortNames;
+        public bool hasBoneShortNames;
 
         public MeshType Type { get; set; }
 
@@ -436,6 +438,14 @@ namespace FrostySdk.Resources
             {
                 throw new ArgumentNullException("meshContainer");
             }
+
+            var meshSetLodWriter = AssetManager.Instance.LoadTypeFromPluginByInterface(typeof(IMeshSetLodWriter).FullName);
+            if (meshSetLodWriter != null)
+            {
+                ((IMeshSetLodWriter)meshSetLodWriter).Write(writer, meshContainer, this);
+                return;
+            }
+
             writer.Write((int)Type);
             writer.Write(maxInstances);
             meshContainer.WriteRelocArray("SECTION", Sections, writer);

@@ -68,8 +68,8 @@ namespace FrostySdk.Frostbite.IO.Input
         {
             var resEntry = AssetManager.Instance.GetResEntry(entry.Name);
             var res = assetManager.GetRes(resEntry);
-            //MeshSet meshSet = new MeshSet(res, ProfileManager.Game, resEntry);
-            //ImportFBX(filename, meshSet, AssetManager.Instance.GetEbx(entry), entry, inSettings);
+            MeshSet meshSet = new MeshSet(res);
+            ImportFBX(filename, meshSet, AssetManager.Instance.GetEbx(entry), entry, inSettings);
         }
 
         public void ImportFBX(string filename, MeshSet inMeshSet, EbxAsset asset, EbxAssetEntry entry, MeshImportSettings inSettings)

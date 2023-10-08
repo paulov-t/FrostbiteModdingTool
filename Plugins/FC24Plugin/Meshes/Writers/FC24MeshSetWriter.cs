@@ -71,17 +71,17 @@ namespace FC24Plugin.Meshes.Writers
                 meshContainer.WriteRelocPtr("BONEBBOXES", meshSet.boneBoundingBoxes, writer);
             }
             writer.WritePadding(16);
-            foreach (MeshSetLod lod2 in meshSet.Lods)
+            foreach (MeshSetLod lod in meshSet.Lods)
             {
-                meshContainer.AddOffset("LOD", lod2, writer);
-                lod2.Write(writer, meshContainer);
+                meshContainer.AddOffset("LOD", lod, writer);
+                lod.Write(writer, meshContainer);
             }
-            foreach (MeshSetLod lod3 in meshSet.Lods)
+            foreach (MeshSetLod lod in meshSet.Lods)
             {
-                meshContainer.AddOffset("SECTION", lod3.Sections, writer);
-                foreach (MeshSetSection section3 in lod3.Sections)
+                meshContainer.AddOffset("SECTION", lod.Sections, writer);
+                foreach (MeshSetSection section in lod.Sections)
                 {
-                    section3.Process(writer, meshContainer);
+                    section.Process(writer, meshContainer);
                 }
             }
             writer.WritePadding(16);
