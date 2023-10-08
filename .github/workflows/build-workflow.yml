@@ -11,6 +11,25 @@ on:
       - '.github/*'
       - '.github/*_TEMPLATE/**'
       - '*.md'
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+      tags:
+        description: 'Test scenario tags'
+        required: false
+        type: boolean
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true
 
 jobs:
   build:
@@ -23,12 +42,21 @@ jobs:
         configuration: [Release,Debug]
     steps:
     - uses: actions/checkout@v3
+    
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 7.0.x
+        
     - name: Restore dependencies
       run: dotnet restore
 
     - name: Publish
       run: dotnet build -c ${{ matrix.configuration }}
+      
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: FMT-Build-${{ matrix.configuration }}
+        path: UI\FMT\bin\${{ matrix.configuration }}\net7.0-windows\
+        if-no-files-found: error
