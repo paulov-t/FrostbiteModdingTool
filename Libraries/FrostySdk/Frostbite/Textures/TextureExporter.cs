@@ -105,31 +105,27 @@ namespace Frostbite.Textures
 
         public virtual Stream ExportToStream(Texture textureAsset, TextureUtils.ImageFormat imageFormat)
         {
+
+#if DEBUG
+            DebugBytesToFileLogger.Instance.WriteAllBytes("DecompressedImageData.bin", ((MemoryStream)textureAsset.Data).ToArray());
+#endif
+
             byte[] array = WriteToDDS(textureAsset);
             if (imageFormat == TextureUtils.ImageFormat.DDS)
                 return new MemoryStream(array);
 
             if (textureAsset.Type == TextureType.TT_2d)
             {
-                var ms = new MemoryStream();
-                using (NativeWriter nativeWriter2 = new NativeWriter(ms, true))
+                //TextureUtils.BlobData pOutData = default(TextureUtils.BlobData);
+                if(!TextureUtils.TryConvertDDSToImage(array, imageFormat, out var outputData))
                 {
-                    TextureUtils.BlobData pOutData = default(TextureUtils.BlobData);
-                    TextureUtils.ConvertDDSToImage(array, array.Length, imageFormat, ref pOutData);
-
-                    try
-                    {
-                        nativeWriter2.Write(pOutData.Data);
-                        nativeWriter2.BaseStream.Position = 0;
-                        return nativeWriter2.BaseStream;
-                    }
-                    catch (Exception ex)
-                    {
-                        var csilImage = new CSharpImageLibrary.ImageEngineImage(array);
-                        return null;
-                    }
-                 
+                    return null;
                 }
+
+#if DEBUG
+                DebugBytesToFileLogger.Instance.WriteAllBytes("DecompressedImageData_DDS.bin", outputData);
+#endif
+                return new MemoryStream(outputData);
             }
 
             return null;
@@ -172,11 +168,17 @@ namespace Frostbite.Textures
                     break;
             }
             string pxFormat = textureAsset.PixelFormat;// ((Format)int.Parse(textureAsset.PixelFormat)).ToString();
-            Vortice.DXGI.Format vorticeFormat = (Vortice.DXGI.Format)textureAsset.PixelFormatNumber;
+            //Vortice.DXGI.Format vorticeFormat = (Vortice.DXGI.Format)textureAsset.PixelFormatNumber;
             if (pxFormat.StartsWith("BC") && textureAsset.Flags.HasFlag(TextureFlags.SrgbGamma))
             {
                 pxFormat = pxFormat.Replace("UNORM", "SRGB");
             }
+
+            if (textureAsset.Flags.HasFlag(TextureFlags.Ps4))
+            {
+
+            }
+
             switch (pxFormat)
             {
                 case "NormalDXT1":
@@ -348,7 +350,8 @@ namespace Frostbite.Textures
                 {
                     nativeWriter.Write(memoryStream.ToArray());
                 }
-                return ((MemoryStream)nativeWriter.BaseStream).GetBuffer();
+                var finalBuffer = ((MemoryStream)nativeWriter.BaseStream).GetBuffer();
+                return finalBuffer;
             }
         }
     }
@@ -486,10 +489,6 @@ namespace Frostbite.Textures
 
             public void Write(NativeWriter writer)
             {
-                //IL_014e: Unknown result type (might be due to invalid IL or missing references)
-                //IL_0158: Expected I4, but got Unknown
-                //IL_015f: Unknown result type (might be due to invalid IL or missing references)
-                //IL_0169: Expected I4, but got Unknown
                 writer.Write(dwMagic);
                 writer.Write(dwSize);
                 writer.Write((int)dwFlags);

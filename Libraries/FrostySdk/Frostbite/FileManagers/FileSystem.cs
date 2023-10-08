@@ -209,6 +209,12 @@ namespace FrostySdk
             EbxSharedTypeDescriptors.LoadSharedTypeDescriptors();
 
             ZStd.Bind();
+
+            if (ProfileManager.IsLoaded(EGame.NHL23PS4))
+            {
+                Oodle.Bind(BasePath, 6);
+            }
+
             Oodle.Bind(BasePath);
 
             LoadCatalogs();

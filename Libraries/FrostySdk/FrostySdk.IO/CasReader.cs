@@ -113,6 +113,20 @@ namespace FrostySdk.IO
                 case 17:
                 case 21:
                 case 25:
+
+                    if (!Oodle.IsBound)
+                    {
+                        switch(sw)
+                        {
+                            case 17:
+                                Oodle.Bind(FileSystem.Instance.BasePath, 6);
+                                break;
+                            default:
+                                Oodle.Bind(FileSystem.Instance.BasePath, null);
+                                break;
+                        }
+                    }
+
                     if (AssociatedAssetEntry != null) AssociatedAssetEntry.OriginalCompressionType = CompressionType.Oodle;
                     result = DecompressOodle(LastCompressedBufferSize, originalSize, unobfuscate);
                     break;

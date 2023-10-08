@@ -77,6 +77,10 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
+	  <None Update="FrostbiteProfiles\FMTProfileSchema.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
 	  <None Update="FrostbiteProfiles\NHL23PS4Profile.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -190,11 +194,11 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
-	  <None Update="ThirdParty\Compression\oo2core_9_win64.dll">
+	  <None Update="ThirdParty\Compression\oo2core_6_win64.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
-	  <None Update="ThirdParty\Compression\oo2ext_9_win64.dll">
+	  <None Update="ThirdParty\Compression\oo2core_9_win64.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
@@ -279,5 +283,7 @@
 		<Message Text="1. ReferencePath:%0D%0A%09@(ReferencePath->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)', '%0D%0A%09')" />
 		<Message Text="2. ReferenceCopyLocalPaths:%0D%0A%09@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)', '%0D%0A%09')" />
 	</Target>
+	
+	<ProjectExtensions><VisualStudio><UserProperties frostbiteprofiles_4fc24profile_1json__JsonSchema="FMTProfileSchema.json" frostbiteprofiles_4fmtprofileschema_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>

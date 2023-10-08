@@ -169,7 +169,7 @@ namespace FrostbiteModdingUI.Windows
 
         private void HandleAppArguments()
         {
-            if (App.StartupArgs.Length == 0)
+            if (App.StartupArgs == null || App.StartupArgs.Length == 0)
                 return;
 
             var projectFilePath = App.StartupArgs[0];

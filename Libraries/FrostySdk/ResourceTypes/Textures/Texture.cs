@@ -1,5 +1,6 @@
 using FMT.FileTools;
 using FMT.FileTools.Modding;
+using FMT.Logging;
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Managers;
 using System;
@@ -415,19 +416,7 @@ namespace FrostySdk.Resources
             {
                 ResStream.Position = 0;
 #if DEBUG
-                if (!Directory.Exists("Debugging"))
-                    Directory.CreateDirectory("Debugging");
-
-                if (!Directory.Exists("Debugging\\Other\\"))
-                    Directory.CreateDirectory("Debugging\\Other\\");
-
-                if (File.Exists("Debugging\\Other\\_TextureExport.dat"))
-                    File.Delete("Debugging\\Other\\_TextureExport.dat");
-
-                using (FileStream fileStream = new FileStream("Debugging\\Other\\_TextureExport.dat", FileMode.OpenOrCreate))
-                {
-                    ResStream.CopyTo(fileStream);
-                }
+                DebugBytesToFileLogger.Instance.WriteAllBytes("TextureAssetExport", ((MemoryStream)ResStream).ToArray());
                 ResStream.Position = 0;
 #endif
 

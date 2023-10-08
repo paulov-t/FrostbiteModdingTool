@@ -33,12 +33,21 @@ namespace FrostySdk.ThirdParty
 
         internal static LoadLibraryHandle handle;
 
-        public static void Bind(string basePath)
+        public static bool IsBound { get; set; }
+
+        public static void Bind(string basePath, int? specificVersion = null)
         {
+            if (IsBound)
+                return;
+
             string lib = Directory.EnumerateFiles(basePath, "oo2core_*").FirstOrDefault();
             if (lib == null)
             {
-                lib = Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "ThirdParty"), "oo2core_*", enumerationOptions: new EnumerationOptions() { RecurseSubdirectories = true }).FirstOrDefault();
+                if(specificVersion == null)
+                    lib = Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "ThirdParty"), "oo2core_*", enumerationOptions: new EnumerationOptions() { RecurseSubdirectories = true }).LastOrDefault();
+                else
+                    lib = Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "ThirdParty"), $"oo2core_{specificVersion}*", enumerationOptions: new EnumerationOptions() { RecurseSubdirectories = true }).LastOrDefault(x => x.Contains(specificVersion.ToString()));
+
             }
 
             if (!string.IsNullOrEmpty(lib) && File.Exists(lib))
@@ -60,6 +69,8 @@ namespace FrostySdk.ThirdParty
             {
 
             }
+
+            IsBound = true; 
         }
 
         static int GetCompressedBufferSizeNeeded(int size)

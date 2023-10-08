@@ -1,0 +1,23 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "FMT Profile",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "Name": {
+      "type": [
+        "string"
+      ]
+    },
+    "DisplayName": {
+      "type": [
+        "string"
+      ]
+    },
+    "DataVersion": {
+      "type": [
+        "number"
+      ]
+    }
+  }
+}

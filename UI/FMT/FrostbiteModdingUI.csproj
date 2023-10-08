@@ -20,9 +20,9 @@
     </PropertyGroup>
 
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+    </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<Optimize>true</Optimize>
@@ -170,9 +170,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
-    <None Update="Resources\images\FC24Cover.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    <None Update="Resources\images\FC24Cover.jpg">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	</None>
     <None Update="Resources\images\FIFA17Cover.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
