@@ -1,4 +1,5 @@
 ﻿using FIFAModdingUI;
+using FIFAModdingUI.Pages.Common;
 using FIFAModdingUI.Windows;
 using FIFAModdingUI.Windows.Profile;
 using FMT.FileTools;
@@ -89,7 +90,14 @@ namespace FMT
            
         }
 
-        public ObservableCollection<ModList.ModItem> ListOfMods { get; set; } = new ObservableCollection<ModList.ModItem>();
+        //public ObservableCollection<ModList.ModItem> ListOfMods { get; set; } = new ObservableCollection<ModList.ModItem>();
+
+        public static readonly DependencyProperty ListOfModsProperty = DependencyProperty.Register("ListOfMods", typeof(ObservableCollection<ModList.ModItem>), typeof(LaunchWindow), new FrameworkPropertyMetadata(null));
+        public ObservableCollection<ModList.ModItem> ListOfMods
+        {
+            get => (ObservableCollection<ModList.ModItem>)GetValue(ListOfModsProperty);
+            set => SetValue(ListOfModsProperty, value);
+        }
 
         public bool EditorModIncluded { get; internal set; }
 
