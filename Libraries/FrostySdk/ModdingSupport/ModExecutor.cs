@@ -938,7 +938,7 @@ namespace ModdingSupport
                 ConfigureInstallerDataXml(false);
             }
 
-            RemoveDXGIAndCryptBaseDll();
+            RemoveCryptBaseDll();
 
             //string modPath = fs.BasePath + modDirName + "\\";
             string modPath = "\\" + ModDirectoryName + "\\";
@@ -1146,12 +1146,12 @@ namespace ModdingSupport
             return true;
         }
 
-        private void RemoveDXGIAndCryptBaseDll()
+        private void RemoveCryptBaseDll()
         {
             // --------------------------------------------------------------
-            // Unistall that crappy dxgi "fix" ------------------------------
-            if (File.Exists(FileSystem.Instance.BasePath + "\\dxgi.dll"))
-                File.Delete(FileSystem.Instance.BasePath + "\\dxgi.dll");
+            // UnInstall that crappy dxgi "fix" ------------------------------
+            //if (File.Exists(FileSystem.Instance.BasePath + "\\dxgi.dll"))
+            //    File.Delete(FileSystem.Instance.BasePath + "\\dxgi.dll");
 
             // --------------------------------------------------------------
             // Cryptbase.dll no longer used ------------------------------
