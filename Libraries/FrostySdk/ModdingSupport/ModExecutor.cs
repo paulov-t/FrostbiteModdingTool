@@ -1196,7 +1196,6 @@ namespace ModdingSupport
                 throw new FileNotFoundException($"Unable to find user *.ini to apply -dataPath={dataPath}. Please ensure EADesktop is properly installed and run at least once!");
             }
 
-            KillEADesktopProcess();
 
 
             var desiredCommandLineSetting = $"{ProfileManager.LoadedProfile.EADesktopCommandLineSetting}=-dataPath {ModDirectoryName}";
@@ -1229,6 +1228,8 @@ namespace ModdingSupport
                     )
                 {
                     FileLogger.WriteLine($"ModExecutor:RunEADesktop: -dataPath={ModDirectoryName} does not exist for this game. Setting it up.");
+                    // Kill the EA Desktop process if needed
+                    KillEADesktopProcess();
 
                     sb.AppendLine(string.Empty);
                     sb.Append(desiredCommandLineSetting);
@@ -1240,6 +1241,8 @@ namespace ModdingSupport
                 }
 
             }
+
+
 
             await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
             //ExecuteCommand("start \"" + fs.BasePath + ProfileManager.ProfileName + ".exe\"");
