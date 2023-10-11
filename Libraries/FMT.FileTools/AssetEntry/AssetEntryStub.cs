@@ -35,6 +35,7 @@ namespace FMT.FileTools.AssetEntry
 
         public List<int> Bundles { get; set; }
         public string ExtraInformation { get; set; }
+        public string Type { get; set; }
 
         public AssetEntryStub(
             EntryStubType stubType

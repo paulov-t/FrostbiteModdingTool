@@ -9,8 +9,8 @@ using Fnv1a = FMT.FileTools.Fnv1a;
 
 namespace FrostySdk.Managers
 {
-    [Serializable]
-    public class AssetEntry : IAssetEntry, INotifyPropertyChanged
+    //[Serializable]
+    public abstract class AssetEntry : IAssetEntry, INotifyPropertyChanged
     {
         public AssetEntry(ModifiedAssetEntry modifiedAssetEntry = null)
         {
@@ -296,7 +296,7 @@ namespace FrostySdk.Managers
             }
         }
 
-        public string Bundle { get; set; }
+        //public string Bundle { get; set; }
 
         private string sbFileLocation;
         public string SBFileLocation

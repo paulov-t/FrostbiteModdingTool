@@ -153,7 +153,7 @@ namespace FrostySdk.Frostbite.IO
 
             public EbxAssetEntry MatchingEbxAssetEntry => AssetManager.Instance.GetEbxEntry(FullPath);
 
-            public string Type { get { return MatchingEbxAssetEntry.Type; } }
+            public string Type { get { return MatchingEbxAssetEntry.Type; } set { } }
 
             public int Position { get; }
 

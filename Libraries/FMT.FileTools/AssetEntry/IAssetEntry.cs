@@ -21,9 +21,10 @@ namespace FMT.FileTools
 
         public long OriginalSize { get; set; }
 
-        public List<int> Bundles { get; set; }
+        public List<int> Bundles { get;  }
 
         public string ExtraInformation { get; set; }
 
+        public string Type { get; set; }
     }
 }

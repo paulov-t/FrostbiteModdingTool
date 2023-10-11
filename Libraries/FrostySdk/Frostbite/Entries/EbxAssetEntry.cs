@@ -9,8 +9,6 @@ namespace FrostySdk.Managers
         {
         }
 
-        public Guid? Guid => Id;
-
         public override string AssetType => EAssetType.ebx.ToString();
 
         public bool IsBinary { get; internal set; }
