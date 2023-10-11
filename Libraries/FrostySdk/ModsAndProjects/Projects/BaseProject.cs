@@ -56,7 +56,7 @@ namespace FrostySdk.ModsAndProjects.Projects
 
             foreach (BaseModResource r in resources)
             {
-                IAssetEntry entry = new AssetEntry();
+                IAssetEntry entry = null;
                 var t = r.GetType().Name;
                 switch (t)
                 {
@@ -133,7 +133,7 @@ namespace FrostySdk.ModsAndProjects.Projects
 
             foreach (BaseModResource r in resources)
             {
-                IAssetEntry entry = new AssetEntry();
+                IAssetEntry entry = null;
                 var t = r.GetType().Name;
                 switch (t)
                 {
@@ -196,7 +196,7 @@ namespace FrostySdk.ModsAndProjects.Projects
 
             foreach (BaseModResource r in resources)
             {
-                IAssetEntry entry = new AssetEntry();
+                IAssetEntry entry = null;
                 var t = r.GetType().Name;
                 switch (t)
                 {

@@ -496,7 +496,7 @@ namespace Madden21Plugin
                     chunkAssetEntry.LogicalSize = chunk.GetValue("logicalSize", 0u);
                     chunkAssetEntry.RangeStart = chunk.GetValue("rangeStart", 0u);
                     chunkAssetEntry.RangeEnd = chunk.GetValue("rangeEnd", 0u);
-                    chunkAssetEntry.Bundle = chunk.GetValue<string>("Bundle");
+                    //chunkAssetEntry.Bundle = chunk.GetValue<string>("Bundle");
                     chunkAssetEntry.BundledSize = chunk.GetValue("bundledSize", 0u);
                     chunkAssetEntry.IsInline = chunk.HasValue("idata");
                     chunkAssetEntry.Location = AssetDataLocation.CasNonIndexed;

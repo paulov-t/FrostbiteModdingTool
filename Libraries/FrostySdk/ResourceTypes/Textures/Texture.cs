@@ -416,7 +416,7 @@ namespace FrostySdk.Resources
             {
                 ResStream.Position = 0;
 #if DEBUG
-                DebugBytesToFileLogger.Instance.WriteAllBytes("TextureAssetExport", ((MemoryStream)ResStream).ToArray());
+                DebugBytesToFileLogger.Instance.WriteAllBytes("TextureAssetExport.bin", ((MemoryStream)ResStream).ToArray());
                 ResStream.Position = 0;
 #endif
 
