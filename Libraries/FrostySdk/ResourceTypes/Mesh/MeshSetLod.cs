@@ -141,11 +141,7 @@ namespace FrostySdk.Resources
             uint sectionCount = reader.ReadUInt();
             var sectionOffset = reader.ReadLong();
             long categoryOffset = reader.Position;
-            reader.Position = sectionOffset;
-            for (uint sectionIndex = 0u; sectionIndex < sectionCount; sectionIndex++)
-            {
-                Sections.Add(new MeshSetSection(reader, (int)sectionIndex));
-            }
+            
             reader.Position = categoryOffset;
             for (int i = 0; i < MaxCategories; i++)
             {
@@ -268,6 +264,15 @@ namespace FrostySdk.Resources
                     }
                 }
             }
+
+            // MeshSetSections
+            reader.Position = sectionOffset;
+            for (uint sectionIndex = 0u; sectionIndex < sectionCount; sectionIndex++)
+            {
+                Sections.Add(new MeshSetSection(reader, (int)sectionIndex));
+            }
+
+            // Read Shader / Name / ShortName
             reader.Position = posShaderDebug;
             shaderDebugName = reader.ReadNullTerminatedString();
             reader.Position = posFullname;

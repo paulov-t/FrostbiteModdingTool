@@ -1,5 +1,6 @@
 using FMT.FileTools;
 using FMT.FileTools.Modding;
+using FMT.Logging;
 using FrostySdk;
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.FrostySdk.Resources;
@@ -633,8 +634,9 @@ public class MeshSet
         BitConverter.TryWriteBytes(Meta.AsSpan(12), headerSize);
         var array = ((MemoryStream)nativeWriter.BaseStream).ToArray();
 #if DEBUG
-        if (File.Exists("_MeshSetNEW.dat")) File.Delete("_MeshSetNEW.dat");
-        File.WriteAllBytes("_MeshSetNEW.dat", array);
+        //if (File.Exists("_MeshSetNEW.dat")) File.Delete("_MeshSetNEW.dat");
+        //File.WriteAllBytes("_MeshSetNEW.dat", array);
+        DebugBytesToFileLogger.Instance.WriteAllBytes("MeshSetNew.bin", array);
 #endif
         return array;
     }

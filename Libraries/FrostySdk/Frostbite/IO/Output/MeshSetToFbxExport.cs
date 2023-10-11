@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using static System.Formats.Asn1.AsnWriter;
+using System.Threading.Tasks;
 //using SharpDX;
 
 namespace FrostySdk.Frostbite.IO.Output
@@ -92,10 +94,9 @@ namespace FrostySdk.Frostbite.IO.Output
                     break;
             }
             totalExportCount++;
-            MeshSet[] array = meshSets;
-            for (int k = 0; k < array.Length; k++)
+            for (int k = 0; k < meshSets.Length; k++)
             {
-                foreach (MeshSetLod lod in array[k].Lods)
+                foreach (MeshSetLod lod in meshSets[k].Lods)
                 {
                     foreach (MeshSetSection section in lod.Sections)
                     {
@@ -109,15 +110,42 @@ namespace FrostySdk.Frostbite.IO.Output
                 FbxNode pNode = this.FBXCreateSkeleton(assetManager, fbxScene, meshAsset, skeleton, ref boneNodes);
                 fbxScene.RootNode.AddChild(pNode);
             }
+            else if (meshSets[0].Lods[0].Type == MeshType.MeshType_Composite)
+            {
+                // composite skeleton has parts defined in mesh
+                FbxNode rootNode = FBXCreateCompositeSkeleton(fbxScene, meshSets[0].Lods[0].PartTransforms, ref boneNodes);
+                fbxScene.RootNode.AddChild(rootNode);
+            }
+
             currentProgress++;
-            array = meshSets;
-            foreach (MeshSet meshSet in array)
+            foreach (MeshSet meshSet in meshSets)
             {
                 for (int i = 0; i < meshSet.Lods.Count; i++)
                 {
                     FBXCreateMesh(fbxScene, meshSet.Lods[i], boneNodes);
                 }
             }
+
+            // move composite parts
+            if (meshSets[0].Type == MeshType.MeshType_Composite)
+            {
+                MeshSetLod lod = meshSets[0].Lods[0];
+                for (int i = 0; i < lod.PartTransforms.Count; i++)
+                {
+                    LinearTransform lt = lod.PartTransforms[i];
+                    FbxNode node = boneNodes[i];
+
+                    var boneMatrix = SharpDXUtils.FromLinearTransform(lt);
+
+                    //        Vector3 scale = boneMatrix.ScaleVector;
+                    //        Vector3 translation = boneMatrix.TranslationVector;
+                    //        Vector3 euler = SharpDXUtils.ExtractEulerAngles(boneMatrix);
+
+                    //        node.LclTranslation = new Vector3(translation.X, translation.Y, translation.Z);
+                    //        node.LclRotation = new Vector3(euler.X, euler.Y, euler.Z);
+                }
+            }
+
             using FbxExporter fbxExporter = new FbxExporter(fbxManager, "");
             fbxExporter.SetFileExportVersion("FBX" + fbxVersion + "00");
             int writerFormatCount = fbxManager.IOPluginRegistry.WriterFormatCount;
