@@ -133,7 +133,7 @@ namespace FrostySdk.Frostbite.IO.Input
                 }
                 if (lodsCount < meshSet.Lods.Count)
                 {
-                    Debug.WriteLine($"Mesh only has {lodsCount} LOD(s), and should have {meshSet.Lods.Count}. The missing LODs will be auto-generated from the lowest-quality LOD.");
+                    Debug.WriteLine($"Mesh has {lodsCount} LOD(s), and should have {meshSet.Lods.Count}. The missing LODs will be auto-generated from the lowest-quality LOD.");
 
                     List<FbxNode> lowestQualityLod = lodArray[lodsCount - 1];
                     for (; lodsCount < meshSet.Lods.Count; lodsCount++)
@@ -225,191 +225,247 @@ namespace FrostySdk.Frostbite.IO.Input
 
         private void ProcessLod(List<FbxNode> nodes, int lodIndex)
         {
-            MeshSetLod meshSetLod = meshSet.Lods[lodIndex];
-            List<FbxNode> list = new List<FbxNode>();
-            foreach (FbxNode node in nodes)
+            MeshSetLod meshLod = meshSet.Lods[lodIndex];
+            List<FbxNode> sectionNodes = new List<FbxNode>();
+
+            foreach (FbxNode child in nodes)
             {
-                if (node.GetNodeAttribute(FbxNodeAttribute.EType.eMesh) != null)
+                FbxNodeAttribute attr = child.GetNodeAttribute(FbxNodeAttribute.EType.eMesh);
+                if (attr != null)
                 {
-                    list.Add(node);
-                }
-            }
-            if (list.Count == 0)
-            {
-                throw new Exception("No Nodes!!");
-                //throw new FBXImportNoMeshesFoundException(lodIndex);
-            }
-            List<MeshSetSection> list2 = new List<MeshSetSection>();
-            List<MeshSetSection> list3 = new List<MeshSetSection>();
-            List<MeshSetSection> list4 = new List<MeshSetSection>();
-            foreach (MeshSetSection section in meshSetLod.Sections)
-            {
-                if (section.Name != "")
-                {
-                    list2.Add(section);
-                }
-                else if (meshSetLod.IsSectionInCategory(section, MeshSubsetCategory.MeshSubsetCategory_ZOnly))
-                {
-                    list3.Add(section);
-                }
-                else
-                {
-                    list4.Add(section);
-                }
-            }
-            List<FbxNode> list5 = new List<FbxNode>();
-            List<FbxNode> list6 = new List<FbxNode>();
-            List<FbxNode> list7 = new List<FbxNode>();
-            list5.AddRange(new FbxNode[list2.Count]);
-            foreach (FbxNode item in list)
-            {
-                string sectionName = item.Name;
-                if (sectionName.Contains(':'))
-                {
-                    sectionName = sectionName.Remove(0, sectionName.IndexOf(':') + 1);
-                }
-                int num = list2.FindIndex((MeshSetSection a) => a.Name == sectionName);
-                if (num != -1 && list5[num] == null)
-                {
-                    list5[num] = item;
-                }
-                else
-                {
-                    list6.Add(item);
-                }
-            }
-            List<byte[]> lstSectionBytes = new List<byte[]>();
-            List<List<uint>> list9 = new List<List<uint>>();
-            uint num2 = 0u;
-            uint startIndex = 0u;
-            meshSetLod.ClearBones();
-            for (int i = 0; i < list5.Count; i++)
-            {
-                FbxNode fbxNode = list5[i];
-                int sectionIndex = meshSetLod.Sections.IndexOf(list2[i]);
-                if (fbxNode == null)
-                {
-                    if (list6.Count <= 0)
-                    {
-                        list2[i].VertexCount = 0u;
-                        list2[i].PrimitiveCount = 0u;
-                        list2[i].VertexOffset = 0u;
-                        list2[i].StartIndex = 0u;
-                        continue;
-                    }
-                    fbxNode = list6.First();
-                    list6.RemoveAt(0);
-                }
-                MemoryStream memoryStream = new MemoryStream();
-                List<uint> list10 = new List<uint>();
-                ProcessSection(new FbxNode[1]
-                {
-            fbxNode
-                }, meshSetLod, sectionIndex, memoryStream, list10, num2, ref startIndex);
-                lstSectionBytes.Add(memoryStream.ToArray());
-                list9.Add(list10);
-                num2 += (uint)(int)memoryStream.Length;
-                memoryStream.Dispose();
-                list7.Add(fbxNode);
-            }
-            for (int j = 0; j < list3.Count; j++)
-            {
-                int sectionIndex2 = meshSetLod.Sections.IndexOf(list3[j]);
-                if (j == 0)
-                {
-                    MemoryStream memoryStream2 = new MemoryStream();
-                    List<uint> list11 = new List<uint>();
-                    ProcessSection(list7.ToArray(), meshSetLod, sectionIndex2, memoryStream2, list11, num2, ref startIndex);
-                    lstSectionBytes.Add(memoryStream2.ToArray());
-                    list9.Add(list11);
-                    num2 += (uint)(int)memoryStream2.Length;
-                    memoryStream2.Dispose();
-                }
-                else
-                {
-                    list3[j].VertexCount = 0u;
-                    list3[j].PrimitiveCount = 0u;
-                    list3[j].VertexOffset = 0u;
-                    list3[j].StartIndex = 0u;
-                }
-            }
-            for (int k = 0; k < list4.Count; k++)
-            {
-                int sectionIndex3 = meshSetLod.Sections.IndexOf(list4[k]);
-                if (k == 0)
-                {
-                    MemoryStream msSectionBytes = new MemoryStream();
-                    List<uint> list12 = new List<uint>();
-                    ProcessSection(list7.ToArray(), meshSetLod, sectionIndex3, msSectionBytes, list12, num2, ref startIndex);
-                    lstSectionBytes.Add(msSectionBytes.ToArray());
-                    list9.Add(list12);
-                    num2 += (uint)(int)msSectionBytes.Length;
-                    msSectionBytes.Dispose();
-                }
-                else
-                {
-                    list4[k].VertexCount = 0u;
-                    list4[k].PrimitiveCount = 0u;
-                    list4[k].VertexOffset = 0u;
-                    list4[k].StartIndex = 0u;
+                    sectionNodes.Add(child);
                 }
             }
 
-            bool flag = false;
-            foreach (MeshSetSection section2 in meshSetLod.Sections)
+            if (sectionNodes.Count == 0)
             {
-                if (section2.VertexCount > 65535)
-                {
-                    flag = true;
-                    break;
-                }
+                throw new Exception("No Mesh Sections found in FBX");
             }
-            using NativeWriter nativeWriter = new NativeWriter(new MemoryStream());
-            foreach (byte[] sectionBytes in lstSectionBytes)
-            {
-                nativeWriter.Write(sectionBytes);
-            }
-            if (!ProfileManager.IsFIFA23DataVersion())
-                nativeWriter.WritePadding(16);
 
-            meshSetLod.VertexBufferSize = (uint)nativeWriter.BaseStream.Position;
-            foreach (List<uint> item3 in list9)
+            List<MeshSetSection> meshSections = new List<MeshSetSection>();
+            List<MeshSetSection> depthSections = new List<MeshSetSection>();
+            List<MeshSetSection> shadowSections = new List<MeshSetSection>();
+
+            foreach (MeshSetSection meshSection in meshLod.Sections)
             {
-                foreach (uint item4 in item3)
+                if (!string.IsNullOrEmpty(meshSection.Name))
                 {
-                    if (flag)
+                    meshSections.Add(meshSection);
+                }
+                else
+                {
+                    if (meshLod.IsSectionInCategory(meshSection, MeshSubsetCategory.MeshSubsetCategory_ZOnly))
                     {
-                        nativeWriter.Write(item4);
+                        depthSections.Add(meshSection);
                     }
                     else
                     {
-                        nativeWriter.Write((ushort)item4);
+                        shadowSections.Add(meshSection);
                     }
                 }
             }
-            if (!ProfileManager.IsFIFA23DataVersion())
-                nativeWriter.WritePadding(16);
 
-            meshSetLod.IndexBufferSize = (uint)(nativeWriter.BaseStream.Position - meshSetLod.VertexBufferSize);
-            //meshSetLod.SetIndexBufferFormatSize(flag ? 4 : 2);
-            //meshSetLod.SetIndexBufferFormatSize(4);
-            meshSetLod.SetIndexBufferFormatSize(2);
+            List<FbxNode> sectionNodeMapping = new List<FbxNode>();
+            List<FbxNode> unclaimedNodes = new List<FbxNode>();
+            List<FbxNode> allNodes = new List<FbxNode>();
+            sectionNodeMapping.AddRange(new FbxNode[meshSections.Count]);
 
-
-            //nativeWriter.Position = 0;
-            // --------------------------------------
-            // Modifying the chunk fails --- >>
-            if (meshSetLod.ChunkId != Guid.Empty)
+            foreach (var node in sectionNodes)
             {
-                ChunkAssetEntry chunkEntry = AssetManager.Instance.GetChunkEntry(meshSetLod.ChunkId);
-                // This fools it into thinking its doing a good import, but it isn't.
-                AssetManager.Instance.ModifyChunk(chunkEntry.Id, ((MemoryStream)AssetManager.Instance.GetChunk(chunkEntry)).ToArray());
-                //    //AssetManager.Instance.ModifyChunk(meshSetLod.ChunkId, ((MemoryStream)nativeWriter.BaseStream).ToArray());
-                //    //resEntry.LinkAsset(chunkEntry);
+                string sectionName = node.Name;
+                if (sectionName.Contains(':'))
+                {
+                    // remove the lod portion of the name
+                    sectionName = sectionName.Remove(sectionName.IndexOf(':'));
+                }
+
+                int idx = meshSections.FindIndex((a) => a.Name == sectionName);
+                if (idx != -1 && sectionNodeMapping[idx] == null)
+                {
+                    sectionNodeMapping[idx] = node;
+                }
+                else
+                {
+                    unclaimedNodes.Add(node);
+                }
             }
-            else
+
+            List<byte[]> sectionsVertices = new List<byte[]>();
+            List<List<uint>> sectionsIndices = new List<List<uint>>();
+            uint vertexBufferSize = 0;
+            uint totalIndices = 0;
+
+            // clear out old bones
+            meshLod.ClearBones();
+
+            // process each mesh renderable section first
+            for (int i = 0; i < sectionNodeMapping.Count; i++)
             {
-                meshSetLod.SetInlineData(((MemoryStream)nativeWriter.BaseStream).ToArray());
+                var node = sectionNodeMapping[i];
+                int sectionIndex = meshLod.Sections.IndexOf(meshSections[i]);
+
+                if (node == null)
+                {
+                    if (unclaimedNodes.Count > 0)
+                    {
+                        node = unclaimedNodes.First();
+                        unclaimedNodes.RemoveAt(0);
+                    }
+                    else
+                    {
+                        // kill section
+                        meshSections[i].VertexCount = 0;
+                        meshSections[i].PrimitiveCount = 0;
+                        meshSections[i].VertexOffset = 0;
+                        meshSections[i].StartIndex = 0;
+                        continue;
+                    }
+                }
+
+                MemoryStream vertices = new MemoryStream();
+                List<uint> indices = new List<uint>();
+
+                ProcessSection(new FbxNode[] { node }, meshLod, sectionIndex, vertices, indices, vertexBufferSize, ref totalIndices);
+
+                sectionsVertices.Add(vertices.ToArray());
+                sectionsIndices.Add(indices);
+
+                vertexBufferSize += (uint)vertices.Length;
+                vertices.Dispose();
+
+                allNodes.Add(node);
+            }
+
+            // depth sections
+            for (int i = 0; i < depthSections.Count; i++)
+            {
+                int sectionIndex = meshLod.Sections.IndexOf(depthSections[i]);
+
+                if (i == 0)
+                {
+                    MemoryStream vertices = new MemoryStream();
+                    List<uint> indices = new List<uint>();
+
+                    ProcessSection(allNodes.ToArray(), meshLod, sectionIndex, vertices, indices, vertexBufferSize, ref totalIndices);
+
+                    sectionsVertices.Add(vertices.ToArray());
+                    sectionsIndices.Add(indices);
+
+                    vertexBufferSize += (uint)vertices.Length;
+                    vertices.Dispose();
+                }
+                else
+                {
+                    // kill section
+                    depthSections[i].VertexCount = 0;
+                    depthSections[i].PrimitiveCount = 0;
+                    depthSections[i].VertexOffset = 0;
+                    depthSections[i].StartIndex = 0;
+                }
+            }
+
+            // shadow sections
+            for (int i = 0; i < shadowSections.Count; i++)
+            {
+                int sectionIndex = meshLod.Sections.IndexOf(shadowSections[i]);
+
+                if (i == 0)
+                {
+                    MemoryStream vertices = new MemoryStream();
+                    List<uint> indices = new List<uint>();
+
+                    ProcessSection(allNodes.ToArray(), meshLod, sectionIndex, vertices, indices, vertexBufferSize, ref totalIndices);
+
+                    sectionsVertices.Add(vertices.ToArray());
+                    sectionsIndices.Add(indices);
+
+                    vertexBufferSize += (uint)vertices.Length;
+                    vertices.Dispose();
+                }
+                else
+                {
+                    // kill section
+                    shadowSections[i].VertexCount = 0;
+                    shadowSections[i].PrimitiveCount = 0;
+                    shadowSections[i].VertexOffset = 0;
+                    shadowSections[i].StartIndex = 0;
+                }
+            }
+
+            //if (ProfileManager.IsLoaded(ProfileVersion.StarWarsBattlefrontII))
+            //{
+            //    // update shader block depot mesh parameters
+            //    foreach (var depot in m_shaderBlockDepots)
+            //    {
+            //        var sbe = depot.GetSectionEntry(lodIndex);
+            //        for (int i = 0; i < meshLod.Sections.Count; i++)
+            //        {
+            //            MeshParamDbBlock meshParams = sbe.GetMeshParams(i);
+            //            if (meshParams != null)
+            //            {
+            //                meshParams.SetParameterValue("!primitiveCount", meshLod.Sections[i].PrimitiveCount);
+            //                meshParams.SetParameterValue("!vertexStreamOffsets0", meshLod.Sections[i].VertexOffset);
+            //                meshParams.SetParameterValue("!startIndex", meshLod.Sections[i].StartIndex);
+            //                meshParams.IsModified = true;
+            //            }
+            //        }
+
+            //        AssetManager.Instance.ModifyRes(depot.ResourceId, depot);
+            //        resEntry.LinkAsset(AssetManager.Instance.GetResEntry(depot.ResourceId));
+            //    }
+            //}
+
+            bool largeIndexBuffer = false;
+            foreach (var section in meshLod.Sections)
+            {
+                if (section.VertexCount > 65535)
+                {
+                    largeIndexBuffer = true;
+                    break;
+                }
+            }
+
+            // write out new chunk/inline data
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                foreach (byte[] buffer in sectionsVertices)
+                {
+                    writer.Write(buffer);
+                }
+
+                writer.WritePadding(0x10);
+                meshLod.VertexBufferSize = (uint)writer.Position;
+                foreach (List<uint> buffer in sectionsIndices)
+                {
+                    foreach (uint index in buffer)
+                    {
+                        if (largeIndexBuffer)
+                        {
+                            writer.Write(index);
+                        }
+                        else
+                        {
+                            writer.Write((ushort)index);
+                        }
+                    }
+                }
+                writer.WritePadding(0x10);
+                meshLod.IndexBufferSize = (uint)(writer.Position - meshLod.VertexBufferSize);
+                meshLod.SetIndexBufferFormatSize((largeIndexBuffer) ? 4 : 2);
+
+                if (meshLod.ChunkId != Guid.Empty)
+                {
+                    // modify the chunk
+                    AssetManager.Instance.ModifyChunk(meshLod.ChunkId, writer.ToByteArray());
+
+                    ChunkAssetEntry chunkEntry = AssetManager.Instance.GetChunkEntry(meshLod.ChunkId);
+                    resEntry.LinkAsset(chunkEntry);
+                }
+                else
+                {
+                    // modify inline data
+                    meshLod.SetInlineData(writer.ToByteArray());
+                }
             }
         }
 
