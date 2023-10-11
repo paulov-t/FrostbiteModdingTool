@@ -58,14 +58,13 @@ namespace FMT.SharedWindowFunctions
                 {
                     SaveFileDialog saveFileDialog = new SaveFileDialog();
                     //var imageFilter = "Image files (*.DDS, *.PNG)|*.DDS;*.PNG";
-                    var imageFilter = "Image files (*.PNG)|*.PNG";
+                    var imageFilter = "PNG files (*.PNG)|*.PNG|BIN files (*.BIN)|*.BIN|DDS files (*.DDS)|*.DDS";
                     saveFileDialog.Filter = imageFilter;
                     saveFileDialog.FileName = ebxAssetEntry.Filename;
                     saveFileDialog.AddExtension = true;
                     if (saveFileDialog.ShowDialog().Value)
                     {
                         await ExportAsset(ebxAssetEntry, saveFileDialog.FileName);
-
                     }
                 }
 
@@ -340,7 +339,9 @@ namespace FMT.SharedWindowFunctions
                             TextureExporter textureExporter = new TextureExporter();
                             if (isFolder)
                                 saveLocation += ".png";
-                            textureExporter.Export(texture, saveLocation, "*.png");
+
+                            textureExporter.Export(texture, saveLocation, "*" + new FileInfo(saveLocation).Extension.ToLower());
+
                             MainEditorWindow.Log($"Exported {assetEntry.Filename} to {saveLocation}");
                         }
                     }

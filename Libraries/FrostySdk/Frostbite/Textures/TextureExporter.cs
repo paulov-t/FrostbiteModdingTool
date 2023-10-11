@@ -19,6 +19,12 @@ namespace Frostbite.Textures
 
         public virtual void Export(Texture textureAsset, string filename, string filterType)
         {
+            if (filterType == null || filterType == "*.bin")
+            {
+                File.WriteAllBytes(filename, ((MemoryStream)textureAsset.Data).ToArray());
+                return;
+            }
+
             byte[] array = WriteToDDS(textureAsset);
             if (filterType.ToLower() == "*.dds")
             {
