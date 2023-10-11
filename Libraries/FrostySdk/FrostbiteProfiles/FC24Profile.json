@@ -57,7 +57,7 @@
   "EnableExecution": true,
   "SharedBundles": {},
   "IgnoredResTypes": [],
-  "CanImportMeshes": false,
+  "CanImportMeshes": true,
   "CanExportMeshes": true,
   // GeometryDeclarationDesc stream count
   "GDDMaxStreams": 16,
