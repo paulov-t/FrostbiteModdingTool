@@ -5,6 +5,7 @@ using FrostySdk.Managers;
 using FrostySdk.Resources;
 using System;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Vortice.Direct3D;
@@ -169,14 +170,14 @@ namespace Frostbite.Textures
             }
             string pxFormat = textureAsset.PixelFormat;// ((Format)int.Parse(textureAsset.PixelFormat)).ToString();
             //Vortice.DXGI.Format vorticeFormat = (Vortice.DXGI.Format)textureAsset.PixelFormatNumber;
-            if (pxFormat.StartsWith("BC") && textureAsset.Flags.HasFlag(TextureFlags.SrgbGamma))
+            if (pxFormat.StartsWith("BC") && (textureAsset.Flags.HasFlag(TextureFlags.SrgbGamma)))
             {
                 pxFormat = pxFormat.Replace("UNORM", "SRGB");
             }
 
-            if (textureAsset.Flags.HasFlag(TextureFlags.Ps4))
+            if (pxFormat.StartsWith("BC") && textureAsset.Flags.HasFlag(TextureFlags.Ps4))
             {
-
+                pxFormat = pxFormat.Replace("SRGB", "UNORM");
             }
 
             switch (pxFormat)
@@ -312,7 +313,7 @@ namespace Frostbite.Textures
             //		break;
             //}
 
-            if (dDSHeader.HasExtendedHeader)
+            if (dDSHeader.HasExtendedHeader && dDSHeader.ddspf.dwFourCC == 0)
             {
                 dDSHeader.ddspf.dwFourCC = 808540228;
             }
@@ -348,11 +349,84 @@ namespace Frostbite.Textures
                 }
                 else
                 {
-                    nativeWriter.Write(memoryStream.ToArray());
+                    // If it is a PS4 texture. Make some changes.
+                    if (textureAsset.Flags.HasFlag(TextureFlags.Ps4))
+                    {
+		                var arraySize = textureAsset.width * textureAsset.height * 4 / 8;
+                        //byte[] array = new byte[arraySize];
+                        byte[] array = new byte[textureAsset.Data.Length];
+
+                        using (var nr = new NativeReader(new MemoryStream(memoryStream.ToArray())))
+                        {
+                            using (var nw = new NativeWriter(new MemoryStream()))
+                            {
+                                byte[] buf = new byte[16];
+                                int h = textureAsset.height / 4;
+                                int w = textureAsset.width / 4;
+                                int num5 = 4;
+                                for (int i = 0; i < (h + 7) / 8; i++)
+                                {
+                                    for (int j = 0; j < (w + 7) / 8; j++)
+                                    {
+                                        for (int k = 0; k < 64; k++)
+                                        {
+                                            int mortChange = morton(k, 8, 8);
+                                            int num9 = mortChange / 8;
+                                            int num10 = mortChange % 8;
+                                            nr.Read(buf, 0, num5);
+                                            if (j * 8 + num10 < w && i * 8 + num9 < h)
+                                            {
+                                                int destinationIndex = num5 * ((i * 8 + num9) * w + j * 8 + num10);
+                                                Array.Copy(buf, 0, array, destinationIndex, num5);
+                                            }
+                                        }
+                                    }
+                                }
+                                nw.Write(array, 0, (int)textureAsset.Data.Length);
+                            }
+                        }
+                        nativeWriter.Write(array);
+
+                    }
+                    else 
+                    {
+                        nativeWriter.Write(memoryStream.ToArray());
+                    }
                 }
                 var finalBuffer = ((MemoryStream)nativeWriter.BaseStream).GetBuffer();
                 return finalBuffer;
             }
+        }
+
+        private static int morton(int t, int sx, int sy)
+        {
+            int num = 0;
+            int num2 = 0;
+            int num3;
+            int num4 = (num3 = 1);
+            int num5 = t;
+            int num6 = sx;
+            int num7 = sy;
+            num = 0;
+            num2 = 0;
+            while (num6 > 1 || num7 > 1)
+            {
+                if (num6 > 1)
+                {
+                    num += num4 * (num5 & 1);
+                    num5 >>= 1;
+                    num4 *= 2;
+                    num6 >>= 1;
+                }
+                if (num7 > 1)
+                {
+                    num2 += num3 * (num5 & 1);
+                    num5 >>= 1;
+                    num3 *= 2;
+                    num7 >>= 1;
+                }
+            }
+            return num2 * sx + num;
         }
     }
 }
