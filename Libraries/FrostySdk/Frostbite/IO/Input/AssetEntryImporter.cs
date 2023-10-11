@@ -31,10 +31,10 @@ namespace FrostySdk.Frostbite.IO.Input
         private string jsonFilter = "JSON files (*.json)|*.json";
         private string fbxFilter = "FBX files (*.fbx)|*.fbx";
 
-        public AssetEntry AssetEntry { get; }
-        public AssetEntry SelectedEntry => AssetEntry;
+        public IAssetEntry AssetEntry { get; }
+        public IAssetEntry SelectedEntry => AssetEntry;
 
-        public AssetEntryImporter(AssetEntry assetEntry) { AssetEntry = assetEntry; }
+        public AssetEntryImporter(IAssetEntry assetEntry) { AssetEntry = assetEntry; }
 
         /// <summary>
         /// 
@@ -50,9 +50,9 @@ namespace FrostySdk.Frostbite.IO.Input
             }
 
             // Ebx Entry Import
-            if (AssetEntry is EbxAssetEntry)
+            if (AssetEntry is EbxAssetEntry ebxAssetEntry)
             {
-                ReadOnlySpan<char> entryType = SelectedEntry.Type.ToCharArray();
+                ReadOnlySpan<char> entryType = ebxAssetEntry.Type.ToCharArray();
                 if (entryType.StartsWith("TextureAsset", StringComparison.OrdinalIgnoreCase) || entryType.StartsWith("Texture", StringComparison.OrdinalIgnoreCase))
                     return ImportEbxTexture(path);
 
