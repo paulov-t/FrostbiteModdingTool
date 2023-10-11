@@ -241,10 +241,10 @@ namespace FMT
 
         private void MainWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if(Visibility == Visibility.Visible)
-            {
-                GCHelpers.ClearGarbage(true);
-            }
+            //if(Visibility == Visibility.Visible)
+            //{
+            //    GCHelpers.ClearGarbage(true);
+            //}
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)
