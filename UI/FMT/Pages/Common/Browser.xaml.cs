@@ -3,6 +3,7 @@ using CSharpImageLibrary;
 using FMT;
 using FMT.FileTools;
 using FMT.Pages.Common;
+using FMT.SharedWindowFunctions;
 using FMT.Sound;
 using FolderBrowserEx;
 using Frostbite.Textures;
@@ -10,13 +11,16 @@ using FrostbiteModdingUI.Models;
 using FrostbiteModdingUI.Windows;
 using FrostbiteSdk;
 using FrostySdk;
+using FrostySdk.Frostbite.IO;
 using FrostySdk.Frostbite.IO.Input;
 using FrostySdk.Frostbite.IO.Output;
 using FrostySdk.IO;
 using FrostySdk.Managers;
 using FrostySdk.Resources;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using SdkGenerator;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -269,7 +273,8 @@ namespace FIFAModdingUI.Pages.Common
                     if (assetPathMapping.ContainsKey("/" + item.Path))
                     {
                         var fileAssetPath = new AssetPath(item.DisplayName, "/" + item.Path + "/" + item.Filename, assetPathMapping["/" + item.Path], false);
-                        fileAssetPath.Asset = item;
+                        //fileAssetPath.Asset = item;
+                        fileAssetPath.AssetType = item.GetType();
                         assetPathMapping["/" + item.Path].Children.Add(fileAssetPath);
                     }
                 }
@@ -422,87 +427,27 @@ namespace FIFAModdingUI.Pages.Common
             }
         }
 
-        private async void btnImport_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var labelTag = ((MenuItem)sender).Tag as AssetPath;
-                if (labelTag == null)
-                    return;
-
-                SelectedEntry = (AssetEntry)labelTag.Asset;
-                if (SelectedEntry == null)
-                    return;
-
-                try
-                {
-                    AssetEntryImporter assetEntryImporter = new AssetEntryImporter(SelectedEntry);
-                    var openFileDialog = assetEntryImporter.GetOpenDialogWithFilter();
-                    var dialogResult = openFileDialog.ShowDialog();
-                    if (dialogResult.HasValue && dialogResult.Value == true)
-                    {
-                        MainEditorWindow.Log("Importing " + openFileDialog.FileName);
-
-                        if (SelectedEntry.Type == "SkinnedMeshAsset")
-                        {
-                            var skeletonEntryText = "content/character/rig/skeleton/player/skeleton_player";
-                            MeshSkeletonSelector meshSkeletonSelector = new MeshSkeletonSelector();
-                            var meshSelectorResult = meshSkeletonSelector.ShowDialog();
-                            if (meshSelectorResult.HasValue && meshSelectorResult.Value)
-                            {
-                                if (!meshSelectorResult.Value)
-                                {
-                                    MessageBox.Show("Cannot import without a Skeleton");
-                                    return;
-                                }
-
-                                skeletonEntryText = meshSkeletonSelector.AssetEntry.Name;
-                                assetEntryImporter.ImportEbxSkinnedMesh(openFileDialog.FileName, skeletonEntryText);
-
-                            }
-                            else
-                            {
-                                MessageBox.Show("Cannot import without a Skeleton");
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            var importResult = await assetEntryImporter.ImportAsync(openFileDialog.FileName);
-                            if (!importResult)
-                            {
-                                MainEditorWindow.LogError("Failed to import file to " + SelectedEntry.Name);
-                                return;
-                            }
-
-                            MainEditorWindow.Log($"Imported file {openFileDialog.FileName} to {SelectedEntry.Name} successfully.");
-                        }
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    MainEditorWindow.LogError(ex.Message + Environment.NewLine);
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-
         private void btnRevert_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                var labelTag = ((MenuItem)sender).Tag as AssetPath;
-                if (labelTag == null)
+                var assetPath = ((MenuItem)sender).Tag as AssetPath;
+                if (assetPath == null)
                     return;
 
-                var assetEntry = labelTag.Asset;
+                IAssetEntry assetEntry = assetPath.GetAssetEntry();
                 if (assetEntry == null)
                     return;
 
                 AssetManager.Instance.RevertAsset(assetEntry);
+                assetPath.Asset = assetEntry;
+
+                var indexOfOpenedFile = browserDocuments.Children.FindIndex(x => x.Title == assetEntry.Filename);
+                if (indexOfOpenedFile != -1)
+                    browserDocuments.Children.RemoveAt(indexOfOpenedFile);
+
+                if (AssetManager.Instance.Logger != null)
+                    AssetManager.Instance.Logger.Log($"{assetEntry.Name} has been reverted");
             }
             catch (Exception)
             {
@@ -717,13 +662,41 @@ namespace FIFAModdingUI.Pages.Common
             }
         }
 
+        private IAssetEntry GetAssetEntry(AssetPath assetPath)
+        {
+            IAssetEntry assetEntry = null;
+            var assetType = assetPath.AssetType;
+            if (assetType == null)
+                return null;
+
+            var path = assetPath.Parent != null && !string.IsNullOrEmpty(assetPath.Parent.FullPath) ? assetPath.Parent.FullPath.Substring(1) : null;
+            path += "/" + assetPath.PathName;
+            switch (assetType.Name)
+            {
+                case "EbxAssetEntry":
+                    assetEntry = AssetManager.Instance.GetEbxEntry(assetPath.FullPath.Substring(1));
+                    break;
+                case "ResAssetEntry":
+                    break;
+                case "ChunkAssetEntry":
+                    break;
+                case "LegacyFileEntry":
+                    assetEntry = AssetManager.Instance.GetCustomAssetEntry("legacy", path);
+                    break;
+                case "LiveTuningUpdateEntry":
+                    break;
+            }
+
+            return assetEntry;
+        }
+
         private void Label_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var labelTag = ((ContentControl)sender).Tag as AssetPath;
-            if (labelTag == null)
+            var assetPath = ((ContentControl)sender).Tag as AssetPath;
+            if (assetPath == null)
                 return;
 
-            var assetEntry = labelTag.Asset;
+            var assetEntry = GetAssetEntry(assetPath);
             if (assetEntry == null)
                 return;
 
@@ -766,9 +739,95 @@ namespace FIFAModdingUI.Pages.Common
         {
             _ = Update();
         }
+
+        private async void btnExport_Click(object sender, RoutedEventArgs e)
+        {
+            var assetPath = ((MenuItem)sender).Tag as AssetPath;
+            if (assetPath == null)
+                return;
+
+            var assetEntry = GetAssetEntry(assetPath);
+            if (assetEntry == null)
+                return;
+
+            await new Exporting().Export(assetEntry);
+        }
+
+
+        private async void btnImport_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var labelTag = ((MenuItem)sender).Tag as AssetPath;
+                if (labelTag == null)
+                    return;
+
+                IAssetEntry assetEntry = null;
+                //var assetEntry = labelTag.Asset;
+
+                //SelectedEntry = (AssetEntry)labelTag.Asset;
+                if (SelectedEntry == null)
+                    return;
+
+                try
+                {
+                    AssetEntryImporter assetEntryImporter = new AssetEntryImporter(SelectedEntry);
+                    var openFileDialog = assetEntryImporter.GetOpenDialogWithFilter();
+                    var dialogResult = openFileDialog.ShowDialog();
+                    if (dialogResult.HasValue && dialogResult.Value == true)
+                    {
+                        MainEditorWindow.Log("Importing " + openFileDialog.FileName);
+
+                        if (SelectedEntry.Type == "SkinnedMeshAsset")
+                        {
+                            var skeletonEntryText = "content/character/rig/skeleton/player/skeleton_player";
+                            MeshSkeletonSelector meshSkeletonSelector = new MeshSkeletonSelector();
+                            var meshSelectorResult = meshSkeletonSelector.ShowDialog();
+                            if (meshSelectorResult.HasValue && meshSelectorResult.Value)
+                            {
+                                if (!meshSelectorResult.Value)
+                                {
+                                    MessageBox.Show("Cannot import without a Skeleton");
+                                    return;
+                                }
+
+                                skeletonEntryText = meshSkeletonSelector.AssetEntry.Name;
+                                assetEntryImporter.ImportEbxSkinnedMesh(openFileDialog.FileName, skeletonEntryText);
+
+                            }
+                            else
+                            {
+                                MessageBox.Show("Cannot import without a Skeleton");
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            var importResult = await assetEntryImporter.ImportAsync(openFileDialog.FileName);
+                            if (!importResult)
+                            {
+                                MainEditorWindow.LogError("Failed to import file to " + SelectedEntry.Name);
+                                return;
+                            }
+
+                            MainEditorWindow.Log($"Imported file {openFileDialog.FileName} to {SelectedEntry.Name} successfully.");
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    MainEditorWindow.LogError(ex.Message + Environment.NewLine);
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
     }
 
-    public class AssetPath : INotifyPropertyChanged
+    public class AssetPath
     {
         private string fullPath;
 
@@ -776,34 +835,29 @@ namespace FIFAModdingUI.Pages.Common
 
         private bool expanded;
 
-        private bool selected;
-
         private bool root;
 
         private AssetPath parent;
 
-        private List<AssetPath> children = new List<AssetPath>();
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public string DisplayName => name.Trim('!');
 
-        public string PathName
-        {
-            get
-            {
+        //public string PathName
+        //{
+        //    get
+        //    {
 
-                return IsModified ? "!" + name : name;
+        //        return IsModified ? "!" + name : name;
 
-            }
-            set { name = value; }
-        }
+        //    }
+        //    set { name = value; }
+        //}
+        public string PathName => name;
 
         public string FullPath => fullPath;
 
         public AssetPath Parent => parent;
 
-        public List<AssetPath> Children => children;
+        public List<AssetPath> Children { get; } = new List<AssetPath>();
 
         public bool IsExpanded
         {
@@ -821,30 +875,71 @@ namespace FIFAModdingUI.Pages.Common
             }
         }
 
-        public bool IsSelected
-        {
-            get
-            {
-                return selected;
-            }
-            set
-            {
-                selected = value;
-            }
-        }
+        public bool IsSelected;
 
         public bool IsRoot => root;
 
-        public IAssetEntry Asset { get; internal set; }
+        public IAssetEntry Asset { get; set; }
+
+        //public static readonly DependencyProperty AssetProperty = DependencyProperty.Register("Asset", typeof(IAssetEntry), typeof(AssetPath), new FrameworkPropertyMetadata(null));
+        //public IAssetEntry Asset
+        //{
+        //    get { return GetValue(AssetProperty) as IAssetEntry; }
+        //    set => SetValue(AssetProperty, value);
+        //}
+
+        public Type AssetType { get; set; }
 
         public bool IsModified
         {
             get
             {
-
-                return Asset != null && Asset.IsModified;
-
+                return AssetType != null && GetAssetEntry() != null ? GetAssetEntry().IsModified : false;
             }
+        }
+
+        public Visibility CanExportFolder { get { return AssetType == null ? Visibility.Visible : Visibility.Collapsed; } }
+        public Visibility CanImportFolder { get { return AssetType == null ? Visibility.Visible : Visibility.Collapsed; } }
+        public Visibility CanImportExportAsset { get { return AssetType != null ? Visibility.Visible : Visibility.Collapsed; } }
+        public Visibility CanImportAsset { get { return AssetType != null ? Visibility.Visible : Visibility.Collapsed; } }
+        public Visibility CanExportAsset { get { return AssetType != null ? Visibility.Visible : Visibility.Collapsed; } }
+        public Visibility CanRevertAsset { get { return AssetType != null && GetAssetEntry().IsModified ? Visibility.Visible : Visibility.Collapsed; } }
+
+        public IAssetEntry GetAssetEntry()
+        {
+            if (Asset != null)
+                return Asset;
+
+            if (AssetType == null)
+                return null;
+
+            var assetTypeString = AssetType.Name;
+
+            IAssetEntry assetEntry = null;
+
+            var path = Parent != null && !string.IsNullOrEmpty(Parent.FullPath) ? Parent.FullPath.Substring(1) : null;
+            path += "/" + PathName;
+            switch (assetTypeString)
+            {
+                case "EbxAssetEntry":
+                    assetEntry = AssetManager.Instance.GetEbxEntry(FullPath.Substring(1));
+                    break;
+                case "ResAssetEntry":
+                    break;
+                case "ChunkAssetEntry":
+                    break;
+                case "LegacyFileEntry":
+                    assetEntry = AssetManager.Instance.GetCustomAssetEntry("legacy", path);
+                    break;
+                case "LiveTuningUpdateEntry":
+                    assetEntry = FileSystem.Instance.LiveTuningUpdate.LiveTuningUpdateEntries.ContainsKey(path) 
+                        ? FileSystem.Instance.LiveTuningUpdate.LiveTuningUpdateEntries[path]
+                        : null;
+                    break;
+            }
+
+            Asset = assetEntry;
+            return assetEntry;
         }
 
         public AssetPath(string inName, string path, AssetPath inParent, bool bInRoot = false)

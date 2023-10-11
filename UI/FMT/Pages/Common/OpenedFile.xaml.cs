@@ -3,6 +3,7 @@ using CSharpImageLibrary;
 using FMT.FileTools;
 using FMT.FileTools.AssetEntry;
 using FMT.Logging;
+using FMT.SharedWindowFunctions;
 using FMT.Sound;
 using Frostbite.Textures;
 using FrostbiteModdingUI.Models;
@@ -48,21 +49,28 @@ namespace FMT.Pages.Common
 
         #region Entry Properties
 
-        private AssetEntry assetEntry1;
+        //private AssetEntry assetEntry1;
 
-        public AssetEntry SelectedEntry
+        //public AssetEntry SelectedEntry
+        //{
+        //    get
+        //    {
+        //        if (assetEntry1 == null && SelectedLegacyEntry != null)
+        //            return SelectedLegacyEntry;
+
+        //        return assetEntry1;
+        //    }
+        //    set { assetEntry1 = value; }
+        //}
+
+        //public LegacyFileEntry SelectedLegacyEntry { get; set; }
+
+        public static readonly DependencyProperty SelectedEntryProperty = DependencyProperty.Register("SelectedEntry", typeof(IAssetEntry), typeof(OpenedFile), new FrameworkPropertyMetadata(null));
+        public IAssetEntry SelectedEntry
         {
-            get
-            {
-                if (assetEntry1 == null && SelectedLegacyEntry != null)
-                    return SelectedLegacyEntry;
-
-                return assetEntry1;
-            }
-            set { assetEntry1 = value; }
+            get => (IAssetEntry)GetValue(SelectedEntryProperty);
+            set => SetValue(SelectedEntryProperty, value);
         }
-
-        public LegacyFileEntry SelectedLegacyEntry { get; set; }
 
         private EbxAsset ebxAsset;
 
@@ -87,16 +95,7 @@ namespace FMT.Pages.Common
         {
             InitializeComponent();
 
-            SelectedLegacyEntry = null;
-            if (entry is LegacyFileEntry legacyFileEntry)
-            {
-                SelectedEntry = legacyFileEntry;
-                SelectedLegacyEntry = legacyFileEntry;
-            }
-            else
-            {
-                SelectedEntry = (AssetEntry)entry;
-            }
+            SelectedEntry = entry;
 
             Loaded += OpenedFile_Loaded;
         }
@@ -169,7 +168,6 @@ namespace FMT.Pages.Common
                 LegacyFileEntry chunkFileEntry = entry as LegacyFileEntry;
                 if (chunkFileEntry != null)
                 {
-                    SelectedLegacyEntry = chunkFileEntry;
                     btnImport.IsEnabled = true;
                     if(layoutEbxViewer.Content != null)
                         layoutEbxViewer.Close();
@@ -211,7 +209,7 @@ namespace FMT.Pages.Common
 
                     if (textViewers.Contains(chunkFileEntry.Type))
                     {
-                        MainEditorWindow.Log("Loading Legacy File " + SelectedLegacyEntry.Filename);
+                        MainEditorWindow.Log("Loading Legacy File " + SelectedEntry.Filename);
 
                         btnImport.IsEnabled = true;
                         btnExport.IsEnabled = true;
@@ -222,10 +220,18 @@ namespace FMT.Pages.Common
                         {
                             TextViewer.Text = Encoding.UTF8.GetString(nr.ReadToEnd());
                         }
+
+                        if (layoutImageViewer.Content != null)
+                            layoutImageViewer.Close();
+
+                        if (layoutSoundViewer.Content != null)
+                            layoutSoundViewer.Close();
+
+                        layoutTextViewer.IsSelected = true;
                     }
                     else if (imageViewers.Contains(chunkFileEntry.Type))
                     {
-                        MainEditorWindow.Log("Loading Legacy File " + SelectedLegacyEntry.Filename);
+                        MainEditorWindow.Log("Loading Legacy File " + SelectedEntry.Filename);
                         btnImport.IsEnabled = true;
                         btnExport.IsEnabled = true;
 
@@ -266,7 +272,7 @@ namespace FMT.Pages.Common
                     }
                     else
                     {
-                        MainEditorWindow.Log("Loading Unknown Legacy File " + SelectedLegacyEntry.Filename);
+                        MainEditorWindow.Log("Loading Unknown Legacy File " + SelectedEntry.Filename);
                         btnExport.IsEnabled = true;
                         btnImport.IsEnabled = true;
                         btnRevert.IsEnabled = true;
@@ -414,7 +420,7 @@ namespace FMT.Pages.Common
             {
                 OpenHarmonyAsset(ebxEntry);
             }
-            App.ShowUnsupportedMessageBox(SelectedEntry.Type);
+            App.ShowUnsupportedMessageBox(ebxEntry.Type);
 
             return Task.CompletedTask;
         }
@@ -439,7 +445,7 @@ namespace FMT.Pages.Common
             {
 
             }
-            App.ShowUnsupportedMessageBox(SelectedEntry.Type);
+            App.ShowUnsupportedMessageBox(ebxEntry.Type);
 
             return Task.CompletedTask;
 
@@ -469,7 +475,7 @@ namespace FMT.Pages.Common
                     this.layoutMeshViewer.IsSelected = true;
                     this.btnExport.IsEnabled = ProfileManager.CanExportMeshes;
                     this.btnImport.IsEnabled = ProfileManager.Instance.CanImportMeshes;
-                    this.btnRevert.IsEnabled = SelectedEntry.HasModifiedData;
+                    this.btnRevert.IsEnabled = ebxEntry.HasModifiedData;
                 });
 
             }
@@ -866,251 +872,7 @@ namespace FMT.Pages.Common
             _ = UpdateLoadingVisibility(true);
             try
             {
-                if (SelectedLegacyEntry != null)
-                {
-                    SaveFileDialog saveFileDialog = new SaveFileDialog();
-                    var filt = "*." + SelectedLegacyEntry.Type;
-                    if (SelectedLegacyEntry.Type == "DDS")
-                        saveFileDialog.Filter = "Image files (*.png,*.dds)|*.png;*.dds;";
-                    else
-                        saveFileDialog.Filter = filt.Split('.')[1] + " files (" + filt + ")|" + filt;
-
-                    saveFileDialog.FileName = SelectedLegacyEntry.Filename;
-
-                    if (saveFileDialog.ShowDialog().Value)
-                    {
-                        await ExportAsset(SelectedLegacyEntry, saveFileDialog.FileName);
-                    }
-                }
-                else if (SelectedEntry != null)
-                {
-                    if (SelectedEntry.Type == "TextureAsset")
-                    {
-                        SaveFileDialog saveFileDialog = new SaveFileDialog();
-                        //var imageFilter = "Image files (*.DDS, *.PNG)|*.DDS;*.PNG";
-                        var imageFilter = "Image files (*.PNG)|*.PNG";
-                        saveFileDialog.Filter = imageFilter;
-                        saveFileDialog.FileName = SelectedEntry.Filename;
-                        saveFileDialog.AddExtension = true;
-                        if (saveFileDialog.ShowDialog().Value)
-                        {
-                            await ExportAsset(SelectedEntry, saveFileDialog.FileName);
-
-                            //var resEntry = ProjectManagement.Instance.Project.AssetManager.GetResEntry(SelectedEntry.Name);
-                            //if (resEntry != null)
-                            //{
-
-                            //	using (var resStream = ProjectManagement.Instance.Project.AssetManager.GetRes(resEntry))
-                            //	{
-                            //		Texture texture = new Texture(resStream, ProjectManagement.Instance.Project.AssetManager);
-                            //		var extractedExt = saveFileDialog.FileName.Substring(saveFileDialog.FileName.Length - 3, 3);
-                            //		TextureExporter textureExporter = new TextureExporter();
-                            //		textureExporter.Export(texture, saveFileDialog.FileName, "*." + extractedExt);
-                            //		MainEditorWindow.Log($"Exported {SelectedEntry.Filename} to {saveFileDialog.FileName}");
-                            //	}
-
-
-                            //}
-                        }
-                    }
-
-                    else if (SelectedEntry.Type == "HotspotDataAsset")
-                    {
-                        var ebx = AssetManager.Instance.GetEbx((EbxAssetEntry)SelectedEntry);
-                        if (ebx != null)
-                        {
-                            SaveFileDialog saveFileDialog = new SaveFileDialog();
-                            var filt = "*.json";
-                            saveFileDialog.Filter = filt.Split('.')[1] + " files (" + filt + ")|" + filt;
-                            saveFileDialog.FileName = SelectedEntry.Filename;
-                            var dialogAnswer = saveFileDialog.ShowDialog();
-                            if (dialogAnswer.HasValue && dialogAnswer.Value)
-                            {
-                                var json = JsonConvert.SerializeObject(ebx.RootObject, Formatting.Indented);
-                                File.WriteAllText(saveFileDialog.FileName, json);
-                                MainEditorWindow.Log($"Exported {SelectedEntry.Filename} to {saveFileDialog.FileName}");
-                            }
-                        }
-                        else
-                        {
-                            MainEditorWindow.Log("Failed to export file");
-                        }
-                    }
-
-                    else if (SelectedEntry.Type == "SkinnedMeshAsset")
-                    {
-                        var skinnedMeshEntry = (EbxAssetEntry)SelectedEntry;
-                        if (skinnedMeshEntry != null)
-                        {
-
-                            var skinnedMeshEbx = AssetManager.Instance.GetEbx(skinnedMeshEntry);
-                            if (skinnedMeshEbx != null)
-                            {
-                                
-                                var skeletonEntryText = "content/character/rig/skeleton/player/skeleton_player";
-                                var fifaMasterSkeleton = AssetManager.Instance.EBX.ContainsKey(skeletonEntryText);
-                                if (!fifaMasterSkeleton)
-                                {
-                                    MeshSkeletonSelector meshSkeletonSelector = new MeshSkeletonSelector();
-                                    var meshSelectorResult = meshSkeletonSelector.ShowDialog();
-                                    if (meshSelectorResult.HasValue && meshSelectorResult.Value)
-                                    {
-                                        if (!meshSelectorResult.Value)
-                                        {
-                                            MessageBox.Show("Cannot export without a Skeleton");
-                                            return;
-                                        }
-
-                                        skeletonEntryText = meshSkeletonSelector.AssetEntry.Name;
-
-                                    }
-                                    else
-                                    {
-                                        MessageBox.Show("Cannot export without a Skeleton");
-                                        return;
-                                    }
-                                }
-
-                                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                                var filt = "*.fbx";
-                                saveFileDialog.Filter = filt.Split('.')[1] + " files (" + filt + ")|" + filt;
-                                saveFileDialog.FileName = SelectedEntry.Filename;
-                                var dialogAnswer = saveFileDialog.ShowDialog();
-                                if (dialogAnswer.HasValue && dialogAnswer.Value)
-                                {
-                                    var exporter = new MeshSetToFbxExport();
-                                    MeshSet meshSet = exporter.LoadMeshSet(skinnedMeshEntry);
-                                    exporter.Export(AssetManager.Instance
-                                        , skinnedMeshEbx.RootObject
-                                        , saveFileDialog.FileName, "FBX_2012", "Meters", true, skeletonEntryText, "*.fbx", meshSet);
-
-
-                                    MainEditorWindow.Log($"Exported {SelectedEntry.Name} to {saveFileDialog.FileName}");
-
-
-                                }
-                            }
-                        }
-                    }
-                    else if (SelectedEntry.Type == "CompositeMeshAsset" || SelectedEntry.Type == "RigidMeshAsset")
-                    {
-                        var rigidMeshEntry = (EbxAssetEntry)SelectedEntry;
-                        if (rigidMeshEntry != null)
-                        {
-
-                            var skinnedMeshEbx = AssetManager.Instance.GetEbx(rigidMeshEntry);
-                            if (skinnedMeshEbx != null)
-                            {
-
-                                var skeletonEntryText = "content/character/rig/skeleton/player/skeleton_player";
-                                var fifaMasterSkeleton = AssetManager.Instance.EBX.ContainsKey(skeletonEntryText);
-                                if (!fifaMasterSkeleton)
-                                {
-                                    MeshSkeletonSelector meshSkeletonSelector = new MeshSkeletonSelector();
-                                    var meshSelectorResult = meshSkeletonSelector.ShowDialog();
-                                    if (meshSelectorResult.HasValue && meshSelectorResult.Value)
-                                    {
-                                        if (!meshSelectorResult.Value)
-                                        {
-                                            MessageBox.Show("Cannot export without a Skeleton");
-                                            return;
-                                        }
-
-                                        skeletonEntryText = meshSkeletonSelector.AssetEntry.Name;
-
-                                    }
-                                    else
-                                    {
-                                        MessageBox.Show("Cannot export without a Skeleton");
-                                        return;
-                                    }
-                                }
-
-                                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                                var filt = "*.fbx";
-                                saveFileDialog.Filter = filt.Split('.')[1] + " files (" + filt + ")|" + filt;
-                                saveFileDialog.FileName = SelectedEntry.Filename;
-                                var dialogAnswer = saveFileDialog.ShowDialog();
-                                if (dialogAnswer.HasValue && dialogAnswer.Value)
-                                {
-                                    var exporter = new MeshSetToFbxExport();
-                                    MeshSet meshSet = exporter.LoadMeshSet(rigidMeshEntry);
-                                    exporter.Export(AssetManager.Instance
-                                        , skinnedMeshEbx.RootObject
-                                        , saveFileDialog.FileName, "FBX_2012", "Meters", true, null, "*.fbx", meshSet);
-
-
-                                    MainEditorWindow.Log($"Exported {SelectedEntry.Name} to {saveFileDialog.FileName}");
-
-
-                                }
-                            }
-                        }
-                    }
-
-                    else
-                    {
-                        var ebx = AssetManager.Instance.GetEbxStream((EbxAssetEntry)SelectedEntry);
-                        if (ebx != null)
-                        {
-                            MessageBoxResult useJsonResult = MessageBox.Show(
-                                                                    "Would you like to Export as JSON?"
-                                                                    , "Export as JSON?"
-                                                                    , MessageBoxButton.YesNoCancel);
-                            if (useJsonResult == MessageBoxResult.Yes)
-                            {
-                                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                                var filt = "*.json";
-                                saveFileDialog.Filter = filt.Split('.')[1] + " files (" + filt + ")|" + filt;
-                                saveFileDialog.FileName = SelectedEntry.Filename;
-                                var dialogAnswer = saveFileDialog.ShowDialog();
-                                if (dialogAnswer.HasValue && dialogAnswer.Value)
-                                {
-
-                                    var obj = await Task.Run(() =>
-                                    {
-                                        return AssetManager.Instance.GetEbx((EbxAssetEntry)SelectedEntry).RootObject;
-                                    });
-                                    var serialisedObj = await Task.Run(() =>
-                                    {
-                                        return JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings()
-                                        {
-                                            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                                            MaxDepth = 4,
-                                        });
-                                    });
-                                    await File.WriteAllTextAsync(saveFileDialog.FileName, serialisedObj);
-                                    MainEditorWindow.Log($"Exported {SelectedEntry.Filename} to {saveFileDialog.FileName}");
-
-                                }
-                            }
-                            else if (useJsonResult == MessageBoxResult.No)
-                            {
-                                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                                var filt = "*.bin";
-                                saveFileDialog.Filter = filt.Split('.')[1] + " files (" + filt + ")|" + filt;
-                                saveFileDialog.FileName = SelectedEntry.Filename;
-                                var dialogAnswer = saveFileDialog.ShowDialog();
-                                if (dialogAnswer.HasValue && dialogAnswer.Value)
-                                {
-                                    File.WriteAllBytes(saveFileDialog.FileName, ((MemoryStream)ebx).ToArray());
-                                    MainEditorWindow.Log($"Exported {SelectedEntry.Filename} to {saveFileDialog.FileName}");
-                                }
-                            }
-                            else
-                            {
-
-                            }
-
-
-
-                        }
-                        else
-                        {
-                            MainEditorWindow.Log("Failed to export file");
-                        }
-                    }
-                }
+                await new Exporting().Export(SelectedEntry);
             }
             finally
             {
@@ -1132,25 +894,14 @@ namespace FMT.Pages.Common
                     else
                     {
                         AssetManager.Instance.RevertAsset(SelectedEntry);
+                        if (SelectedEntry.Type == "DDS")
+                        {
+                            BuildTextureViewerFromStream((MemoryStream)AssetManager.Instance.GetCustomAsset("legacy", (AssetEntry)SelectedEntry));
+                        }
                     }
                 }
-
-                if (SelectedLegacyEntry != null)
-                {
-                    AssetManager.Instance.RevertAsset(SelectedLegacyEntry);
-                    if (SelectedLegacyEntry.Type == "DDS")
-                    {
-                        //BuildTextureViewerFromStream(AssetManager.Instance.GetCustomAsset("legacy", SelectedLegacyEntry), SelectedLegacyEntry);
-                        BuildTextureViewerFromStream((MemoryStream)AssetManager.Instance.GetCustomAsset("legacy", SelectedLegacyEntry));
-                    }
-                }
-
-                //if (MainEditorWindow != null)
-                //    MainEditorWindow.UpdateAllBrowsers();
 
                 await OpenAsset(SelectedEntry);
-
-                //UpdateAssetListView();
             }
             finally
             {

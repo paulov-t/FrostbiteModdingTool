@@ -86,17 +86,21 @@
                                                                         <TextBlock.ContextMenu>
                                                                             <ContextMenu >
                                                                                 <MenuItem Header="Import Folder"
-                                                                     x:Name="btnImportFolder" Tag="{Binding}"
+                                                                     x:Name="btnImportFolder" Tag="{Binding}"  Visibility="{Binding CanImportFolder}"
                                                                               Click="btnImportFolder_Click" />
                                                                                 <MenuItem Header="Export Folder"
                                                                      x:Name="btnExportFolder" Tag="{Binding}"
-                                                                              Click="btnExportFolder_Click" />
+                                                                              Click="btnExportFolder_Click" Visibility="{Binding CanExportFolder}" />
                                                             <MenuItem Header="Revert"
                                                                      x:Name="btnRevert" Tag="{Binding}"
-                                                                              Click="btnRevert_Click" />
+                                                                              Click="btnRevert_Click"  Visibility="{Binding CanRevertAsset}" />
                                                         <MenuItem Header="Import"
                                                                      x:Name="btnImport" Tag="{Binding}"
-                                                                              Click="btnImport_Click" />
+                                                                              Click="btnImport_Click"  Visibility="{Binding CanImportExportAsset}" />
+
+                                                        <MenuItem Header="Export"
+                                                                     x:Name="btnExport" Tag="{Binding}"
+                                                                              Click="btnExport_Click"  Visibility="{Binding CanImportExportAsset}" />
                                                     </ContextMenu>
                                                                         </TextBlock.ContextMenu>
                                                                         <TextBlock.Style>

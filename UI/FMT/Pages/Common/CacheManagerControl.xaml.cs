@@ -44,7 +44,7 @@ namespace FMT.Pages.Common
                 if (AutoRebuild)
                     await Rebuild();
 
-                GCHelpers.ClearGarbage(true);
+                //GCHelpers.ClearGarbage(true);
 
                 if (AutoClose)
                     await Dispatcher.InvokeAsync(() => { this.Visibility = Visibility.Collapsed; });
