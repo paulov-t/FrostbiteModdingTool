@@ -223,8 +223,8 @@ namespace FMT.Cache
             chunkAssetEntry.SB_LogicalSize_Position = nativeReader.ReadUInt();
 
 
-            if (nativeReader.ReadBoolean())
-                chunkAssetEntry.Bundle = nativeReader.ReadLengthPrefixedString();
+            //if (nativeReader.ReadBoolean())
+            //    chunkAssetEntry.Bundle = nativeReader.ReadLengthPrefixedString();
 
             int bundleCount = nativeReader.ReadInt();
             for (int i = 0; i < bundleCount; i++)

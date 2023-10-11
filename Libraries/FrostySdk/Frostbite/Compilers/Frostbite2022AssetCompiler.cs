@@ -587,23 +587,6 @@ namespace FrostySdk.Frostbite.Compilers
                                     }
                                 }
 
-                                // Added / Duplicate chunk -- Does nothing at the moment
-                                //if (modChunk.Value.ExtraData == null && tocFile == "win32/globalsfull")
-                                //{
-                                //    var data = ModExecuter.archiveData[modChunk.Value.Sha1].Data;
-                                //    nw_cas.Position = nw_cas.Length;
-                                //    var newPosition = nw_cas.Position;
-                                //    //nw_cas.WriteBytes(data);
-                                //    modChunk.Value.Size = data.Length;
-                                //    modChunk.Value.ExtraData = new AssetExtraData()
-                                //    {
-                                //        DataOffset = (uint)newPosition,
-                                //        Cas = newCas,
-                                //        Catalog = catalog,
-                                //        IsPatch = patch,
-                                //    };
-                                //    //tocSb.TOCFile.TocChunks.Add(modChunk.Value);
-                                //}
                             }
                         }
                     }
@@ -775,7 +758,7 @@ namespace FrostySdk.Frostbite.Compilers
                             modifiedAsset.Size = data.Length;
                             modifiedAsset.OriginalSize = origSize;
                             modifiedAsset.Sha1 = modItem.Sha1;
-                            modifiedAsset.Bundles = modifiedAsset.Bundles.Distinct().ToList();
+                            //modifiedAsset.Bundles = modifiedAsset.Bundles.Distinct().ToList();
 
                             switch (modItem.ModType)
                             {

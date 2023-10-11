@@ -231,7 +231,7 @@ namespace FrostySdk
                     if (item2.IsAdded)
                     {
                         nativeWriter.WriteNullTerminatedString(item2.Name);
-                        nativeWriter.Write(item2.Guid.Value);
+                        nativeWriter.Write(item2.Id);
                         num++;
                     }
                 }

@@ -123,9 +123,8 @@ namespace FMT.Cache
             nativeWriter.Write(ebxEntry.Size);
             nativeWriter.Write(ebxEntry.OriginalSize);
             nativeWriter.Write((int)ebxEntry.Location);
-            //nativeWriter.Write(ebxEntry.IsInline);
             nativeWriter.WriteLengthPrefixedString((ebxEntry.Type != null) ? ebxEntry.Type : "");
-            nativeWriter.Write(!ebxEntry.Guid.HasValue ? Guid.NewGuid() : ebxEntry.Guid.Value);
+            nativeWriter.Write(ebxEntry.Id);
 
             var extraDataExists = ebxEntry.ExtraData != null
                 && ebxEntry.ExtraData.DataOffset > 0
@@ -267,9 +266,9 @@ namespace FMT.Cache
             nativeWriter.Write(chunkEntry.SB_LogicalOffset_Position);
             nativeWriter.Write(chunkEntry.SB_LogicalSize_Position);
 
-            nativeWriter.Write((!string.IsNullOrEmpty(chunkEntry.Bundle)));
-            if (!string.IsNullOrEmpty(chunkEntry.Bundle))
-                nativeWriter.WriteLengthPrefixedString(chunkEntry.Bundle);
+            //nativeWriter.Write((!string.IsNullOrEmpty(chunkEntry.Bundle)));
+            //if (!string.IsNullOrEmpty(chunkEntry.Bundle))
+            //    nativeWriter.WriteLengthPrefixedString(chunkEntry.Bundle);
 
             nativeWriter.Write(chunkEntry.Bundles.Count);
             foreach (int bundleId in chunkEntry.Bundles)

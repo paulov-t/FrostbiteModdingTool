@@ -1687,8 +1687,8 @@ namespace FrostySdk.Managers
 
         public EbxAssetEntry GetEbxEntry(Guid id)
         {
-            var ebxGuids = EBX.Values.Where(x => x.Guid != null);
-            return ebxGuids.FirstOrDefault(x => x.Guid == id);
+            var ebxGuids = EBX.Values;
+            return ebxGuids.FirstOrDefault(x => x.Id == id);
         }
 
         public ResAssetEntry GetResEntry(ulong resRid)
