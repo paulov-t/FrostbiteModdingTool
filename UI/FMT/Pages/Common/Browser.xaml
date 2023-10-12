@@ -91,16 +91,50 @@
                                                                                 <MenuItem Header="Export Folder"
                                                                      x:Name="btnExportFolder" Tag="{Binding}"
                                                                               Click="btnExportFolder_Click" Visibility="{Binding CanExportFolder}" />
-                                                            <MenuItem Header="Revert"
-                                                                     x:Name="btnRevert" Tag="{Binding}"
-                                                                              Click="btnRevert_Click"  Visibility="{Binding CanRevertAsset}" />
-                                                        <MenuItem Header="Import"
-                                                                     x:Name="btnImport" Tag="{Binding}"
-                                                                              Click="btnImport_Click"  Visibility="{Binding CanImportExportAsset}" />
 
-                                                        <MenuItem Header="Export"
+                                                        <MenuItem
+                                                                     x:Name="btnRevertFolder" Tag="{Binding}"
+                                                                              Click="btnRevertFolder_Click" Visibility="{Binding CanImportFolder}" >
+                                                            <MenuItem.Header>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <MaterialDesign:PackIcon Kind="FileRevert" VerticalAlignment="Center" />
+                                                                    <Label>Revert Folder</Label>
+                                                                </StackPanel>
+                                                            </MenuItem.Header>
+                                                        </MenuItem>
+
+                                                        <MenuItem
+                                                                     x:Name="btnImport" Tag="{Binding}"
+                                                                              Click="btnImport_Click"  Visibility="{Binding CanImportExportAsset}" >
+                                                            <MenuItem.Header>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <MaterialDesign:PackIcon Kind="FileImport" VerticalAlignment="Center" />
+                                                                    <Label>Import</Label>
+                                                                </StackPanel>
+                                                            </MenuItem.Header>
+                                                        </MenuItem>
+
+                                                        <MenuItem 
                                                                      x:Name="btnExport" Tag="{Binding}"
-                                                                              Click="btnExport_Click"  Visibility="{Binding CanImportExportAsset}" />
+                                                                              Click="btnExport_Click"  Visibility="{Binding CanImportExportAsset}" >
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <MaterialDesign:PackIcon Kind="FileExport" VerticalAlignment="Center" />
+                                                                <Label>Export</Label>
+                                                            </StackPanel>
+                                                            </MenuItem.Header>
+                                                        </MenuItem>
+
+                                                        <MenuItem 
+                                                                     x:Name="btnRevert" Tag="{Binding}"
+                                                                              Click="btnRevert_Click"  Visibility="{Binding CanRevertAsset}" >
+                                                            <MenuItem.Header>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <MaterialDesign:PackIcon Kind="FileRevert" VerticalAlignment="Center" />
+                                                                    <Label>Revert</Label>
+                                                                </StackPanel>
+                                                            </MenuItem.Header>
+                                                        </MenuItem>
                                                     </ContextMenu>
                                                                         </TextBlock.ContextMenu>
                                                                         <TextBlock.Style>

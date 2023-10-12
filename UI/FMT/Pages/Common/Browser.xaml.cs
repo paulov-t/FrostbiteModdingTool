@@ -448,6 +448,8 @@ namespace FIFAModdingUI.Pages.Common
 
                 if (AssetManager.Instance.Logger != null)
                     AssetManager.Instance.Logger.Log($"{assetEntry.Name} has been reverted");
+
+                assetPath.AssetChanged();
             }
             catch (Exception)
             {
@@ -605,6 +607,7 @@ namespace FIFAModdingUI.Pages.Common
                     if (importedSomething)
                     {
                         MainEditorWindow.Log($"Imported {folder} to {assetPath.FullPath}");
+                        assetPath.AssetChanged();
                     }
                 }
             }
@@ -758,27 +761,24 @@ namespace FIFAModdingUI.Pages.Common
         {
             try
             {
-                var labelTag = ((MenuItem)sender).Tag as AssetPath;
-                if (labelTag == null)
+                var assetPath = ((MenuItem)sender).Tag as AssetPath;
+                if (assetPath == null)
                     return;
 
-                IAssetEntry assetEntry = null;
-                //var assetEntry = labelTag.Asset;
-
-                //SelectedEntry = (AssetEntry)labelTag.Asset;
-                if (SelectedEntry == null)
+                var assetEntry = GetAssetEntry(assetPath);
+                if (assetEntry == null)
                     return;
 
                 try
                 {
-                    AssetEntryImporter assetEntryImporter = new AssetEntryImporter(SelectedEntry);
+                    AssetEntryImporter assetEntryImporter = new AssetEntryImporter(assetEntry);
                     var openFileDialog = assetEntryImporter.GetOpenDialogWithFilter();
                     var dialogResult = openFileDialog.ShowDialog();
                     if (dialogResult.HasValue && dialogResult.Value == true)
                     {
                         MainEditorWindow.Log("Importing " + openFileDialog.FileName);
 
-                        if (SelectedEntry.Type == "SkinnedMeshAsset")
+                        if (assetEntry.Type == "SkinnedMeshAsset")
                         {
                             var skeletonEntryText = "content/character/rig/skeleton/player/skeleton_player";
                             MeshSkeletonSelector meshSkeletonSelector = new MeshSkeletonSelector();
@@ -806,13 +806,15 @@ namespace FIFAModdingUI.Pages.Common
                             var importResult = await assetEntryImporter.ImportAsync(openFileDialog.FileName);
                             if (!importResult)
                             {
-                                MainEditorWindow.LogError("Failed to import file to " + SelectedEntry.Name);
+                                MainEditorWindow.LogError("Failed to import file to " + assetEntry.Name);
                                 return;
                             }
 
-                            MainEditorWindow.Log($"Imported file {openFileDialog.FileName} to {SelectedEntry.Name} successfully.");
+                            MainEditorWindow.Log($"Imported file {openFileDialog.FileName} to {assetEntry.Name} successfully.");
                         }
                     }
+
+                    assetPath.AssetChanged();
 
                 }
                 catch (Exception ex)
@@ -823,11 +825,55 @@ namespace FIFAModdingUI.Pages.Common
             catch (Exception)
             {
             }
+
         }
 
+        private void btnRevertFolder_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                MenuItem parent = sender as MenuItem;
+                if (parent != null)
+                {
+                    var assetPath = parent.Tag as AssetPath;
+                    if (assetPath == null)
+                        return;
+
+                    // Show Loading Dialog
+                    MainEditorWindow.ShowLoadingDialog("Reverting folder", "Reverting folder", 0);
+                    Thread.Sleep(1);
+                    // Revert Assets
+                    RecursiveRevert(assetPath);
+                    Thread.Sleep(1);
+                    // Hide Loading Dialog
+                    MainEditorWindow.ShowLoadingDialog("", "", 0);
+                }
+            }
+            catch
+            {
+                MainEditorWindow.ShowLoadingDialog("", "", 0);
+            }
+        }
+
+        public void RecursiveRevert(AssetPath assetPath)
+        {
+            var assetEntry = assetPath.GetAssetEntry();
+            if (assetEntry != null)
+            {
+                MainEditorWindow.ShowLoadingDialog("Reverting file " + assetEntry.Name, "Reverting folder", 0);
+                AssetManager.Instance.RevertAsset(assetEntry);
+                assetPath.AssetChanged();
+            }
+
+            if (assetPath.Children.Count == 0)
+                return;
+
+            foreach(var childPath in assetPath.Children)
+                RecursiveRevert(childPath);
+        }
     }
 
-    public class AssetPath
+    public class AssetPath : INotifyPropertyChanged
     {
         private string fullPath;
 
@@ -876,6 +922,16 @@ namespace FIFAModdingUI.Pages.Common
         }
 
         public bool IsSelected;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void AssetChanged()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Asset"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AssetType"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsModified"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CanRevertAsset"));
+        }
 
         public bool IsRoot => root;
 
