@@ -324,7 +324,7 @@ namespace Frostbite.FileManagers
                             double numberOfEndUnkItems = (nativeReader.Length - (double)nativeReader.Position) / 4;
                             for (int index = 0; index < numberOfEndUnkItems; index++)
                             {
-                                chunkBatch.BottomUnknownOffsets.Add(nativeReader.ReadInt());
+                                //chunkBatch.BottomUnknownOffsets.Add(nativeReader.ReadInt());
                             }
                         }
 
