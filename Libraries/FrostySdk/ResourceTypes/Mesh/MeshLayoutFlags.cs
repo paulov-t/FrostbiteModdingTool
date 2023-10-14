@@ -21,6 +21,40 @@ namespace FrostySdk.Resources
     }
 
     [Flags]
+    public enum MeshLayoutFlags : uint
+    {
+        //IsBaseLod = 1 << 0,
+        //StreamInstancingEnable = 1 << 4,
+        //StreamingEnable = 1 << 6,
+        //VertexAnimationEnable = 1 << 7,
+        //Deformation = 1 << 8,
+        //MultiStreamEnable = 1 << 9,
+        //SubsetSortingEnable = 1 << 10,
+        //Inline = 1 << 11,
+        //AlternateBatchSorting = 1 << 12,
+        //ProjectedDecalsEnable = 1 << 15,
+        //ClothEnabled = 1 << 16,
+        //SrvEnable = 1 << 17,
+        //IsMeshFront = 1 << 28,
+        //IsDataAvailable = 1 << 29
+
+        IsBaseLod = 1u,
+        StreamInstancingEnable = 0x10u,
+        StreamingEnable = 0x40u,
+        VertexAnimationEnable = 0x80u,
+        Deformation = 0x100u,
+        MultiStreamEnable = 0x200u,
+        SubsetSortingEnable = 0x400u,
+        Inline = 0x800u,
+        AlternateBatchSorting = 0x1000u,
+        ProjectedDecalsEnable = 0x8000u,
+        ClothEnabled = 1 << 16,
+        SrvEnable = 0x20000u,
+        IsMeshFront = 0x10000000u,
+        IsDataAvailable = 0x20000000u
+    }
+
+    [Flags]
     public enum MeshSetLayoutFlags : ulong
     {
         StreamingEnable = 1uL,

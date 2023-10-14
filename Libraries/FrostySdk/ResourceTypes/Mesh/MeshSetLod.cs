@@ -48,7 +48,7 @@ namespace FrostySdk.Resources
         public List<MeshSetSection> Sections { get; } = new List<MeshSetSection>();
 
 
-        public EMeshLayout Flags { get; private set; }
+        public MeshLayoutFlags Flags { get; private set; }
 
         public int IndexUnitSize
         {
@@ -63,6 +63,7 @@ namespace FrostySdk.Resources
             }
         }
 
+        public object RenderFormat { get; private set; }
         public uint IndexBufferSize { get; set; }
 
         public uint VertexBufferSize { get; set; }
@@ -143,14 +144,15 @@ namespace FrostySdk.Resources
             long categoryOffset = reader.Position;
             
             reader.Position = categoryOffset;
+            CategorySubsetIndices.Clear();
             for (int i = 0; i < MaxCategories; i++)
             {
                 int subsetCategoryCount = reader.ReadInt32LittleEndian();
                 var subsetCategoryOffset = reader.ReadInt64LittleEndian();
 
                 var currentPosition = reader.Position;
-                reader.Position = subsetCategoryOffset;
 
+                reader.Position = subsetCategoryOffset;
                 CategorySubsetIndices.Add(new List<byte>());
                 for (int j = 0; j < subsetCategoryCount; j++)
                 {
@@ -159,8 +161,21 @@ namespace FrostySdk.Resources
 
                 reader.Position = currentPosition;
             }
-            Flags = (EMeshLayout)reader.ReadUInt32LittleEndian();
-            indexBufferFormat.format = reader.ReadInt32LittleEndian();
+            Flags = (MeshLayoutFlags)reader.ReadUInt32LittleEndian();
+            //if (ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.DragonAgeInquisition, FMT.FileTools.Modding.EGame.PlantsVsZombiesGardenWarfare,
+            //    FMT.FileTools.Modding.EGame.Battlefield4, FMT.FileTools.Modding.EGame.NeedForSpeedRivals))
+            //{
+            //    indexBufferFormat.formatEnum = (IndexBufferFormat)reader.ReadInt();
+            //}
+            //else
+            {
+                indexBufferFormat.format = reader.ReadInt();
+            }
+            var renderFormatType = TypeLibrary.GetType("RenderFormat");
+            var enumNames = Enum.GetNames(renderFormatType);
+            // FC24 determined 33 = RenderFormat_R16_UINT
+            //RenderFormat = Enum.GetValues(renderFormatType)[indexBufferFormat.format];
+
             IndexBufferSize = reader.ReadUInt32LittleEndian();
             VertexBufferSize = reader.ReadUInt32LittleEndian();
             if (HasAdjacencyInMesh)
@@ -428,8 +443,10 @@ namespace FrostySdk.Resources
 
         public void SetIndexBufferFormatSize(int newSize)
         {
-            var v2 = Enum.Parse(TypeLibrary.GetType("RenderFormat"), "RenderFormat_R16_UINT");
-            var v4 = Enum.Parse(TypeLibrary.GetType("RenderFormat"), "RenderFormat_R32_UINT");
+            var renderFormatType = TypeLibrary.GetType("RenderFormat");
+            var enumNames = Enum.GetNames(renderFormatType);
+            var v2 = Enum.Parse(renderFormatType, "RenderFormat_R16_UINT");
+            var v4 = Enum.Parse(renderFormatType, "RenderFormat_R32_UINT");
             indexBufferFormat.format = (int)((newSize == 2) ? v2 : v4);
         }
 
@@ -538,7 +555,7 @@ namespace FrostySdk.Resources
         {
             inlineData = inBuffer;
             ChunkId = Guid.Empty;
-            Flags = EMeshLayout.Inline;
+            Flags = MeshLayoutFlags.Inline;
         }
 
         private int GetSectionIndex(MeshSetSection inSection)
