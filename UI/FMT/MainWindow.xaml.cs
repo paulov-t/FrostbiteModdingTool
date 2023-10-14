@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -117,6 +118,16 @@ namespace FMT
         {
             HandleSDKEmptyFolder();
             HandleAppArguments();
+            HandleMisoldTooling();
+        }
+
+        private void HandleMisoldTooling()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("There have been reports of people being misold this tool. Please be aware of fraudsters and report them. They will be named and shamed!");
+            stringBuilder.AppendLine("- FIFAEdit");
+            stringBuilder.AppendLine("- ECE-Teams");
+            App.ShowAcceptableMessageBox(stringBuilder.ToString());
         }
 
         protected override void OnSourceInitialized(EventArgs e)

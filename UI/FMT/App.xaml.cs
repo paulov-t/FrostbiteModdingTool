@@ -3,6 +3,7 @@ using FMT.Logging;
 using FrostbiteSdk;
 using FrostySdk;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -94,23 +95,42 @@ namespace FMT
             // Associate Application with file types
             AssociateExtension(".fmtproj", "FMT", Path.Combine(ApplicationDirectory, "FMT.exe"), true);
 
+            if(File.Exists(AcceptedMessagesPath))
+                AcceptedMessages = JsonConvert.DeserializeObject<HashSet<string>>(File.ReadAllText(AcceptedMessagesPath));
+
             base.OnStartup(e);
 
             FileLogger.WriteLine("FMT:OnStartup:Complete");
 
         }
 
-        public static HashSet<string> AcceptedUnsupportedMessages = new();
+        private static string AcceptedMessagesPath => Path.Combine(ApplicationDirectory, "AcceptedMessages.json");
+        public static HashSet<string> AcceptedMessages = new();
 
         public static void ShowUnsupportedMessageBox(string itemType)
         {
-            if (AcceptedUnsupportedMessages.Contains(itemType))
+            if (AcceptedMessages.Contains(itemType))
                 return;
 #if !DEBUG
             MessageBox.Show($"{itemType} is currently unsupported. Although, it has been identified as an item / feature to support in the future.");
 #endif
-            if (!AcceptedUnsupportedMessages.Contains(itemType))
-                AcceptedUnsupportedMessages.Add(itemType);
+            if (!AcceptedMessages.Contains(itemType))
+                AcceptedMessages.Add(itemType);
+
+            File.WriteAllText(AcceptedMessagesPath, JsonConvert.SerializeObject(AcceptedMessages));
+        }
+
+        public static void ShowAcceptableMessageBox(string message)
+        {
+            if (AcceptedMessages.Contains(message))
+                return;
+
+            MessageBox.Show($"{message}");
+
+            if (!AcceptedMessages.Contains(message))
+                AcceptedMessages.Add(message);
+
+            File.WriteAllText(AcceptedMessagesPath, JsonConvert.SerializeObject(AcceptedMessages));
         }
 
         private async Task StartDiscordRPC()
