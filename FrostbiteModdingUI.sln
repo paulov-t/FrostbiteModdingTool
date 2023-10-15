@@ -54,6 +54,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FIFA23Plugin", "Plugins\FIF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C0003E0B-950F-483B-98AC-70A59CC3AF5A}"
 	ProjectSection(SolutionItems) = preProject
+		LICENSE.md = LICENSE.md
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -131,7 +132,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Madden24Plugin", "Plugins\M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FMT.Sound", "Libraries\FMT.Sound\FMT.Sound.csproj", "{082DEA41-8898-4528-BB88-F8283D34F075}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NHL22PS4Plugin", "Plugins\NHL22PS4Plugin\NHL22PS4Plugin.csproj", "{E09E5326-2F0D-4D22-B2AC-7FF589D5E228}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NHL22PS4Plugin", "Plugins\NHL22PS4Plugin\NHL22PS4Plugin.csproj", "{E09E5326-2F0D-4D22-B2AC-7FF589D5E228}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
