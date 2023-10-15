@@ -38,8 +38,9 @@ FMT in its infancy was the first tool available to create some fairly simple mod
 This tool is used & developed for a hobby. It is a great suite of code to learn new C# .NET features and best practices. 
 
 ## LICENSE
-[GNU GENERAL PUBLIC LICENSE](https://github.com/paulov-t/FrostbiteModdingTool/blob/master/LICENSE.md)
-- You cannot sell this in any shape or form. If you were sold this tool. Report the user ASAP.
+[Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International Public License](https://github.com/paulov-t/FrostbiteModdingTool/blob/master/LICENSE.md)
+
+- In simple terms. The license means that you cannot **sell** this software and any in of its parts or libraries, with or without modifications. If you were sold this tool. Report the user ASAP.
 
 
 ## Wiki
