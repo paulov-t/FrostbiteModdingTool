@@ -17,11 +17,11 @@ The Frostbite Modding Tool (FMT) is a tool to create mods for FIFA, Madden and o
 
 <div align=center>
 
-[![.NET Build](https://github.com/paulov-t/FrostbiteModdingTool/actions/workflows/build-workflow.yml/badge.svg)](https://github.com/paulov-t/FrostbiteModdingTool/actions/workflows/build-workflow.yml)
-
 ![GitHub all releases](https://img.shields.io/github/downloads/paulov-t/FrostbiteModdingTool/total) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/paulov-t/FrostbiteModdingTool/latest/total)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2IQ7YJ)
+
+[![Build Status](https://dev.azure.com/pargsoft/FIFAMods/_apis/build/status%2FCompile%20FMT?branchName=master)](https://dev.azure.com/pargsoft/FIFAMods/_build/latest?definitionId=8&branchName=master) [![.NET Build](https://github.com/paulov-t/FrostbiteModdingTool/actions/workflows/build-workflow.yml/badge.svg)](https://github.com/paulov-t/FrostbiteModdingTool/actions/workflows/build-workflow.yml) 
 
 </div>
 
@@ -40,8 +40,8 @@ This tool is used & developed for a hobby. It is a great suite of code to learn 
 ## LICENSE
 [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International Public License](https://github.com/paulov-t/FrostbiteModdingTool/blob/master/LICENSE.md)
 
-- In simple terms. The license means that you cannot **sell** this software and any in of its parts or libraries, with or without modifications. If you were sold this tool. Report the user ASAP.
-
+- In simple terms. The license means that you cannot **sell** this software and any in of its parts or libraries, with or without modifications. If you were sold this tool. Report the user ASAP
+- This LICENSE maintains and superseeds Frosty Toolsuite LICENSE
 
 ## Wiki
 Please refer to the [Wiki](https://github.com/paulov-t/FrostbiteModdingTool/wiki) for more information and tutorials
@@ -50,13 +50,13 @@ Please refer to the [Wiki](https://github.com/paulov-t/FrostbiteModdingTool/wiki
 - Paulv2k4 / Paulov-t - Main developer of this Tool
 - Jaycensolo - Jay has been a great help in testing any mod for FIFA this tool generates
 - [@xAranaktu](https://github.com/xAranaktu) - This man is a legend of the world of FIFA / EASportsFC. Is the main reason modding is still available in FIFA 23 and beyond.
-- Somers - Made an enormous mod for FIFA 21 and really put this tool to the test
+- [Somers](https://www.youtube.com/c/SomersGaming) - Made an enormous mod for FIFA 21 and really put this tool to the test
 - [@CadeEvs / Frosty Toolsuite](https://github.com/CadeEvs/FrostyToolsuite) development team. All the `original code` for `FrostySdk`,`SDK Generator` and `Modding` came decompilation of their Toolsuite using ILSpy in 2019. 
 As of September 2022, Frosty Toolsuite is open source on [GitHub](https://github.com/CadeEvs/FrostyToolsuite)
-- [FIFA Editor Tool](https://www.fifaeditortool.com/) development team. Used for research into how to properly handle Meshes for FIFA 21. 
-- EA Sports & DICE - Without their engine and suite of games, this tool and the addiction to modding them wouldnt exist. Many thanks to all those who develop it and Frostbite!
+- [FIFA Editor Tool](https://www.fifaeditortool.com/) development team. Added support to FIFA Mod Manager *.fifamod files.
+- [DirectXTexNet](https://github.com/deng0/DirectXTexNet) - Used library and rewrote parts for latest Chunk File Collection texture import [LICENSE](https://raw.githubusercontent.com/deng0/DirectXTexNet/master/LICENSE)
 - [CSharpImageLibrary](https://github.com/KFreon/CSharpImageLibrary) - Exceptionally helpful in creating a library for importing/exporting in game images & textures
-- [DirectXTexNet](https://github.com/deng0/DirectXTexNet) - Used library and rewrote parts for latest Chunk File Collection texture import
+- EA Sports & DICE - Without their engine and suite of games, this tool and the addiction to modding them wouldnt exist. Many thanks to all those who develop it and Frostbite!
 
 ## Supported Games
 ### 100% supported
