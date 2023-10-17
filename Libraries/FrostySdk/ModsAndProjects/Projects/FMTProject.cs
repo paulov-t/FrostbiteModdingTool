@@ -572,6 +572,9 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         private static void LocaleINIRead(NativeReader nr)
         {
+            if (AssetManager.Instance == null)
+                return;
+
             var hasLocaleIniMod = nr.ReadBoolean();
             if (hasLocaleIniMod)
             {
@@ -594,6 +597,9 @@ namespace FrostySdk.ModsAndProjects.Projects
         }
         private static void EmbeddedFilesRead(NativeReader nr)
         {
+            if (AssetManager.Instance == null)
+                return;
+
             if (nr.ReadBoolean()) // nw.Write(AssetManager.Instance.EmbeddedFileEntries.Count > 0);
             {
                 var embeddedFileCount = nr.ReadInt();

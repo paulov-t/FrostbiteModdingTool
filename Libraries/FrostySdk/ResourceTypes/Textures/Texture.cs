@@ -836,7 +836,7 @@ namespace FrostySdk.Resources
             }
 
 #if DEBUG
-            File.WriteAllBytes("Debugging\\Other\\_TextureImport_Madden23.dat", memoryStream.ToArray());
+            DebugBytesToFileLogger.Instance.WriteAllBytes("_TextureImport_Madden23.dat", memoryStream.ToArray());
 #endif
 
             return memoryStream.ToArray();

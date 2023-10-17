@@ -14,8 +14,13 @@ using System.Threading.Tasks;
 
 namespace v2k4FIFAModdingCL
 {
+    /// <summary>
+    /// The Game Instance Singleton is the Initializer for the Game
+    /// </summary>
     public class GameInstanceSingleton : IDisposable
     {
+        #region Properties
+
         public static GameInstanceSingleton Instance { get; set; }
 
         public bool INITIALIZED = false;
@@ -40,6 +45,16 @@ namespace v2k4FIFAModdingCL
 
         public string ModDataPath { get { return GAMERootPath + "\\ModData\\"; } }
 
+        #endregion
+
+        /// <summary>
+        /// Load the Game Profile and game into File System, optionally load Cache file to fully know where all files are
+        /// </summary>
+        /// <param name="filePath">The Game Path to Load</param>
+        /// <param name="loadCache"></param>
+        /// <param name="logger"></param>
+        /// <param name="loadSDK"></param>
+        /// <returns></returns>
         public static bool InitializeSingleton(in string filePath, in bool loadCache = false, in ILogger logger = null, in bool loadSDK = true)
         {
             if (Instance != null)
@@ -78,6 +93,14 @@ namespace v2k4FIFAModdingCL
             return Instance.INITIALIZED;
         }
 
+        /// <summary>
+        /// Initialize Asyncronously InitializeSingleton method
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="loadCache"></param>
+        /// <param name="logger"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public static async Task<bool> InitializeSingletonAsync(
             string filePath
             , bool loadCache = false
@@ -87,16 +110,29 @@ namespace v2k4FIFAModdingCL
             return await Task.Run(() => { return InitializeSingleton(filePath, loadCache, logger); }, cancellationToken);
         }
 
+        /// <summary>
+        /// Gets the Game Version (Game Name really)
+        /// </summary>
+        /// <returns></returns>
         public static string GetGameVersion()
         {
             return Instance != null ? Instance.GAMEVERSION : string.Empty;
         }
 
+        /// <summary>
+        /// Gets the true or false for support for fbmod file type for this Game Profile
+        /// </summary>
+        /// <returns></returns>
         public static bool IsCompatibleWithFbMod()
         {
             return ProfileManager.SupportedLauncherFileTypes.Contains("fbmod");
         }
 
+
+        /// <summary>
+        /// Gets the true or false for support for lmod file type for this Game Profile
+        /// </summary>
+        /// <returns></returns>
         public static bool IsCompatibleWithLegacyMod()
         {
             return ProfileManager.SupportedLauncherFileTypes.Contains("lmod");
@@ -106,6 +142,12 @@ namespace v2k4FIFAModdingCL
 
         public static bool LegacyInjectionExtraAssertions = true;
 
+        /// <summary>
+        /// Finds the Game Profile EXE running in Processes
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static async Task<int?> GetProcIDFromName(string name)
         {
             if (name.Contains(".exe"))

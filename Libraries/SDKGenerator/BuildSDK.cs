@@ -3,7 +3,7 @@ using FMT.Logging;
 using FrostbiteSdk;
 //using FrostyEditor.Windows;
 using FrostySdk;
-using SDKGenerator;
+using SdkGenerator;
 //using FrostySdk;
 //using FrostySdk.Frostbite;
 //using FrostySdk.Interfaces;
@@ -324,7 +324,7 @@ namespace SdkGenerator
 
             SdkUpdateState obj = state as SdkUpdateState;
             //obj.Creator = new SdkGenerator.ClassesSdkCreator(obj);
-            obj.Creator = new SDKGenerator.ClassesSdkCreatorV2(obj);
+            obj.Creator = new SdkGenerator.ClassesSdkCreatorV2(obj);
 
             bool flag = obj.Creator.GatherTypeInfos(task);
             task.State = (flag ? SdkUpdateTaskState.CompletedSuccessful : SdkUpdateTaskState.CompletedFail);

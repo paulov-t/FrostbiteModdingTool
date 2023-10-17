@@ -582,10 +582,10 @@ namespace FrostySdk
                         }
                         data = msDecrypted.ToArray();
 
-                        if (File.Exists("locale_decrypt.ini"))
-                            File.Delete("locale_decrypt.ini");
+                        //if (File.Exists("locale_decrypt.ini"))
+                        //    File.Delete("locale_decrypt.ini");
 
-                        File.WriteAllBytes("locale_decrypt.ini", data);
+                        //File.WriteAllBytes("locale_decrypt.ini", data);
                     }
                 }
 

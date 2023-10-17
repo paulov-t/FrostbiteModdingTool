@@ -3,7 +3,6 @@ using FrostbiteSdk.SdkGenerator;
 using FrostySdk;
 using FrostySdk.IO;
 using FrostySdk.Managers;
-using SdkGenerator;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace SDKGenerator
+namespace SdkGenerator
 {
     public class ClassesSdkCreatorV2
     {

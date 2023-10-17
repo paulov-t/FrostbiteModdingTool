@@ -1,4 +1,4 @@
-using SDKGenerator;
+using SdkGenerator;
 using System.Diagnostics;
 
 namespace SdkGenerator
