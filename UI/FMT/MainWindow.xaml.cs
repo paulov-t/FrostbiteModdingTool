@@ -243,7 +243,7 @@ namespace FMT
                         App.MainEditorWindow = (Window)Activator.CreateInstance(t, this);
                         App.MainEditorWindow.Show();
                         // Empty the Args so we don't do this again once the App has loaded
-                        App.StartupArgs = new string[0];
+                        //App.StartupArgs = new string[0];
                         return;
                     }
                 }

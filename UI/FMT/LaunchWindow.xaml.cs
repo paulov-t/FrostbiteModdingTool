@@ -62,6 +62,9 @@ namespace FMT
 
             DataContext = this;
 
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.WaitForFullGCComplete(-1);
             InitialiseSelectedGame(AppSettings.Settings.GameInstallEXEPath);
         }
 

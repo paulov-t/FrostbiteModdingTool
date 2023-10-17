@@ -105,7 +105,7 @@ namespace FrostbiteModdingUI.Windows
             }
 
             SetupIcon();
-            HandleAppArguments();
+            ProcessAppArguments();
 
             launcherOptions = await LauncherOptions.LoadAsync();
 
@@ -167,7 +167,7 @@ namespace FrostbiteModdingUI.Windows
             }
         }
 
-        private void HandleAppArguments()
+        private async void ProcessAppArguments()
         {
             if (App.StartupArgs == null || App.StartupArgs.Length == 0)
                 return;
@@ -178,6 +178,38 @@ namespace FrostbiteModdingUI.Windows
             var projectFileInfo = new FileInfo(projectFilePath);
             if (!projectFileInfo.Exists)
                 return;
+
+            Dispatcher.Invoke(() =>
+            {
+                loadingDialog.Update("Loading Project", "Loading Project File");
+            });
+
+            CancellationToken cancellation = default(CancellationToken);
+            try
+            {
+                await ProjectManagement.LoadProjectFromFile(projectFilePath, cancellation);
+            }
+            catch (Exception ex)
+            {
+                LogError("Unable to load project. This may be due to a Title Update. Message: " + ex.Message);
+            }
+            // A chunk clean up of bad and broken projects
+            await Task.Run(() =>
+            {
+                ChunkFileManager2022.CleanUpChunks();
+            });
+
+            await Task.Run(() =>
+            {
+                InitialiseBrowsers();
+            });
+            Log("Opened project successfully from " + projectFilePath);
+
+            UpdateWindowTitle(projectFilePath);
+
+            DiscordInterop.DiscordRpcClient.UpdateDetails("In Editor [" + GameInstanceSingleton.Instance.GAMEVERSION + "] - " + ProjectManagement.Project.DisplayName);
+
+            loadingDialog.Update(null, null);
 
 
         }
@@ -259,10 +291,13 @@ namespace FrostbiteModdingUI.Windows
 
         public void UpdateWindowTitle(string additionalText)
         {
-            AdditionalTitle = additionalText;
-            this.DataContext = null;
-            this.DataContext = this;
-            this.UpdateLayout();
+            Dispatcher.Invoke(() =>
+            {
+                AdditionalTitle = additionalText;
+                this.DataContext = null;
+                this.DataContext = this;
+                this.UpdateLayout();
+            });
         }
 
         public ProjectManagement ProjectManagement { get; set; }
