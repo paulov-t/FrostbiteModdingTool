@@ -8,9 +8,12 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
+using static Frostbite.Textures.TextureUtils;
+using static PInvoke.BCrypt.BCRYPT_ALGORITHM_IDENTIFIER;
 
 namespace Frostbite.Textures
 {
@@ -138,197 +141,212 @@ namespace Frostbite.Textures
             return null;
         }
 
-        public virtual byte[] WriteToDDS(Texture textureAsset)
+        //public virtual byte[] WriteToDDSPs4(Texture textureAsset)
+        //{
+        //    var firstMipSize = textureAsset.MipSizes.First();
+
+        //    var firstMipBytes = ((MemoryStream)textureAsset.Data).ToArray().Take((int)firstMipSize).ToArray();
+
+        //    MemoryStream copyDataStream = new MemoryStream(firstMipBytes);
+
+        //    using NativeReader nr = new NativeReader(copyDataStream);
+        //    nr.Position = 0;
+
+        //    var memStream = new MemoryStream();
+        //    using NativeWriter binaryWriter = new NativeWriter(memStream, true);
+
+        //    long textureSize = firstMipBytes.Length;
+
+        //    int value = 1;
+        //    int num3 = 808540228;
+
+        //    // manually set via DXGI version 
+        //    num3 = 827611204;
+
+        //    textureSize = textureAsset.Width * textureAsset.height * (4) / 8;
+        //    binaryWriter.Position = 0;
+        //    binaryWriter.Write(533118272580L);
+        //    binaryWriter.Write(4103);
+        //    binaryWriter.Write((int)textureAsset.height);
+        //    binaryWriter.Write((int)textureAsset.Width);
+        //    binaryWriter.Write((int)textureSize);
+        //    binaryWriter.Write(0);
+        //    binaryWriter.Write(value);
+        //    while (binaryWriter.Position != 76)
+        //        binaryWriter.Write((byte)0);
+        //    binaryWriter.Write(32);
+        //    binaryWriter.Write(4);
+        //    binaryWriter.Write(num3);
+        //    while (binaryWriter.Position != 128)
+        //        binaryWriter.Write((byte)0);
+        //    //if (num3 == 808540228)
+        //    //{
+        //    //    binaryWriter.Write(ddDXGI.SelectedIndex);
+        //    //    binaryWriter.Write(3);
+        //    //    binaryWriter.Write(0);
+        //    //    binaryWriter.Write(1);
+        //    //    binaryWriter.Write(0);
+        //    //}
+
+        //    byte[] array = new byte[textureSize];
+        //    byte[] array2 = new byte[16];
+        //    var divisable = 4;
+        //    int num6 = textureAsset.height / 4; // is it 1 or 4?
+        //    int num7 = textureAsset.Width / 4; // is it 1 or 4?
+        //    var si = 8;
+        //    for (int i = 0; i < (num6 + 7) / 8; i++)
+        //    {
+        //        for (int j = 0; j < (num7 + 7) / 8; j++)
+        //        {
+        //            for (int k = 0; k < 64; k++)
+        //            {
+        //                int num8 = morton(k, 8, 8);
+        //                int num9 = num8 / 8;
+        //                int num10 = num8 % 8;
+        //                nr.Read(array2, 0, 8);
+        //                if (j * 8 + num10 < num7 && i * 8 + num9 < num6)
+        //                {
+        //                    int destinationIndex = 8 * ((i * 8 + num9) * num7 + j * 8 + num10);
+        //                    Array.Copy(array2, 0, array, destinationIndex, si);
+        //                }
+        //            }
+        //        }
+        //    }
+        //    binaryWriter.Write(array, 0, (int)textureSize);
+
+        //    //binaryWriter.Write(((MemoryStream)textureAsset.Data).ToArray());
+
+        //    binaryWriter.Close();
+        //    var result = memStream.ToArray();
+
+
+        //    return result;
+        //}
+
+        public virtual byte[] WriteToDDSPs4(Texture textureAsset)
         {
-            TextureUtils.DDSHeader dDSHeader = new TextureUtils.DDSHeader();
-            dDSHeader.dwHeight = textureAsset.Height;
-            dDSHeader.dwWidth = textureAsset.Width;
-            dDSHeader.dwPitchOrLinearSize = (int)textureAsset.MipSizes[0];
-            dDSHeader.dwMipMapCount = textureAsset.MipCount;
-            if (textureAsset.MipCount > 1)
+            var inputDataStream = textureAsset.Data as MemoryStream;
+            new BinaryReader(inputDataStream);
+            var outputDataStream = new MemoryStream();
+            BinaryWriter binaryWriter = new BinaryWriter(outputDataStream);
+            long length = inputDataStream.Length;
+            if (length < 0)
             {
-                dDSHeader.dwFlags |= TextureUtils.DDSFlags.MipMapCount;
-                dDSHeader.dwCaps |= (TextureUtils.DDSCaps)4194312;
+                length = 0L;
             }
-            switch (textureAsset.Type)
-            {
-                case TextureType.TT_2d:
-                    dDSHeader.ExtendedHeader.resourceDimension = (ResourceDimension)3;
-                    dDSHeader.ExtendedHeader.arraySize = 1u;
-                    break;
-                case TextureType.TT_2dArray:
-                    dDSHeader.ExtendedHeader.resourceDimension = (ResourceDimension)3;
-                    dDSHeader.ExtendedHeader.arraySize = textureAsset.Depth;
-                    break;
-                case TextureType.TT_Cube:
-                    dDSHeader.dwCaps2 = (TextureUtils.DDSCaps2)65024;
-                    dDSHeader.ExtendedHeader.resourceDimension = (ResourceDimension)3;
-                    dDSHeader.ExtendedHeader.arraySize = 1u;
-                    dDSHeader.ExtendedHeader.miscFlag = 4u;
-                    break;
-                case TextureType.TT_3d:
-                    dDSHeader.dwFlags |= TextureUtils.DDSFlags.Depth;
-                    dDSHeader.dwCaps2 |= TextureUtils.DDSCaps2.Volume;
-                    dDSHeader.dwDepth = textureAsset.Depth;
-                    dDSHeader.ExtendedHeader.resourceDimension = (ResourceDimension)4;
-                    dDSHeader.ExtendedHeader.arraySize = 1u;
-                    break;
-            }
-            string pxFormat = textureAsset.PixelFormat;// ((Format)int.Parse(textureAsset.PixelFormat)).ToString();
-            //Vortice.DXGI.Format vorticeFormat = (Vortice.DXGI.Format)textureAsset.PixelFormatNumber;
-            if (pxFormat.StartsWith("BC") && (textureAsset.Flags.HasFlag(TextureFlags.SrgbGamma)))
-            {
-                pxFormat = pxFormat.Replace("UNORM", "SRGB");
-            }
+            int value = 1;
 
-            if (pxFormat.StartsWith("BC") && textureAsset.Flags.HasFlag(TextureFlags.Ps4))
-            {
-                pxFormat = pxFormat.Replace("SRGB", "UNORM");
-            }
+            string pxFormat = textureAsset.PixelFormat;
+            DDSHeader ddsHeader = GetDDSHeaderForTextureAsset(textureAsset);
 
-            switch (pxFormat)
-            {
-                case "NormalDXT1":
-                    dDSHeader.ddspf.dwFourCC = 827611204;
-                    break;
-                case "NormalDXN":
-                    dDSHeader.ddspf.dwFourCC = 843666497;
-                    break;
-                case "BC1A_SRGB":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)72;
-                    break;
-                case "BC1A_UNORM":
-                    dDSHeader.ddspf.dwFourCC = 827611204;
-                    break;
-                case "BC1_SRGB":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)72;
-                    break;
-                case "BC1_UNORM":
-                    dDSHeader.ddspf.dwFourCC = 827611204;
-                    break;
-                case "BC2_SRGB":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)75;
-                    break;
-                case "BC3_SRGB":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)78;
-                    break;
-                case "BC3A_SRGB":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)78;
-                    break;
-                case "BC3_UNORM":
-                    dDSHeader.ddspf.dwFourCC = 894720068;
-                    break;
-                case "BC3A_UNORM":
-                    dDSHeader.ddspf.dwFourCC = 826889281;
-                    break;
-                case "BC4_UNORM":
-                    dDSHeader.ddspf.dwFourCC = 826889281;
-                    break;
-                case "BC5_UNORM":
-                    dDSHeader.ddspf.dwFourCC = 843666497;
-                    break;
-                case "BC6U_FLOAT":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)95;
-                    break;
-                case "BC7":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)98;
-                    break;
-                case "BC7_SRGB":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)99;
-                    break;
-                case "BC7_UNORM":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)98;
-                    break;
-
-
-
-                case "R8_UNORM":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)61;
-                    break;
-                case "R16G16B16A16_FLOAT":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)10;
-                    break;
-                case "ARGB32F":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)2;
-                    break;
-                case "R32G32B32A32_FLOAT":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)2;
-                    break;
-                case "R9G9B9E5F":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)67;
-                    break;
-                case "R9G9B9E5_FLOAT":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)67;
-                    break;
-                case "R8G8B8A8_UNORM":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)28;
-                    break;
-                case "R8G8B8A8_SRGB":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)29;
-                    break;
-                case "R10G10B10A2_UNORM":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)24;
-                    break;
-                case "L8":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)61;
-                    break;
-                case "L16":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)56;
-                    break;
-                case "ARGB8888":
-                    dDSHeader.HasExtendedHeader = true;
-                    dDSHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)28;
-                    break;
-                //default:
-                //                dDSHeader.HasExtendedHeader = true;
-                //	dDSHeader.ExtendedHeader.dxgiFormat = vorticeFormat;
-                //                //dDSHeader.ddspf.dwFourCC = BitConverter.ToInt32(Encoding.UTF8.GetBytes("DX10"));
-                //                //dDSHeader.ddspf.dwFourCC = 0;
-                //                break;
-                default:
-                    dDSHeader.ddspf.dwFourCC = 0;
-                    break;
-            }
-
-            //switch(vorticeFormat)
-            //         {
-            //	default:
-            //		dDSHeader.HasExtendedHeader = true;
-            //		dDSHeader.ExtendedHeader.dxgiFormat = vorticeFormat;
-            //		dDSHeader.ddspf.dwFourCC = 808540228;
-            //		break;
+            int fourCC = ddsHeader.ddspf.dwFourCC; // 808540228;
+            int num4 = 4;
+            
+            //if (ddDXGI.SelectedIndex == 71)
+            //{
+            //    num3 = 827611204;
+            //}
+            //if (ddDXGI.SelectedIndex == 74)
+            //{
+            //    num3 = 861165636;
+            //}
+            //if (ddDXGI.SelectedIndex == 77)
+            //{
+            //    num3 = 894720068;
+            //}
+            //if (ddDXGI.SelectedIndex == 80)
+            //{
+            //    num3 = 826889281;
+            //}
+            //if (ddDXGI.SelectedIndex == 83)
+            //{
+            //    num3 = 843666497;
             //}
 
-            if (dDSHeader.HasExtendedHeader && dDSHeader.ddspf.dwFourCC == 0)
+            var ddsSize = 4;
+            switch (fourCC)
             {
-                dDSHeader.ddspf.dwFourCC = 808540228;
+                case 808540228:
+                case 843666497:
+                    ddsSize = 8;
+                    break;
+                default:
+                    ddsSize = 4;
+                    break;
             }
+            int num5 = ddsSize * 2;
+
+            length = textureAsset.Width * textureAsset.Height * ddsSize / 8;
+            //binaryWriter.Write(ddsHeader.ToBytes());
+            binaryWriter.Write(533118272580L);
+            binaryWriter.Write(4103);
+            binaryWriter.Write((uint)textureAsset.Height);
+            binaryWriter.Write((uint)textureAsset.Width);
+            binaryWriter.Write((int)length);
+            binaryWriter.Write(0);
+            binaryWriter.Write(value);
+            outputDataStream.Seek(44L, SeekOrigin.Current);
+            binaryWriter.Write(32);
+            binaryWriter.Write(4);
+            binaryWriter.Write(fourCC);
+            outputDataStream.Seek(40L, SeekOrigin.Current);
+            if (fourCC == 808540228)
+            {
+                //binaryWriter.Write((uint)(int)ddsHeader.ExtendedHeader.dxgiFormat);
+                binaryWriter.Write(71);
+                binaryWriter.Write((uint)(int)ddsHeader.ExtendedHeader.resourceDimension);
+                binaryWriter.Write(0);
+                binaryWriter.Write(1);
+                binaryWriter.Write(0);
+            }
+
+            byte[] array = new byte[length * 2];
+            byte[] array2 = new byte[16];
+            int num6 = (int)textureAsset.Height / num4;
+            int num7 = (int)textureAsset.Width / num4;
+            for (int i = 0; i < (num6 + 7) / 8; i++)
+            {
+                for (int j = 0; j < (num7 + 7) / 8; j++)
+                {
+                    for (int k = 0; k < 64; k++)
+                    {
+                        int num8 = morton(k, 8, 8);
+                        int num9 = num8 / 8;
+                        int num10 = num8 % 8;
+                        inputDataStream.Read(array2, 0, num5);
+                        if (j * 8 + num10 < num7 && i * 8 + num9 < num6)
+                        {
+                            int destinationIndex = num5 * ((i * 8 + num9) * num7 + j * 8 + num10);
+                            Array.Copy(array2, 0, array, destinationIndex, num5);
+                        }
+                    }
+                }
+            }
+            outputDataStream.Write(array, 0, (int)length);
+
+            var arrayBytes = outputDataStream.ToArray();
+            outputDataStream.Close();
+            outputDataStream.Dispose();
+
+            return arrayBytes;
+        }
+
+
+        public virtual byte[] WriteToDDS(Texture textureAsset)
+        {
+            if (textureAsset.Flags.HasFlag(TextureFlags.Ps4))
+            {
+                return WriteToDDSPs4(textureAsset);
+            }
+
+            DDSHeader ddsHeader = GetDDSHeaderForTextureAsset(textureAsset);
+
             MemoryStream memoryStream = textureAsset.Data as MemoryStream;
             memoryStream.Position = 0L;
             //byte[] array = null;
             using (NativeWriter nativeWriter = new NativeWriter(new MemoryStream()))
             {
-                dDSHeader.Write(nativeWriter);
+                ddsHeader.Write(nativeWriter);
                 if (textureAsset.Type == TextureType.TT_Cube || textureAsset.Type == TextureType.TT_2dArray)
                 {
                     int num = 6;
@@ -358,7 +376,7 @@ namespace Frostbite.Textures
                     // If it is a PS4 texture. Make some changes.
                     if (textureAsset.Flags.HasFlag(TextureFlags.Ps4))
                     {
-		                var arraySize = textureAsset.width * textureAsset.height * 4 / 8;
+                        var arraySize = textureAsset.width * textureAsset.height * 4 / 8;
                         //byte[] array = new byte[arraySize];
                         byte[] array = new byte[textureAsset.Data.Length];
 
@@ -394,13 +412,198 @@ namespace Frostbite.Textures
                         nativeWriter.Write(array);
 
                     }
-                    else 
+                    else
                     {
                         nativeWriter.Write(memoryStream.ToArray());
                     }
                 }
                 var finalBuffer = ((MemoryStream)nativeWriter.BaseStream).GetBuffer();
                 return finalBuffer;
+            }
+        }
+
+        private static DDSHeader GetDDSHeaderForTextureAsset(Texture textureAsset)
+        {
+            TextureUtils.DDSHeader ddsHeader = new TextureUtils.DDSHeader();
+            ddsHeader.dwHeight = textureAsset.Height;
+            ddsHeader.dwWidth = textureAsset.Width;
+            ddsHeader.dwPitchOrLinearSize = (int)textureAsset.MipSizes[0];
+            ddsHeader.dwMipMapCount = textureAsset.MipCount;
+            if (textureAsset.MipCount > 1)
+            {
+                ddsHeader.dwFlags |= TextureUtils.DDSFlags.MipMapCount;
+                ddsHeader.dwCaps |= (TextureUtils.DDSCaps)4194312;
+            }
+            switch (textureAsset.Type)
+            {
+                case TextureType.TT_2d:
+                    ddsHeader.ExtendedHeader.resourceDimension = (ResourceDimension)3;
+                    ddsHeader.ExtendedHeader.arraySize = 1u;
+                    break;
+                case TextureType.TT_2dArray:
+                    ddsHeader.ExtendedHeader.resourceDimension = (ResourceDimension)3;
+                    ddsHeader.ExtendedHeader.arraySize = textureAsset.Depth;
+                    break;
+                case TextureType.TT_Cube:
+                    ddsHeader.dwCaps2 = (TextureUtils.DDSCaps2)65024;
+                    ddsHeader.ExtendedHeader.resourceDimension = (ResourceDimension)3;
+                    ddsHeader.ExtendedHeader.arraySize = 1u;
+                    ddsHeader.ExtendedHeader.miscFlag = 4u;
+                    break;
+                case TextureType.TT_3d:
+                    ddsHeader.dwFlags |= TextureUtils.DDSFlags.Depth;
+                    ddsHeader.dwCaps2 |= TextureUtils.DDSCaps2.Volume;
+                    ddsHeader.dwDepth = textureAsset.Depth;
+                    ddsHeader.ExtendedHeader.resourceDimension = (ResourceDimension)4;
+                    ddsHeader.ExtendedHeader.arraySize = 1u;
+                    break;
+            }
+            GetDXGIFromTextureFormat(textureAsset, ref ddsHeader);
+            return ddsHeader;
+        }
+
+        private static void GetDXGIFromTextureFormat(Texture textureAsset, ref DDSHeader ddsHeader)
+        {
+            int pxFormatNumber = textureAsset.PixelFormatNumber;
+            string pxFormat = textureAsset.PixelFormat;
+
+            if (pxFormat.StartsWith("BC") && (textureAsset.Flags.HasFlag(TextureFlags.SrgbGamma)))
+            {
+                pxFormat = pxFormat.Replace("UNORM", "SRGB");
+            }
+
+            if (pxFormat.StartsWith("BC") && textureAsset.Flags.HasFlag(TextureFlags.Ps4))
+            {
+                pxFormat = pxFormat.Replace("SRGB", "UNORM");
+            }
+
+            switch (pxFormat)
+            {
+                case "NormalDXT1":
+                    ddsHeader.ddspf.dwFourCC = 827611204;
+                    break;
+                case "NormalDXN":
+                    ddsHeader.ddspf.dwFourCC = 843666497;
+                    break;
+                case "BC1A_SRGB":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)72;
+                    break;
+                case "BC1A_UNORM":
+                    ddsHeader.ddspf.dwFourCC = 827611204;
+                    break;
+                case "BC1_SRGB":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)72;
+                    break;
+                case "BC1_UNORM":
+                    ddsHeader.ddspf.dwFourCC = 827611204;
+                    break;
+                case "BC2_SRGB":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)75;
+                    break;
+                case "BC3_SRGB":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)78;
+                    break;
+                case "BC3A_SRGB":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)78;
+                    break;
+                case "BC3_UNORM":
+                    ddsHeader.ddspf.dwFourCC = 894720068;
+                    break;
+                case "BC3A_UNORM":
+                    ddsHeader.ddspf.dwFourCC = 826889281;
+                    break;
+                case "BC4_UNORM":
+                    ddsHeader.ddspf.dwFourCC = 826889281;
+                    break;
+                case "BC5_UNORM":
+                    ddsHeader.ddspf.dwFourCC = 843666497;
+                    break;
+                case "BC6U_FLOAT":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)95;
+                    break;
+                case "BC7":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)98;
+                    break;
+                case "BC7_SRGB":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)99;
+                    break;
+                case "BC7_UNORM":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)98;
+                    break;
+
+
+
+                case "R8_UNORM":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)61;
+                    break;
+                case "R16G16B16A16_FLOAT":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)10;
+                    break;
+                case "ARGB32F":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)2;
+                    break;
+                case "R32G32B32A32_FLOAT":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)2;
+                    break;
+                case "R9G9B9E5F":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)67;
+                    break;
+                case "R9G9B9E5_FLOAT":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)67;
+                    break;
+                case "R8G8B8A8_UNORM":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)28;
+                    break;
+                case "R8G8B8A8_SRGB":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)29;
+                    break;
+                case "R10G10B10A2_UNORM":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)24;
+                    break;
+                case "L8":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)61;
+                    break;
+                case "L16":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)56;
+                    break;
+                case "ARGB8888":
+                    ddsHeader.HasExtendedHeader = true;
+                    ddsHeader.ExtendedHeader.dxgiFormat = (Vortice.DXGI.Format)28;
+                    break;
+                //default:
+                //                dDSHeader.HasExtendedHeader = true;
+                //	dDSHeader.ExtendedHeader.dxgiFormat = vorticeFormat;
+                //                //dDSHeader.ddspf.dwFourCC = BitConverter.ToInt32(Encoding.UTF8.GetBytes("DX10"));
+                //                //dDSHeader.ddspf.dwFourCC = 0;
+                //                break;
+                default:
+                    ddsHeader.ddspf.dwFourCC = 0;
+                    break;
+            }
+
+            if (ddsHeader.HasExtendedHeader && ddsHeader.ddspf.dwFourCC == 0)
+            {
+                ddsHeader.ddspf.dwFourCC = 808540228;
             }
         }
 
@@ -602,6 +805,16 @@ namespace Frostbite.Textures
                     writer.Write(ExtendedHeader.arraySize);
                     writer.Write(ExtendedHeader.miscFlags2);
                 }
+
+                
+            }
+
+            public byte[] ToBytes()
+            {
+                var ms = new MemoryStream();
+                var nw = new NativeWriter(ms);
+                Write(nw);
+                return ms.ToArray();
             }
 
             public bool Read(NativeReader reader)
@@ -776,10 +989,10 @@ namespace Frostbite.Textures
                 TexMetadata meta = image.GetMetadata();
                 Lazy<bool> lazyIsOpaqueAlpha = new Lazy<bool>(delegate
                 {
-                    DDSHeader dDSHeader = new DDSHeader();
+                    DDSHeader ddsHeader = new DDSHeader();
                     using (var nr = new NativeReader(new MemoryStream(inputData)))
-                        dDSHeader.Read(nr);
-                    return dDSHeader.HasExtendedHeader && dDSHeader.ExtendedHeader.miscFlags2 == 3;
+                        ddsHeader.Read(nr);
+                    return ddsHeader.HasExtendedHeader && ddsHeader.ExtendedHeader.miscFlags2 == 3;
                 });
                 if (TexHelper.Instance.IsCompressed(meta.Format))
                 {
