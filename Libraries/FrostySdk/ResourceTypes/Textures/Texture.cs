@@ -49,8 +49,6 @@ namespace FrostySdk.Resources
 
         public string textureGroup;
 
-        public Stream data;
-
         public uint logicalOffset;
 
         public uint logicalSize;
@@ -182,7 +180,7 @@ namespace FrostySdk.Resources
             }
         }
 
-        public Stream Data => data;
+        public Stream Data { get; set; }
 
         public uint LogicalOffset
         {
@@ -347,7 +345,7 @@ namespace FrostySdk.Resources
             //        //	am.logger.Log($"Texture: Loading ChunkId: {chunkId}");
 
             //        ChunkEntry = AssetManager.Instance.GetChunkEntry(chunkId);
-            //        data = AssetManager.Instance.GetChunk(ChunkEntry);
+            //        Data = AssetManager.Instance.GetChunk(ChunkEntry);
             //    }
             //}
         }
@@ -505,7 +503,7 @@ namespace FrostySdk.Resources
                 AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {chunkId}");
 
             ChunkEntry = AssetManager.Instance.GetChunkEntry(chunkId);
-            data = AssetManager.Instance.GetChunk(ChunkEntry);
+            Data = AssetManager.Instance.GetChunk(ChunkEntry);
         }
 
         private void ReadInStreamNHLPS4(NativeReader nativeReader)
@@ -537,7 +535,7 @@ namespace FrostySdk.Resources
                 AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {chunkId}");
 
             ChunkEntry = AssetManager.Instance.GetChunkEntry(chunkId);
-            data = AssetManager.Instance.GetChunk(ChunkEntry);
+            Data = AssetManager.Instance.GetChunk(ChunkEntry);
         }
 
         private void ReadInStreamMadden23(NativeReader nativeReader)
@@ -570,7 +568,7 @@ namespace FrostySdk.Resources
                 AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {chunkId}");
 
             ChunkEntry = AssetManager.Instance.GetChunkEntry(chunkId);
-            data = AssetManager.Instance.GetChunk(ChunkEntry);
+            Data = AssetManager.Instance.GetChunk(ChunkEntry);
         }
 
 
@@ -603,7 +601,7 @@ namespace FrostySdk.Resources
                 AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {chunkId}");
 
             ChunkEntry = AssetManager.Instance.GetChunkEntry(chunkId);
-            data = AssetManager.Instance.GetChunk(ChunkEntry);
+            Data = AssetManager.Instance.GetChunk(ChunkEntry);
         }
 
         private void ReadInStreamFC24(NativeReader nativeReader)
@@ -635,7 +633,7 @@ namespace FrostySdk.Resources
                 AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {chunkId}");
 
             ChunkEntry = AssetManager.Instance.GetChunkEntry(chunkId);
-            data = AssetManager.Instance.GetChunk(ChunkEntry);
+            Data = AssetManager.Instance.GetChunk(ChunkEntry);
         }
 
         private void ReadInStreamNFSU(NativeReader nativeReader)
@@ -667,7 +665,7 @@ namespace FrostySdk.Resources
                 AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {chunkId}");
 
             ChunkEntry = AssetManager.Instance.GetChunkEntry(chunkId);
-            data = AssetManager.Instance.GetChunk(ChunkEntry);
+            Data = AssetManager.Instance.GetChunk(ChunkEntry);
         }
 
         private void ReadInStreamDeadSpace(NativeReader nativeReader)
@@ -699,7 +697,7 @@ namespace FrostySdk.Resources
                 AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {chunkId}");
 
             ChunkEntry = AssetManager.Instance.GetChunkEntry(chunkId);
-            data = AssetManager.Instance.GetChunk(ChunkEntry);
+            Data = AssetManager.Instance.GetChunk(ChunkEntry);
         }
 
         //public byte[] Write()
@@ -899,17 +897,17 @@ namespace FrostySdk.Resources
 
         public void SetData(Guid newChunkId, AssetManager am)
         {
-            data = am.GetChunk(am.GetChunkEntry(newChunkId));
+            Data = am.GetChunk(am.GetChunkEntry(newChunkId));
             chunkId = newChunkId;
-            chunkSize = (uint)data.Length;
+            chunkSize = (uint)Data.Length;
         }
 
         public void SetData(byte[] inData)
         {
-            data = new MemoryStream(inData);
+            Data = new MemoryStream(inData);
             // PG I have removed these
             //chunkId = Guid.Empty;
-            //chunkSize = (uint)data.Length;
+            //chunkSize = (uint)Data.Length;
         }
 
         public void CalculateMipData(byte inMipCount, int blockSize, bool isCompressed, uint dataSize)
@@ -962,7 +960,7 @@ namespace FrostySdk.Resources
         {
             if (disposing)
             {
-                data.Dispose();
+                Data.Dispose();
             }
         }
 

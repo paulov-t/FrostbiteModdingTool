@@ -120,7 +120,7 @@ namespace FrostySdk.Frostbite
 
                 logger.Log("Loaded Type Library SDK");
                 if (FileSystem.Instance == null)
-                    FileSystem.Instance = new FileSystem(gameLocation.ToString());
+                    new FileSystem(gameLocation.ToString());
 
                 if (File.Exists(CachePath) && forceDeleteOfOld)
                     File.Delete(CachePath);
@@ -450,7 +450,7 @@ namespace FrostySdk.Frostbite
             if (ProfileManager.Initialize(GameInstanceSingleton.Instance.GAMEVERSION))
             {
                 if (FileSystem.Instance != null)
-                    FileSystem.Instance = null;
+                    FileSystem.Instance.Dispose();
 
                 new FileSystem(new string(GameInstanceSingleton.Instance.GAMERootPath));
                 if (!File.Exists(CachePath))

@@ -137,7 +137,7 @@ namespace FrostySdk.Managers
             // Managed Resources
             if (disposing)
             {
-                FileSystem.Instance = null;
+                FileSystem.Instance.Dispose();// = null;
                 AssetManagerInitialised = null;
                 AssetManagerModified = null;
 

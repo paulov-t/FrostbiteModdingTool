@@ -105,7 +105,7 @@ namespace SdkGenerator
             {
                 ProfileManager.Initialize(OverrideProfileName == null ? SdkProcess.ProcessName.Replace(" ", "") : OverrideProfileName);
                 if (FileSystem.Instance == null)
-                    FileSystem.Instance = new FileSystem(Directory.GetParent(SdkProcess.MainModule.FileName).FullName);
+                    new FileSystem(Directory.GetParent(SdkProcess.MainModule.FileName).FullName);
                 Debug.WriteLine($"Process Found {SdkProcess.ProcessName}");
                 Trace.WriteLine($"Process Found {SdkProcess.ProcessName}");
                 Console.WriteLine($"Process Found {SdkProcess.ProcessName}");

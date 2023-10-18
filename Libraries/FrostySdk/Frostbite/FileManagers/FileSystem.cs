@@ -18,7 +18,10 @@ using System.Security.Principal;
 
 namespace FrostySdk
 {
-    public class FileSystem
+    /// <summary>
+    /// The FileSystem Class stores information about the physical files about the Game
+    /// </summary>
+    public class FileSystem : IDisposable
     {
         private List<string> paths { get; } = new List<string>();
 
@@ -133,12 +136,22 @@ namespace FrostySdk
 
         public string BasePath { get; private set; }
 
-        public static FileSystem Instance;
+        public static FileSystem Instance { get; private set; }
 
         public string LocaleIniPath => ResolvePath("native_data/locale.ini");
+        public Dictionary<Sha1, CatResourceEntry> CatResourceEntries { get; } = new Dictionary<Sha1, CatResourceEntry>();
+        public Dictionary<Sha1, CatPatchEntry> CatPatchEntries { get; } = new Dictionary<Sha1, CatPatchEntry>();
+        public Dictionary<int, string> CasFiles { get; } = new Dictionary<int, string>();
 
         public LiveTuningUpdate LiveTuningUpdate { get; } = new LiveTuningUpdate();
 
+        /// <summary>
+        /// Creates the <class cref="FileSystem">FileSystem</class> with the Directory of the Game Path provided
+        /// </summary>
+        /// <param name="inBasePath"></param>
+        /// <exception cref="Exception"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="AccessViolationException">If FMT doesn't have sufficient access. Throw an Exception and ask for Admin Access.</exception>
         public FileSystem(string inBasePath)
         {
             if (Instance != null)
@@ -195,9 +208,10 @@ namespace FrostySdk
         }
 
         /// <summary>
-        /// Needs to first 16 bytes of the key
+        /// Initializes against the Loaded game. Expects ProfileManager & BasePaths to be set.
         /// </summary>
         /// <param name="key"></param>
+        /// <param name="patched"></param>
         public void Initialize(byte[] key = null, bool patched = true)
         {
             ProcessLayouts();
@@ -219,10 +233,6 @@ namespace FrostySdk
 
             LoadCatalogs();
         }
-
-        public Dictionary<Sha1, CatResourceEntry> CatResourceEntries { get; } = new Dictionary<Sha1, CatResourceEntry>();
-        public Dictionary<Sha1, CatPatchEntry> CatPatchEntries { get; } = new Dictionary<Sha1, CatPatchEntry>();
-        public Dictionary<int, string> CasFiles { get; } = new Dictionary<int, string>();
 
         /// <summary>
         /// Attempts to load in .CAT files
@@ -1274,6 +1284,8 @@ namespace FrostySdk
             return false;
         }
 
-
+        public void Dispose()
+        {
+        }
     }
 }

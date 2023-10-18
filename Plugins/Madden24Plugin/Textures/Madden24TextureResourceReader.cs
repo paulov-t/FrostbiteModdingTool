@@ -37,7 +37,7 @@ namespace Madden24Plugin.Textures
                 AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {texture.chunkId}");
 
             texture.ChunkEntry = AssetManager.Instance.GetChunkEntry(texture.chunkId);
-            texture.data = AssetManager.Instance.GetChunk(texture.ChunkEntry);
+            texture.Data = AssetManager.Instance.GetChunk(texture.ChunkEntry);
         }
     }
 }
