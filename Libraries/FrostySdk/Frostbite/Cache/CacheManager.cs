@@ -148,16 +148,17 @@ namespace FrostySdk.Frostbite
 
         public static EbxAssetEntry GetEbx(string name)
         {
-            var reader = GetCacheReader();
+            //var reader = GetCacheReader();
 
-            var results = EnumerateEbx(name, string.Empty, false, false);
-            if (results == null)
-                return null;
+            //var results = EnumerateEbx(name, string.Empty, false, false);
+            //if (results == null)
+            //    return null;
 
-            if (results.Count() == 0) 
-                return null;
+            //if (results.Count() == 0) 
+            //    return null;
 
-            return results.First();
+            //return results.First();
+            return null;
         }
 
         public static IEnumerable<EbxAssetEntry> EnumerateEbx(string name, string type, bool modifiedOnly, bool includeLinked)
@@ -331,19 +332,21 @@ namespace FrostySdk.Frostbite
 
         public static MemoryStream CacheDecompress()
         {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            Directory.CreateDirectory(CacheDirectoryPath);
+            //Directory.CreateDirectory(CacheDirectoryPath);
 
-            // Decompress the Cache File into a Memory Stream
-            using (Ionic.Zip.ZipFile zipCache = Ionic.Zip.ZipFile.Read(CachePath))
-            {
-                Ionic.Zip.ZipEntry zipCacheEntry = zipCache.Entries.First();
-                var msCache = new MemoryStream();
-                zipCacheEntry.Extract(msCache);
-                msCache.Seek(0, SeekOrigin.Begin);
-                return msCache;
-            }
+            //// Decompress the Cache File into a Memory Stream
+            //using (Ionic.Zip.ZipFile zipCache = Ionic.Zip.ZipFile.Read(CachePath))
+            //{
+            //    Ionic.Zip.ZipEntry zipCacheEntry = zipCache.Entries.First();
+            //    var msCache = new MemoryStream();
+            //    zipCacheEntry.Extract(msCache);
+            //    msCache.Seek(0, SeekOrigin.Begin);
+            //    return msCache;
+            //}
+
+            return new MemoryStream(File.ReadAllBytes(CachePath));
         }
 
         public static async Task<MemoryStream> CacheDecompressAsync()
@@ -353,17 +356,18 @@ namespace FrostySdk.Frostbite
 
         public static bool CacheCompress(MemoryStream msCache)
         {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            Directory.CreateDirectory(CacheDirectoryPath);
+            //Directory.CreateDirectory(CacheDirectoryPath);
 
-            msCache.Seek(0, SeekOrigin.Begin);
-            // Compress the Cache File into a Memory Stream
-            Ionic.Zip.ZipFile zipCache = new Ionic.Zip.ZipFile(CachePath);
-            if (zipCache.ContainsEntry("cacheEntry"))
-                zipCache.RemoveEntry("cacheEntry");
-            zipCache.AddEntry("cacheEntry", msCache);
-            zipCache.Save();
+            //msCache.Seek(0, SeekOrigin.Begin);
+            //// Compress the Cache File into a Memory Stream
+            //Ionic.Zip.ZipFile zipCache = new Ionic.Zip.ZipFile(CachePath);
+            //if (zipCache.ContainsEntry("cacheEntry"))
+            //    zipCache.RemoveEntry("cacheEntry");
+            //zipCache.AddEntry("cacheEntry", msCache);
+            //zipCache.Save();
+            File.WriteAllBytes(CachePath, msCache.ToArray());
             return File.Exists(CachePath);
         }
 
@@ -452,7 +456,9 @@ namespace FrostySdk.Frostbite
                 if (FileSystem.Instance != null)
                     FileSystem.Instance.Dispose();
 
-                new FileSystem(new string(GameInstanceSingleton.Instance.GAMERootPath));
+                if (FileSystem.Instance == null)
+                    new FileSystem(new string(GameInstanceSingleton.Instance.GAMERootPath));
+                
                 if (!File.Exists(CachePath))
                 {
                     return true;

@@ -34,46 +34,46 @@ namespace FMT.Cache
                     nativeWriter.Write(bundle.SuperBundleId);
                 }
 
-                Dictionary<string, long> EbxNameToPosition = new Dictionary<string, long>();
+                Dictionary<string, int> EbxNameToPosition = new Dictionary<string, int>();
                 var ebxOffsetPosition = nativeWriter.Position;
                 nativeWriter.Write(AssetManager.Instance.EBX.Values.Count);
                 foreach (EbxAssetEntry ebxEntry in AssetManager.Instance.EBX.Values)
                 {
                     if (!EbxNameToPosition.ContainsKey(ebxEntry.Name))
-                        EbxNameToPosition.Add(ebxEntry.Name, nativeWriter.Position);
+                        EbxNameToPosition.Add(ebxEntry.Name, (int)nativeWriter.Position);
 
                     WriteEbxEntry(nativeWriter, ebxEntry);
                 }
 
-                Dictionary<string, long> ResNameToPosition = new Dictionary<string, long>();
+                Dictionary<string, int> ResNameToPosition = new Dictionary<string, int>();
                 var resOffsetPosition = nativeWriter.Position;
                 nativeWriter.Write(AssetManager.Instance.RES.Values.Count);
                 foreach (ResAssetEntry resEntry in AssetManager.Instance.RES.Values)
                 {
                     if (!ResNameToPosition.ContainsKey(resEntry.Name))
-                        ResNameToPosition.Add(resEntry.Name, nativeWriter.Position);
+                        ResNameToPosition.Add(resEntry.Name, (int)nativeWriter.Position);
 
                     WriteResEntry(nativeWriter, resEntry);
                 }
 
-                Dictionary<Guid, long> ChunkGuidToPosition = new Dictionary<Guid, long>();
+                Dictionary<Guid, int> ChunkGuidToPosition = new Dictionary<Guid, int>();
                 var chunkOffsetPosition = nativeWriter.Position;
                 nativeWriter.Write(AssetManager.Instance.Chunks.Count);
                 foreach (ChunkAssetEntry chunkEntry in AssetManager.Instance.Chunks.Values)
                 {
                     if (!ChunkGuidToPosition.ContainsKey(chunkEntry.Id))
-                        ChunkGuidToPosition.Add(chunkEntry.Id, nativeWriter.Position);
+                        ChunkGuidToPosition.Add(chunkEntry.Id, (int)nativeWriter.Position);
                     
                     WriteChunkEntry(nativeWriter, chunkEntry);
                 }
 
-                Dictionary<Guid, long> SbChunkGuidToPosition = new Dictionary<Guid, long>();
+                Dictionary<Guid, int> SbChunkGuidToPosition = new Dictionary<Guid, int>();
                 var sbChunkOffsetPosition = nativeWriter.Position;
                 nativeWriter.Write(AssetManager.Instance.SuperBundleChunks.Count);
                 foreach (ChunkAssetEntry chunkEntry in AssetManager.Instance.SuperBundleChunks.Values)
                 {
                     if (!SbChunkGuidToPosition.ContainsKey(chunkEntry.Id))
-                        SbChunkGuidToPosition.Add(chunkEntry.Id, nativeWriter.Position);
+                        SbChunkGuidToPosition.Add(chunkEntry.Id, (int)nativeWriter.Position);
 
                     WriteChunkEntry(nativeWriter, chunkEntry);
                 }
