@@ -88,9 +88,9 @@ namespace Madden24Plugin
             logger.Log("Copying files from Patch to ModData/Patch");
             CopyDataFolder(FileSystem.Instance.BasePath + "\\Patch\\", FileSystem.Instance.BasePath + ModDirectory + "\\Patch\\", logger);
 
-            bool success = true;// Run();
-            RebuildAllTOCSig();
-            RebuildAllTOCSig("native_patch/");
+            bool success = Run();
+            //RebuildAllTOCSig();
+            //RebuildAllTOCSig("native_patch/");
             return success;
         }
 

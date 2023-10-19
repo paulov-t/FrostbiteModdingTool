@@ -61,16 +61,19 @@ namespace Madden24Plugin
 
             int sbIndex = -1;
 
-            foreach (var sbName in assetManager.FileSystem.SuperBundles)
+            foreach (var cat in assetManager.FileSystem.CatalogObjects)
             {
-                var tocFileRAW = $"{folder}{sbName}.toc";
-                string tocFileLocation = assetManager.FileSystem.ResolvePath(tocFileRAW);
-                if (string.IsNullOrEmpty(tocFileLocation) || !File.Exists(tocFileLocation))
-                    continue;
+                foreach (var sbName in cat.SuperBundles.Keys)
+                {
+                    var tocFileRAW = $"{folder}{sbName}.toc";
+                    string tocFileLocation = assetManager.FileSystem.ResolvePath(tocFileRAW);
+                    if (string.IsNullOrEmpty(tocFileLocation) || !File.Exists(tocFileLocation))
+                        continue;
 
-                assetManager.Logger.Log($"Loading data ({tocFileRAW})");
-                using TOCFile tocFile = new TOCFile(tocFileRAW, true, true, false, sbIndex, false);
-                sbIndex++;
+                    assetManager.Logger.Log($"Loading data ({tocFileRAW})");
+                    using TOCFile tocFile = new TOCFile(tocFileRAW, true, true, false, sbIndex, false);
+                    sbIndex++;
+                }
             }
         }
 
