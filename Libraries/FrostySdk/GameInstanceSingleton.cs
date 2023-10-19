@@ -75,15 +75,17 @@ namespace v2k4FIFAModdingCL
                     Instance.GAMEVERSION = fileName.Replace(".exe", "").Replace(" ", "");
                     Instance.INITIALIZED = true;
                 }
-                // Initialize the Profile Manager & File System
+                // Initialize the Profile Manager 
                 if (ProfileManager.ProfileName == null && !string.IsNullOrEmpty(Instance.GAMEVERSION))
                 {
                     ProfileManager.Initialize(Instance.GAMEVERSION);
-                    if (FileSystem.Instance == null)
-                    {
-                        new FileSystem(GameDirectory);
-                    }
                 }
+                // Initialize the File System
+                if (FileSystem.Instance == null)
+                {
+                    new FileSystem(GameDirectory);
+                }
+
                 if (loadCache)
                 {
                     CacheManager buildCache = new CacheManager();
