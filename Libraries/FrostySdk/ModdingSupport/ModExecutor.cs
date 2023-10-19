@@ -1196,8 +1196,6 @@ namespace ModdingSupport
                 throw new FileNotFoundException($"Unable to find user *.ini to apply -dataPath={dataPath}. Please ensure EADesktop is properly installed and run at least once!");
             }
 
-
-
             var desiredCommandLineSetting = $"{ProfileManager.LoadedProfile.EADesktopCommandLineSetting}=-dataPath {ModDirectoryName}";
             foreach (var userIniPath in userIniPaths)
             {
@@ -1223,29 +1221,27 @@ namespace ModdingSupport
                 }
                 allTextOfUserIni = await File.ReadAllTextAsync(userIniPath);
                 StringBuilder sb = new StringBuilder(allTextOfUserIni);
-                if (!allTextOfUserIni.Contains(ProfileManager.LoadedProfile.EADesktopCommandLineSetting)
-                    || !allTextOfUserIni.Contains(desiredCommandLineSetting)
+                //if (!allTextOfUserIni.Contains(ProfileManager.LoadedProfile.EADesktopCommandLineSetting.Trim(), StringComparison.OrdinalIgnoreCase)
+                //    || 
+                if(    !allTextOfUserIni.Contains(desiredCommandLineSetting.Trim(), StringComparison.OrdinalIgnoreCase)
                     )
                 {
-                    FileLogger.WriteLine($"ModExecutor:RunEADesktop: -dataPath={ModDirectoryName} does not exist for this game. Setting it up.");
+                    FileLogger.WriteLine($"ModExecutor:RunEADesktop: -dataPath {ModDirectoryName} does not exist for this game. Setting it up.");
                     // Kill the EA Desktop process if needed
-                    KillEADesktopProcess();
+                    //KillEADesktopProcess();
 
                     sb.AppendLine(string.Empty);
-                    sb.Append(desiredCommandLineSetting);
+                    sb.Append(desiredCommandLineSetting.Trim());
                     sb.AppendLine(string.Empty);
                     var finalUserIniText = sb.ToString();
                     // ----------------------------------------------------------------------------------
                     // Write the new config for this game
-                    await File.WriteAllTextAsync(userIniPath, finalUserIniText);
+                    File.WriteAllText(userIniPath, finalUserIniText);
                 }
 
             }
 
-
-
-            await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "");
-            //ExecuteCommand("start \"" + fs.BasePath + ProfileManager.ProfileName + ".exe\"");
+            await ExecuteProcess(fs.BasePath + ProfileManager.ProfileName + ".exe", "-dataPath ModData");
         }
 
         private void KillEADesktopProcess()
