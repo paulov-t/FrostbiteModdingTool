@@ -55,25 +55,21 @@ namespace FrostbiteModdingUI.Windows
             Directory.CreateDirectory(App.ApplicationDirectory + "\\Mods\\Profiles\\");
 
             Loaded += FindGameEXEWindow_Loaded;
+            
 
 
-            List<string> lastLocationPaths = new List<string>();
-            foreach (var dir in Directory.GetDirectories(modProfileDirectory))
-            {
-                lastLocationPaths.AddRange(
-                Directory.GetFiles(dir)
-                .Where(x => x.Contains("LastLocation.json", StringComparison.OrdinalIgnoreCase)).ToList());
-            }
-
-            var lstOfLocations = lastLocationPaths.Select(x
-                =>
-                new FileInfo(File.ReadAllText(x))
-                ).Where(x => x.Exists).ToList();
-            lv.ItemsSource = lstOfLocations;
+           
         }
 
         private void FindGameEXEWindow_Loaded(object sender, RoutedEventArgs e)
         {
+
+        }
+
+        protected override void OnContentRendered(EventArgs e)
+        {
+            base.OnContentRendered(e);
+
             // If the Registry has the key and path, use that!
             var registryPath = GamePathEXE;
             if (File.Exists(registryPath))
@@ -81,6 +77,24 @@ namespace FrostbiteModdingUI.Windows
                 InitializeOfSelectedGame(registryPath);
                 this.Close();
             }
+            else
+            {
+                List<string> lastLocationPaths = new List<string>();
+                foreach (var dir in Directory.GetDirectories(modProfileDirectory))
+                {
+                    lastLocationPaths.AddRange(
+                    Directory.GetFiles(dir)
+                    .Where(x => x.Contains("LastLocation.json", StringComparison.OrdinalIgnoreCase)).ToList());
+                }
+
+                var lstOfLocations = lastLocationPaths.Select(x
+                    =>
+                    new FileInfo(File.ReadAllText(x))
+                    ).Where(x => x.Exists).ToList();
+                lv.ItemsSource = lstOfLocations;
+                grd.Visibility = Visibility.Visible;
+            }
+
         }
 
         private void btnFindGameEXE_Click(object sender, RoutedEventArgs e)

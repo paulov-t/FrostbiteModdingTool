@@ -9,38 +9,43 @@
         xmlns:local="clr-namespace:FrostbiteModdingUI.Windows"
         mc:Ignorable="d"
         Title="{DynamicResource textFindGameEXE}" WindowStartupLocation="CenterScreen" WindowStyle="SingleBorderWindow" Height="400" Width="500" Topmost="True">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition></RowDefinition>
-            <RowDefinition Height="30"></RowDefinition>
-        </Grid.RowDefinitions>
-        <ListView x:Name="lv">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Button Click="Button_Click" Tag="{Binding}" HorizontalContentAlignment="Left">
-                        <Grid HorizontalAlignment="Left">
-                            <Grid.RowDefinitions>
-                                <RowDefinition></RowDefinition>
-                                <RowDefinition></RowDefinition>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="50"></ColumnDefinition>
-                                <ColumnDefinition></ColumnDefinition>
-                            </Grid.ColumnDefinitions>
-                            <MaterialDesign:PackIcon Kind="Application" VerticalAlignment="Center" />
-                            <Label Grid.Column="1" FontSize="18" FontWeight="Bold" Content="{Binding Name}"></Label>
-                            <Label Grid.Column="1" Grid.Row="1" Content="{Binding FullName}"></Label>
-                        </Grid>
-                    </Button>
+    <Grid Background="#232323">
+        <Grid x:Name="grd" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition Height="30"></RowDefinition>
+            </Grid.RowDefinitions>
+            <ListView x:Name="lv">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Button Click="Button_Click" Tag="{Binding}" HorizontalContentAlignment="Left">
+                            <Grid HorizontalAlignment="Left">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition></RowDefinition>
+                                    <RowDefinition></RowDefinition>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50"></ColumnDefinition>
+                                    <ColumnDefinition></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <MaterialDesign:PackIcon Kind="Application" VerticalAlignment="Center" />
+                                <Label Grid.Column="1" FontSize="18" FontWeight="Bold" Content="{Binding Name}"></Label>
+                                <Label Grid.Column="1" Grid.Row="1" Content="{Binding FullName}"></Label>
+                            </Grid>
+                        </Button>
 
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        <Button x:Name="btnFindGameEXE" Grid.Row="1" Click="btnFindGameEXE_Click">
-            <StackPanel Height="30" VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
-                <MaterialDesign:PackIcon Kind="Search" VerticalAlignment="Center" />
-                <Label Content="{DynamicResource textFindGameEXE}" VerticalAlignment="Center" />
-            </StackPanel>
-        </Button>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <Button x:Name="btnFindGameEXE" Grid.Row="1" Click="btnFindGameEXE_Click">
+                <StackPanel Height="30" VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
+                    <MaterialDesign:PackIcon Kind="Search" VerticalAlignment="Center" />
+                    <Label Content="{DynamicResource textFindGameEXE}" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </Grid>
+        <Border x:Name="loading" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Foreground="White">Loading...</TextBlock>
+        </Border>
     </Grid>
 </Window>
