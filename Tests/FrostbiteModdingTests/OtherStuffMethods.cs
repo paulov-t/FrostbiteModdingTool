@@ -26,7 +26,7 @@ namespace FrostbiteModdingTests
         [TestMethod]
         public void MemoryTestTOCFile()
         {
-            var tocFile = new TOCFile();
+            var tocFile = new TOCFile(null);
             var weakReference = new WeakReference(tocFile);
 
             tocFile = null;

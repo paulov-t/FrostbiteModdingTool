@@ -33,6 +33,11 @@ namespace FC24Plugin
         {
             base.Compile(fs, logger, modExecuter);
 
+            // Change TOC File Type to FC24TOCFile
+            FileSystem.Instance.TOCFileType = typeof(FC24TOCFile);
+            // Initialize SDK
+            TypeLibrary.Initialize();
+
             DateTime dtStarted = DateTime.Now;
             //if (!ProfileManager.IsFC24DataVersion())
             //{
@@ -77,6 +82,7 @@ namespace FC24Plugin
         public List<ChunkAssetEntry> AddedChunks = new List<ChunkAssetEntry>();
 
         Dictionary<string, DbObject> SbToDbObject = new Dictionary<string, DbObject>();
+        public override bool RequiresCacheToCompile { get => false; }
 
         private void DeleteBakFiles(string path)
         {
@@ -94,6 +100,7 @@ namespace FC24Plugin
                 DeleteBakFiles(dir);
             }
         }
+
 
         public bool Run()
         {

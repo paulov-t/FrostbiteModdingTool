@@ -69,10 +69,22 @@ namespace FrostbiteModdingTests
         [TestMethod]
         public void ModSplashscreen()
         {
-            GameInstanceSingleton.InitializeSingleton(GamePathEXE);
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
             ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
             frostyModExecutor.ForceRebuildOfMods = true;
             frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "G:\\Work\\testsplashmadden24.fbmod" }.ToArray()).Wait();
+        }
+
+        [TestMethod]
+        public void ModSplashscreenProject()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
+            ProjectManagement projectManagement = new ProjectManagement(GamePath);
+            var p = projectManagement.LoadProjectFromFile("G:\\Work\\madden 24 splash project.fmtproj").Result;
+            p.WriteToMod("test.fbmod");
+            ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+            frostyModExecutor.ForceRebuildOfMods = true;
+            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
         }
 
         private string prevText = string.Empty;

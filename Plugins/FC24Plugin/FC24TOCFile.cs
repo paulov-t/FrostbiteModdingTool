@@ -17,6 +17,15 @@ namespace FC24Plugin
     public class FC24TOCFile : TOCFile
     {
         /// <summary>
+        /// Used if you want to Read TOC without the normal way
+        /// </summary>
+        public FC24TOCFile(string nativeFilePath) : base(nativeFilePath)
+        {
+
+        }
+
+
+        /// <summary>
         /// Reads the TOC file and process any data within it (Chunks) and its Bundles (In Cas files)
         /// </summary>
         /// <param name="nativeFilePath"></param>
@@ -151,22 +160,6 @@ namespace FC24Plugin
 
                 }
                 
-                // -----------------------------------------------
-                //var foundCatalog = 0;
-            //if (AssetManager.Instance != null)
-            //{
-            //    var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
-            //    var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace(".toc", "");
-            //    if (!allCatalogs.Any(x => x.SuperBundles.ContainsKey(keyToFindSb)))
-            //    {
-            //        FileLogger.WriteLine($"{nameof(ReadChunkData)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
-            //        return;
-            //    }
-            //    var singleCatalog = allCatalogs.Last(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
-            //    foundCatalog = allCatalogs.IndexOf(singleCatalog);
-            //}
-            ///
-
             if (MetaData.ChunkEntryOffset != MetaData.DataOffset)
             {
 
@@ -205,7 +198,7 @@ namespace FC24Plugin
             }
         }
 
-        protected override void ReadBundleData(NativeReader nativeReader)
+        public override void ReadBundleData(NativeReader nativeReader)
         {
 
             nativeReader.Position = 556 + MetaData.BundleOffset;
@@ -278,24 +271,6 @@ namespace FC24Plugin
 
                 if (AssetManager.Instance != null && DoLogging)
                     AssetManager.Instance.Logger.Log("Searching for CAS Data from " + FileLocation);
-
-                //var foundCatalog = 0;
-                //var allCatalogs = AssetManager.Instance.FileSystem.CatalogObjects.ToList();
-                //var keyToFindSb = NativeFileLocation.Replace("native_data/", "").Replace("native_patch/", "").Replace(".toc", "");
-
-                //// --------------------------------------------------------------------------------------------------
-                //// Find single catalog
-                ////var singleCatalog = allCatalogs.Single(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
-                //if (!allCatalogs.Any(x => x.SuperBundles.ContainsKey(keyToFindSb)))
-                //{
-                //    Debug.WriteLine($"{nameof(ReadCasBundles)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
-                //    FileLogger.WriteLine($"{nameof(ReadCasBundles)} No SuperBundle found for {keyToFindSb} in {NativeFileLocation}");
-                //    return;
-                //}
-
-                //var singleCatalog = allCatalogs.Last(x => x.SuperBundles.ContainsKey(keyToFindSb) && !x.SuperBundles[keyToFindSb]);
-
-                //foundCatalog = allCatalogs.IndexOf(singleCatalog);
 
                 for (int i = 0; i < MetaData.BundleCount; i++)
                 {

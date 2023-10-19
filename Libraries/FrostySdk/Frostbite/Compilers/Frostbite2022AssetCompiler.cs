@@ -152,22 +152,102 @@ namespace FrostySdk.Frostbite.Compilers
             CopyDirectory(from_datafolderpath, to_datafolderpath, true, logger);
         }
 
+        public virtual bool RequiresCacheToCompile { get; } = true;
+
+        public virtual void FindModdedCasFilesWithoutCache(ref Dictionary<string, List<ModdedFile>> casToMods, string directory = "native_patch")
+        {
+            foreach (var sbName in FileSystem.Instance.SuperBundles)
+            {
+                var tocFileRAW = $"{directory}/{sbName}.toc";
+                string tocFileLocation = FileSystem.Instance.ResolvePath(tocFileRAW);
+                if (string.IsNullOrEmpty(tocFileLocation) || !File.Exists(tocFileLocation))
+                {
+                    AssetManager.Instance.Logger.LogWarning($"Unable to find Toc {tocFileRAW}");
+                    continue;
+                }
+
+                using var tfBundles = (TOCFile)Activator.CreateInstance(FileSystem.Instance.TOCFileType, tocFileRAW);
+                using (var nrTOC = new NativeReader(new FileStream(tocFileLocation, FileMode.Open)))
+                {
+                    tfBundles.ReadOnlyBundles(nrTOC);
+                }
+                
+
+                // If mod doesn't have any bundles defined. Then we fallback to ALWAYS looking for bundles.
+                bool hasBundles = ModExecuter.ModifiedAssets.Any(x => x.Value.Bundles.Count == 0);
+                foreach (var mod in ModExecuter.ModifiedAssets)
+                {
+                    if (tfBundles.BundleEntries.Any(x => mod.Value.Bundles.Contains(x.NameHash)))
+                        hasBundles = true;
+                }
+
+                if (!hasBundles)
+                    continue;
+
+                using var tf = (TOCFile)Activator.CreateInstance(FileSystem.Instance.TOCFileType, tocFileRAW, false, false, false, 0, false);
+
+                var namesOfObjects = tf.GetNamesOfObjects();
+                if (namesOfObjects.Count == 0)
+                    continue;
+
+                foreach (var mod in ModExecuter.ModifiedAssets)
+                {
+                    if (!namesOfObjects.Contains(mod.Key))
+                        continue;
+
+                    var objects = tf.GetObjects();
+
+                    
+                    {
+                        AssetEntry originalEntry = null;
+                        if (mod.Value is EbxAssetEntry)
+                            originalEntry = objects["ebx"].ContainsKey(mod.Key) ? AssetLoaderHelpers.ConvertDbObjectToAssetEntry(objects["ebx"][mod.Key], new EbxAssetEntry()) : null;
+                        else if (mod.Value is ResAssetEntry)
+                            originalEntry = objects["res"].ContainsKey(mod.Key) ? AssetLoaderHelpers.ConvertDbObjectToAssetEntry(objects["res"][mod.Key], new ResAssetEntry()) : null;
+                        else if (mod.Value is ChunkAssetEntry)
+                            originalEntry = objects["chunks"].ContainsKey(mod.Key) ? AssetLoaderHelpers.ConvertDbObjectToAssetEntry(objects["chunks"][mod.Key], new ChunkAssetEntry()) : null;
+
+                        if (originalEntry == null)
+                            continue;
+
+                        if (originalEntry.ExtraData == null || string.IsNullOrEmpty(originalEntry.ExtraData.CasPath))
+                            continue;
+
+                        var casPath = originalEntry.ExtraData.CasPath;
+                        if (!casToMods.ContainsKey(casPath))
+                            casToMods.Add(casPath, new List<ModdedFile>());
+
+                        casToMods[casPath].Add(new ModdedFile(mod.Value.Sha1, mod.Value.Name, false, mod.Value, originalEntry));
+                    }
+                }
+            }
+
+            if (directory == "native_patch")
+                FindModdedCasFilesWithoutCache(ref casToMods, "native_data");
+        }
+
         protected Dictionary<string, List<ModdedFile>> GetModdedCasFiles(CancellationToken cancellationToken = default(CancellationToken))
         {
             if (cancellationToken.IsCancellationRequested)
                 return null;
+
+            Dictionary<string, List<ModdedFile>> casToMods = new Dictionary<string, List<ModdedFile>>();
+
             // -----------------------------------------------------------
             // Only load cache when required
             //if (AssetManager.Instance == null)
-            if (AssetManager.Instance == null || !AssetManager.Instance.EBX.Any())
+            if (RequiresCacheToCompile && (AssetManager.Instance == null || !AssetManager.Instance.EBX.Any()))
             {
                 CacheManager cacheManager = new CacheManager();
                 cacheManager.LoadData(ProfileManager.ProfileName, ModExecuter.GamePath, ModExecuter.Logger, false, true);
             }
+            else
+            {
+                FindModdedCasFilesWithoutCache(ref casToMods);
+            }
 
             // ------ End of handling Legacy files ---------
 
-            Dictionary<string, List<ModdedFile>> casToMods = new Dictionary<string, List<ModdedFile>>();
             foreach (var mod in ModExecuter.ModifiedAssets)
             {
                 AssetEntry originalEntry = null;
@@ -210,41 +290,47 @@ namespace FrostySdk.Frostbite.Compilers
             {
                 // -----------------------------------------------------------
                 // Only load cache when required
-                if (AssetManager.Instance == null)
-                {
-                    CacheManager buildCache = new CacheManager();
-                    buildCache.LoadData(ProfileManager.ProfileName, ModExecuter.GamePath, ModExecuter.Logger, false, true);
-                }
+                //if (AssetManager.Instance == null)
+                //{
+                //    CacheManager buildCache = new CacheManager();
+                //    buildCache.LoadData(ProfileManager.ProfileName, ModExecuter.GamePath, ModExecuter.Logger, false, true);
+                //}
 
                 ModExecuter.Logger.Log($"Legacy :: {ModExecuter.modifiedLegacy.Count} Legacy files found. Modifying associated chunks");
 
                 Dictionary<string, byte[]> legacyData = ModExecuter.modifiedLegacy.ToDictionary(x => x.Key, x => x.Value.ModifiedEntry.Data);
                 var countLegacyChunksModified = 0;
 
-                var legacyFileManager = AssetManager.Instance.GetLegacyAssetManager() as ChunkFileManager2022;
-                if (legacyFileManager != null)
+                if (AssetManager.Instance.GetLegacyAssetManager() == null)
+                    AssetManager.Instance.RegisterLegacyAssetManager();
+
+                var chunkFileManager = AssetManager.Instance.GetLegacyAssetManager() as ChunkFileManager2022;
+                if (chunkFileManager == null)
+                    return;
+
+                // Initialize the LFM
+                chunkFileManager.Initialize(new NullLogger());
+
+                chunkFileManager.ModifyAssets(legacyData, true);
+
+                var modifiedLegacyChunks = chunkFileManager.ModifiedChunks.Distinct();
+                foreach (var modLegChunk in modifiedLegacyChunks)
                 {
-                    legacyFileManager.ModifyAssets(legacyData, true);
+                    if (ModExecuter.ModifiedChunks.ContainsKey(modLegChunk.Id))
+                        ModExecuter.ModifiedChunks.Remove(modLegChunk.Id);
 
-                    var modifiedLegacyChunks = legacyFileManager.ModifiedChunks.Distinct();
-                    foreach (var modLegChunk in modifiedLegacyChunks)
-                    {
-                        if (ModExecuter.ModifiedChunks.ContainsKey(modLegChunk.Id))
-                            ModExecuter.ModifiedChunks.Remove(modLegChunk.Id);
-
-                        ModExecuter.ModifiedChunks.Add(modLegChunk.Id, modLegChunk);
-                        countLegacyChunksModified++;
-                    }
-
-                    foreach (var chunk in modifiedLegacyChunks)
-                    {
-                        if (ModExecuter.archiveData.ContainsKey(chunk.ModifiedEntry.Sha1))
-                            ModExecuter.archiveData.Remove(chunk.ModifiedEntry.Sha1);
-
-                        ModExecuter.archiveData.Add(chunk.ModifiedEntry.Sha1, new ArchiveInfo() { Data = chunk.ModifiedEntry.Data });
-                    }
-                    ModExecuter.Logger.Log($"Legacy :: Modified {countLegacyChunksModified} associated chunks");
+                    ModExecuter.ModifiedChunks.Add(modLegChunk.Id, modLegChunk);
+                    countLegacyChunksModified++;
                 }
+
+                foreach (var chunk in modifiedLegacyChunks)
+                {
+                    if (ModExecuter.archiveData.ContainsKey(chunk.ModifiedEntry.Sha1))
+                        ModExecuter.archiveData.Remove(chunk.ModifiedEntry.Sha1);
+
+                    ModExecuter.archiveData.Add(chunk.ModifiedEntry.Sha1, new ArchiveInfo() { Data = chunk.ModifiedEntry.Data });
+                }
+                ModExecuter.Logger.Log($"Legacy :: Modified {countLegacyChunksModified} associated chunks");
             }
         }
 

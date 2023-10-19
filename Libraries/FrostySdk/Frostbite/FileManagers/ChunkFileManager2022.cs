@@ -4,6 +4,7 @@ using FMT.Logging;
 using FrostbiteSdk.Frostbite.FileManagers;
 using FrostySdk;
 using FrostySdk.Frostbite;
+using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
@@ -13,6 +14,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -166,6 +168,31 @@ namespace Frostbite.FileManagers
         {
         }
 
+        public virtual bool HasChunkFileCollectorsLoaded()
+        {
+            return AssetManager.EnumerateEbx("ChunkFileCollector").Count() > 0;
+        }
+
+        public virtual void LoadChunkFileCollectors(string directory = "native_patch")
+        {
+            foreach (var sbName in FileSystem.Instance.SuperBundles.Where(x=>x.Contains("global")))
+            {
+                var tocFileRAW = $"{directory}/{sbName}.toc";
+                string tocFileLocation = FileSystem.Instance.ResolvePath(tocFileRAW);
+                if (string.IsNullOrEmpty(tocFileLocation) || !File.Exists(tocFileLocation))
+                {
+                    AssetManager.Instance.Logger.LogWarning($"Unable to find Toc {tocFileRAW}");
+                    continue;
+                }
+
+                Logger.Log($"Loading data ({tocFileRAW})");
+                using var tf = (IDisposable)Activator.CreateInstance(FileSystem.Instance.TOCFileType, tocFileRAW, true, true, false, 0, false);
+            }
+
+            if (directory == "native_patch")
+                LoadChunkFileCollectors("native_data");
+        }
+
         public virtual void Initialize(ILogger logger)
         {
             Logger = logger;
@@ -177,6 +204,12 @@ namespace Frostbite.FileManagers
             ModifiedChunks.Clear();
             LegacyChunksToParent.Clear();
             ChunkBatches.Clear();
+
+            if (!HasChunkFileCollectorsLoaded())
+            {
+                LoadChunkFileCollectors();
+                AssetManager.Instance.DoEbxIndexing();
+            }
 
             var chunkFileCollectorEbxEntries = AssetManager.EnumerateEbx("ChunkFileCollector");
             chunkFileCollectorEbxEntries = chunkFileCollectorEbxEntries.Where(x => !x.Name.Contains("_EAData", StringComparison.OrdinalIgnoreCase));

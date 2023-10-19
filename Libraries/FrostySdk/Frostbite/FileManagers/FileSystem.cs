@@ -1,6 +1,7 @@
 using FMT.FileTools;
 using FMT.FileTools.Modding;
 using FrostySdk.Frostbite.IO;
+using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
@@ -143,6 +144,14 @@ namespace FrostySdk
         public Dictionary<Sha1, CatPatchEntry> CatPatchEntries { get; } = new Dictionary<Sha1, CatPatchEntry>();
         public Dictionary<int, string> CasFiles { get; } = new Dictionary<int, string>();
 
+        /// <summary>
+        /// The TOC File Type used to load TOC files (Is Public and Can be overridden). Default is TOCFile.
+        /// </summary>
+        public Type TOCFileType { get; set; } = typeof(TOCFile);
+
+        /// <summary>
+        /// If the Game has Live Tuning Updates, load the LTU from the File.
+        /// </summary>
         public LiveTuningUpdate LiveTuningUpdate { get; } = new LiveTuningUpdate();
 
         /// <summary>

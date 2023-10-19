@@ -112,12 +112,13 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                 foreach (var bundle in bundles)
                 {
                     assetEntry.AddToBundle(Fnv1a.HashString(bundle));
+                    assetEntry.Bundles.Add(Fnv1a.HashString(bundle));
                 }
             }
             if (item.HasValue("Bundle"))
             {
                 //assetEntry.Bundle = item.GetValue<string>("Bundle");
-                //assetEntry.AddToBundle(Fnv1a.HashString(assetEntry.Bundle));
+                assetEntry.Bundles.Add(Fnv1a.HashString(item.GetValue<string>("Bundle")));
                 //assetEntry.Bundles.Add(Fnv1a.HashString(assetEntry.Bundle));
             }
             return assetEntry;

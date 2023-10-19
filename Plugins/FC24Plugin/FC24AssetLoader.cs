@@ -17,36 +17,23 @@ namespace FC24Plugin
             if (assetManager == null || assetManager.FileSystem.SuperBundles.Count() == 0)
                 return;
 
-            int sbIndex = -1;
 
-            //foreach (var catalog in assetManager.FileSystem.CatalogObjects)
-            //{
-            //    foreach (var sb in catalog.SuperBundles)
-            //    {
-                    //var sbName = sb.Key;
+            int sbIndex = -1;
 
             foreach(var sbName in assetManager.FileSystem.SuperBundles)
             { 
-
-#if DEBUG
-                    if (sbName.Contains("globalsfull"))
-                    {
-
-                    }
-#endif
-                    var tocFileRAW = $"{folder}{sbName}.toc";
-                    string tocFileLocation = assetManager.FileSystem.ResolvePath(tocFileRAW);
-                    if (string.IsNullOrEmpty(tocFileLocation) || !File.Exists(tocFileLocation))
-                    {
-                        AssetManager.Instance.Logger.LogWarning($"Unable to find Toc {tocFileRAW}");
-                        continue;
-                    }
-
-                    assetManager.Logger.Log($"Loading data ({tocFileRAW})");
-                    using FC24TOCFile tocFile = new FC24TOCFile(tocFileRAW, true, true, false, sbIndex, false);
-                    sbIndex++;
+                var tocFileRAW = $"{folder}{sbName}.toc";
+                string tocFileLocation = assetManager.FileSystem.ResolvePath(tocFileRAW);
+                if (string.IsNullOrEmpty(tocFileLocation) || !File.Exists(tocFileLocation))
+                {
+                    AssetManager.Instance.Logger.LogWarning($"Unable to find Toc {tocFileRAW}");
+                    continue;
                 }
-            //}
+
+                assetManager.Logger.Log($"Loading data ({tocFileRAW})");
+                using FC24TOCFile tocFile = new FC24TOCFile(tocFileRAW, true, true, false, sbIndex, false);
+                sbIndex++;
+            }
         }
 
         public void LoadPatch(AssetManager parent, BinarySbDataHelper helper)
@@ -56,6 +43,8 @@ namespace FC24Plugin
 
         public void Load(AssetManager parent, BinarySbDataHelper helper)
         {
+            FileSystem.Instance.TOCFileType = typeof(FC24TOCFile);
+
             LoadPatch(parent, helper);
             LoadData(parent, helper);
         }
