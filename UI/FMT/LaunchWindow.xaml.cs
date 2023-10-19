@@ -62,9 +62,6 @@ namespace FMT
 
             DataContext = this;
 
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.WaitForFullGCComplete(-1);
             InitialiseSelectedGame(AppSettings.Settings.GameInstallEXEPath);
         }
 
@@ -218,7 +215,7 @@ namespace FMT
             var txt = string.Empty;
             await Dispatcher.InvokeAsync(() =>
             {
-                txt = txtLog.Text;
+                //txt = txtLog.Text;
             });
 
             var text = await Task.Run(() =>
@@ -237,8 +234,8 @@ namespace FMT
 
             await Dispatcher.InvokeAsync(() =>
             {
-                txtLog.Text = text;
-                txtLog.ScrollToEnd();
+                //txtLog.Text = text;
+                //txtLog.ScrollToEnd();
             });
 
         }
@@ -247,10 +244,10 @@ namespace FMT
         {
             Dispatcher.Invoke(() =>
             {
-                var stringBuilder = new StringBuilder();
-                stringBuilder.Append(txtLog.Text);
-                stringBuilder.AppendLine(in_text);
-                txtLog.Text = stringBuilder.ToString();
+                //var stringBuilder = new StringBuilder();
+                //stringBuilder.Append(txtLog.Text);
+                //stringBuilder.AppendLine(in_text);
+                //txtLog.Text = stringBuilder.ToString();
             });
         }
 

@@ -54,7 +54,7 @@
         <FMTControls:LoadingDialog x:Name="loadingDialog" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Collapsed">
 
         </FMTControls:LoadingDialog>
-        <ToolControls:CacheManagerControl x:Name="cacheManagerControl" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Visible">
+        <ToolControls:CacheManagerControl x:Name="cacheManagerControl" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Visible" AutoRebuild="False" >
             
         </ToolControls:CacheManagerControl>
         <Grid Grid.Row="0">
@@ -88,6 +88,11 @@
                             <mah:MetroTabControl>
                                 <mah:MetroTabItem Header="Mods" Selector.IsSelected="True" IsSelected="True">
                                     <Grid>
+                                        <Grid.Resources >
+                                            <Style TargetType="Border" >
+                                                <Setter Property="Padding" Value="5,5,5,5" />
+                                            </Style>
+                                        </Grid.Resources>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="60"></RowDefinition>
                                             <RowDefinition Height="*"></RowDefinition>
@@ -135,96 +140,99 @@
                                             </Grid>
 
                                         </StackPanel>
-                                        <ListView x:Name="listMods" BorderThickness="0"
+                                        <Border Grid.Row="1">
+                                            <ListView x:Name="listMods" BorderThickness="1"
                                                       ItemsSource="{Binding ListOfMods}"
                          SelectionChanged="listMods_SelectionChanged"
-                          VirtualizingStackPanel.IsVirtualizing="False" Grid.Row="1"
+                          VirtualizingStackPanel.IsVirtualizing="False"
                          >
-                                            <ListView.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <VirtualizingStackPanel>
-                                                    </VirtualizingStackPanel>
-                                                </ItemsPanelTemplate>
-                                            </ListView.ItemsPanel>
-                                            <ListView.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Grid Margin="1">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="30" MaxWidth="30"></ColumnDefinition>
-                                                            <ColumnDefinition></ColumnDefinition>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition></RowDefinition>
-                                                            <RowDefinition></RowDefinition>
-                                                        </Grid.RowDefinitions>
-                                                        <MaterialDesign:PackIcon Margin="5" Grid.Row="0" Grid.Column="0" Foreground="{Binding IconColor}"  Kind="{Binding MaterialDesignKindIcon}" VerticalAlignment="Center" />
-                                                        <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold" Text="{Binding}"  VerticalAlignment="Center"></TextBlock>
-                                                        <TextBlock FontSize="9" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Path}"></TextBlock>
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ListView.ItemTemplate>
-                                        </ListView>
-                                        <DockPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Top">
-                                            <ScrollViewer VerticalScrollBarVisibility="Visible">
-                                                <mah:MetroTabControl>
-                                                    <mah:MetroTabItem Header="Details">
-                                                        <StackPanel Grid.Column="1" VerticalAlignment="Stretch" CanVerticallyScroll="True">
-                                                            <TextBlock x:Name="txtModTitle" Text="{Binding SelectedFrostbiteMod.ModDetails.Title, Mode=OneWay}" FontSize="18"  Grid.Row="0">
-                                                            </TextBlock>
-                                                            <StackPanel Grid.Row="1">
-                                                                <TextBlock  FontSize="16" >Description</TextBlock>
-                                                                <TextBox IsReadOnly="True" x:Name="txtModDescription" MaxHeight="150" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                    ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="WrapWithOverflow"
-                                 Text="{Binding SelectedFrostbiteMod.ModDetails.Description, Mode=OneWay}"   />
-                                                            </StackPanel>
-                                                            <StackPanel Grid.Row="2">
-                                                                <TextBlock  FontSize="16" >Version</TextBlock>
-                                                                <TextBox IsReadOnly="True" x:Name="txtModVersion"  Text="{Binding SelectedFrostbiteMod.ModDetails.Version, Mode=OneWay}"></TextBox>
-                                                            </StackPanel>
-                                                            <StackPanel Grid.Row="3">
-                                                                <TextBlock  FontSize="16" >Author / Creator</TextBlock>
-                                                                <TextBox IsReadOnly="True" x:Name="txtModAuthor"  Text="{Binding SelectedFrostbiteMod.ModDetails.Author, Mode=OneWay}"></TextBox>
-                                                            </StackPanel>
-
-                                                        </StackPanel>
-                                                    </mah:MetroTabItem>
-                                                    <mah:MetroTabItem Header="Files">
-                                                        <Grid VerticalAlignment="Stretch">
+                                                <ListView.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <VirtualizingStackPanel>
+                                                        </VirtualizingStackPanel>
+                                                    </ItemsPanelTemplate>
+                                                </ListView.ItemsPanel>
+                                                <ListView.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="1">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="30" MaxWidth="30"></ColumnDefinition>
+                                                                <ColumnDefinition></ColumnDefinition>
+                                                            </Grid.ColumnDefinitions>
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition></RowDefinition>
                                                                 <RowDefinition></RowDefinition>
                                                             </Grid.RowDefinitions>
-                                                            <TextBlock FontWeight="Bold" Text="{Binding SelectedModListItem}"></TextBlock>
-                                                            <ListView Grid.Row="1" ItemsSource="{Binding SelectedModListItem.ModResources}" 
+                                                            <MaterialDesign:PackIcon Margin="5" Grid.Row="0" Grid.Column="0" Foreground="{Binding IconColor}"  Kind="{Binding MaterialDesignKindIcon}" VerticalAlignment="Center" />
+                                                            <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold" Text="{Binding}"  VerticalAlignment="Center"></TextBlock>
+                                                            <TextBlock FontSize="9" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Path}"></TextBlock>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ListView.ItemTemplate>
+                                            </ListView>
+                                        </Border>
+                                        <Border Grid.Row="1" Grid.Column="1">
+                                            <DockPanel VerticalAlignment="Top">
+                                                <ScrollViewer VerticalScrollBarVisibility="Visible">
+                                                    <mah:MetroTabControl>
+                                                        <mah:MetroTabItem Header="Details" BorderThickness="1">
+                                                            <StackPanel Grid.Column="1" VerticalAlignment="Stretch" CanVerticallyScroll="True">
+                                                                <TextBlock x:Name="txtModTitle" Text="{Binding SelectedFrostbiteMod.ModDetails.Title, Mode=OneWay}" FontSize="18"  Grid.Row="0">
+                                                                </TextBlock>
+                                                                <StackPanel Grid.Row="1">
+                                                                    <TextBlock  FontSize="16" >Description</TextBlock>
+                                                                    <TextBox IsReadOnly="True" x:Name="txtModDescription" MaxHeight="150" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="WrapWithOverflow"
+                                 Text="{Binding SelectedFrostbiteMod.ModDetails.Description, Mode=OneWay}"   />
+                                                                </StackPanel>
+                                                                <StackPanel Grid.Row="2">
+                                                                    <TextBlock  FontSize="16" >Version</TextBlock>
+                                                                    <TextBox IsReadOnly="True" x:Name="txtModVersion"  Text="{Binding SelectedFrostbiteMod.ModDetails.Version, Mode=OneWay}"></TextBox>
+                                                                </StackPanel>
+                                                                <StackPanel Grid.Row="3">
+                                                                    <TextBlock  FontSize="16" >Author / Creator</TextBlock>
+                                                                    <TextBox IsReadOnly="True" x:Name="txtModAuthor"  Text="{Binding SelectedFrostbiteMod.ModDetails.Author, Mode=OneWay}"></TextBox>
+                                                                </StackPanel>
+
+                                                            </StackPanel>
+                                                        </mah:MetroTabItem>
+                                                        <mah:MetroTabItem Header="Files">
+                                                            <Grid VerticalAlignment="Stretch">
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition></RowDefinition>
+                                                                    <RowDefinition></RowDefinition>
+                                                                </Grid.RowDefinitions>
+                                                                <TextBlock FontWeight="Bold" Text="{Binding SelectedModListItem}"></TextBlock>
+                                                                <ListView Grid.Row="1" ItemsSource="{Binding SelectedModListItem.ModResources}" 
                               VerticalContentAlignment="Stretch" VerticalAlignment="Stretch"
                               >
-                                                                <ListView.View>
-                                                                    <GridView>
-                                                                        <GridViewColumn Width="auto" Header="Name">
-                                                                            <GridViewColumn.CellTemplate>
-                                                                                <DataTemplate>
-                                                                                    <TextBlock Text="{Binding Name}" />
-                                                                                </DataTemplate>
-                                                                            </GridViewColumn.CellTemplate>
-                                                                        </GridViewColumn>
-                                                                        <GridViewColumn Width="auto" Header="Size">
-                                                                            <GridViewColumn.CellTemplate>
-                                                                                <DataTemplate>
-                                                                                    <TextBlock Text="{Binding Size}" />
-                                                                                </DataTemplate>
-                                                                            </GridViewColumn.CellTemplate>
-                                                                        </GridViewColumn>
-                                                                    </GridView>
-                                                                </ListView.View>
-                                                            </ListView>
-                                                        </Grid>
-                                                    </mah:MetroTabItem>
-                                                </mah:MetroTabControl>
+                                                                    <ListView.View>
+                                                                        <GridView>
+                                                                            <GridViewColumn Width="auto" Header="Name">
+                                                                                <GridViewColumn.CellTemplate>
+                                                                                    <DataTemplate>
+                                                                                        <TextBlock Text="{Binding Name}" />
+                                                                                    </DataTemplate>
+                                                                                </GridViewColumn.CellTemplate>
+                                                                            </GridViewColumn>
+                                                                            <GridViewColumn Width="auto" Header="Size">
+                                                                                <GridViewColumn.CellTemplate>
+                                                                                    <DataTemplate>
+                                                                                        <TextBlock Text="{Binding Size}" />
+                                                                                    </DataTemplate>
+                                                                                </GridViewColumn.CellTemplate>
+                                                                            </GridViewColumn>
+                                                                        </GridView>
+                                                                    </ListView.View>
+                                                                </ListView>
+                                                            </Grid>
+                                                        </mah:MetroTabItem>
+                                                    </mah:MetroTabControl>
 
-                                            </ScrollViewer>
+                                                </ScrollViewer>
 
-                                        </DockPanel>
-
+                                            </DockPanel>
+                                        </Border>
                                     </Grid>
 
                                 </mah:MetroTabItem>
@@ -247,13 +255,6 @@
                                 </mah:MetroTabItem>
                             </mah:MetroTabControl>
 
-                        </LayoutDocument>
-                    </LayoutDocumentPane>
-                    <LayoutDocumentPane DockHeight="125">
-                        <LayoutDocument Title="Log" CanClose="False" CanFloat="False" CanMove="False">
-                            <TextBox  x:Name="txtLog" MinHeight="100" IsReadOnly="True" ScrollViewer.VerticalScrollBarVisibility="Visible">
-
-                            </TextBox>
                         </LayoutDocument>
                     </LayoutDocumentPane>
                 </LayoutPanel>
