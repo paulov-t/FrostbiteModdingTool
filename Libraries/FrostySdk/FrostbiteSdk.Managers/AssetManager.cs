@@ -614,17 +614,17 @@ namespace FrostySdk.Managers
             var count = EbxItemsWithNoType.Count;
             if (count > 0)
             {
-                WriteToLog($"Initial load - Indexing data - This will take some time");
+                WriteToLog($"Assigning Data Types. Please wait.");
 
                 EbxItemsWithNoType.ForEach(x =>
                 {
                     UpdateEbxListItem(x);
                     ebxProgress++;
-                    WriteToLog($"Initial load - Indexing data ({Math.Round((ebxProgress / (double)count * 100.0))}%)");
+                    WriteToLog($"Assigning Data Types. ({Math.Round((ebxProgress / (double)count * 100.0))}%)");
                 });
 
                 CacheWrite();
-                WriteToLog("Initial load - Indexing complete");
+                WriteToLog("Assigning Data Types. Complete");
 
             }
 
