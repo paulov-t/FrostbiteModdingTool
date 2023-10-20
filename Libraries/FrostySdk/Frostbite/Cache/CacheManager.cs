@@ -358,7 +358,7 @@ namespace FrostySdk.Frostbite
         {
             //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            //Directory.CreateDirectory(CacheDirectoryPath);
+            Directory.CreateDirectory(CacheDirectoryPath);
 
             //msCache.Seek(0, SeekOrigin.Begin);
             //// Compress the Cache File into a Memory Stream
