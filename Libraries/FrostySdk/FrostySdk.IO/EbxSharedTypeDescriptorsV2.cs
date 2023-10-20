@@ -1,4 +1,5 @@
 using FMT.FileTools;
+using FMT.Logging;
 using FrostySdk.Attributes;
 using FrostySdk.FrostySdk.IO;
 using System;
@@ -254,13 +255,11 @@ namespace FrostySdk.IO
             }
 
             var ebxtys = FileSystem.Instance.GetFileFromMemoryFs(name);
-            if (File.Exists("Debugging/" + name + ".dat"))
-                File.Delete("Debugging/" + name + ".dat");
+#if DEBUG
 
-            using (NativeWriter nativeWriter = new NativeWriter(new FileStream("Debugging/" + name + ".dat", FileMode.OpenOrCreate)))
-            {
-                nativeWriter.Write(ebxtys);
-            }
+            DebugBytesToFileLogger.Instance.WriteAllBytes("EbxSharedTypeDescriptor.bin", ebxtys);
+
+#endif
 
             ReflectionTypeDescripter = viaReflection;
 
