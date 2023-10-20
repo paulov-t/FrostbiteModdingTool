@@ -118,15 +118,13 @@ namespace FMT
         {
             HandleSDKEmptyFolder();
             HandleAppArguments();
-            HandleMisoldTooling();
+            //HandleMisoldTooling();
         }
 
         private void HandleMisoldTooling()
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine("There have been reports of people being misold this tool. Please be aware of fraudsters and report them. They will be named and shamed!");
-            stringBuilder.AppendLine("- FIFAEdit");
-            stringBuilder.AppendLine("- ECE-Teams");
+            stringBuilder.AppendLine("There have been reports of people being misold this tool. Please be aware of fraudsters and report them.");
             App.ShowAcceptableMessageBox(stringBuilder.ToString());
         }
 
