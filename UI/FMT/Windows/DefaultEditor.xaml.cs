@@ -33,6 +33,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using v2k4FIFAModding.Frosty;
 using v2k4FIFAModdingCL;
@@ -253,20 +254,27 @@ namespace FrostbiteModdingUI.Windows
 
             }
 
+            dataBrowser.BrowserItems.Clear();
+            dataBrowser.BrowserItems = null;
+            dataBrowser.Dispose();
+            BindingOperations.ClearAllBindings(this);
+
             base.OnClosing(e);
         }
 
         protected override void OnClosed(EventArgs e)
         {
+            
+
             GameInstanceSingleton.Instance = null;
             ProjectManagement = null;
             ProjectManagement.Instance = null;
             if (AssetManager.Instance != null)
             {
-                //AssetManager.Instance.Dispose();
+                AssetManager.Instance.Dispose();
                 AssetManager.Instance = null;
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+                //GC.Collect();
+                //GC.WaitForPendingFinalizers();
             }
 
             Owner.Visibility = Visibility.Visible;

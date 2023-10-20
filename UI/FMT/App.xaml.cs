@@ -1,5 +1,6 @@
 ﻿using FMT.FileTools;
 using FMT.Logging;
+using FrostbiteModdingUI.Windows;
 using FrostbiteSdk;
 using FrostySdk;
 using Microsoft.Win32;
@@ -24,7 +25,7 @@ namespace FMT
     /// </summary>
     public partial class App : Application
     {
-        public static Window MainEditorWindow;
+        public static Window MainEditorWindow { get { return (Application.Current.MainWindow as IEditorWindow) as Window; } set { Application.Current.MainWindow = (Window)value; } }
 
         public static string ApplicationDirectory
         {

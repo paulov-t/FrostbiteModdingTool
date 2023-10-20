@@ -256,6 +256,15 @@ namespace FMT
             //{
             //    GCHelpers.ClearGarbage(true);
             //}
+
+            if (Visibility == Visibility.Visible)
+            {
+                if (App.MainEditorWindow != null)
+                {
+                    App.MainEditorWindow.Close();
+                    App.MainEditorWindow = null;
+                }
+            }
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)
@@ -269,7 +278,10 @@ namespace FMT
             EditorWindows.Clear();
 
             if (App.MainEditorWindow != null)
+            {
                 App.MainEditorWindow.Close();
+                App.MainEditorWindow = null;
+            }
         }
 
         protected override void OnClosed(EventArgs e)
@@ -277,18 +289,24 @@ namespace FMT
             base.OnClosed(e);
 
             if (App.MainEditorWindow != null)
+            {
                 App.MainEditorWindow.Close();
+                App.MainEditorWindow = null;
+            }
         }
 
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            base.OnClosing(e);
+        //protected override void OnClosing(CancelEventArgs e)
+        //{
+        //    base.OnClosing(e);
 
-            if (App.MainEditorWindow != null)
-                App.MainEditorWindow.Close();
+        //    if (App.MainEditorWindow != null)
+        //    {
+        //        App.MainEditorWindow.Close();
+        //        App.MainEditorWindow = null;
+        //    }
 
-            Application.Current.Shutdown();
-        }
+        //    Application.Current.Shutdown();
+        //}
 
 
         private void Button_Click(object sender, RoutedEventArgs e)

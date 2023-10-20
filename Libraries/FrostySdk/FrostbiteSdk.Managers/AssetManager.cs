@@ -490,9 +490,9 @@ namespace FrostySdk.Managers
 
         public delegate void AssetManagerModifiedHandler(IAssetEntry modifiedAsset);
 
-        public static event AssetManagerModifiedHandler AssetManagerInitialised;
+        public event AssetManagerModifiedHandler AssetManagerInitialised;
 
-        public static event AssetManagerModifiedHandler AssetManagerModified;
+        public event AssetManagerModifiedHandler AssetManagerModified;
 
 
         //private List<Type> AllSdkAssemblyTypes { get; set; }

@@ -43,7 +43,7 @@ namespace FIFAModdingUI.Pages.Common
     /// <summary>
     /// Interaction logic for Browser.xaml
     /// </summary>
-    public partial class Browser : UserControl, INotifyPropertyChanged
+    public partial class Browser : UserControl, IDisposable
     {
 
         private IEditorWindow MainEditorWindow
@@ -59,7 +59,14 @@ namespace FIFAModdingUI.Pages.Common
             InitializeComponent();
             DataContext = this;
 
-            AssetManager.AssetManagerModified += AssetManager_AssetManagerModified;
+            //AssetManager.Instance.AssetManagerModified += AssetManager_AssetManagerModified;
+        }
+
+        public void Dispose()
+        {
+            DataContext = null;
+
+
         }
 
         private void AssetManager_AssetManagerModified(IAssetEntry modifiedAsset)
@@ -871,6 +878,8 @@ namespace FIFAModdingUI.Pages.Common
             foreach(var childPath in assetPath.Children)
                 RecursiveRevert(childPath);
         }
+
+        
     }
 
     public class AssetPath : INotifyPropertyChanged
