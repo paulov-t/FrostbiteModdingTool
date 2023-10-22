@@ -693,11 +693,13 @@ namespace ModdingSupport
 
             // ----------------------------------------------------------------
             // Create ModData Directory in the Game Path
-            Directory.CreateDirectory(modPath);
-            Directory.CreateDirectory(Path.Combine(modPath, "Data"));
-            Directory.CreateDirectory(Path.Combine(modPath, "Patch"));
-            Directory.CreateDirectory(Path.Combine(modPath, "Update"));
-
+            if (UseModData)
+            {
+                Directory.CreateDirectory(modPath);
+                Directory.CreateDirectory(Path.Combine(modPath, "Data"));
+                Directory.CreateDirectory(Path.Combine(modPath, "Patch"));
+                Directory.CreateDirectory(Path.Combine(modPath, "Update"));
+            }
 
             int workerThreads = 0;
             int completionPortThreads = 0;
