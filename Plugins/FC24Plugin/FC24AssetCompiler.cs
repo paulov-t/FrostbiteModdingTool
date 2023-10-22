@@ -37,6 +37,8 @@ namespace FC24Plugin
             FileSystem.Instance.TOCFileType = typeof(FC24TOCFile);
             // Initialize SDK
             TypeLibrary.Initialize();
+            // We don't want this Process to overwrite any original saved cache
+            AssetManager.Instance.ShouldCacheWrite = false;
 
             DateTime dtStarted = DateTime.Now;
             //if (!ProfileManager.IsFC24DataVersion())

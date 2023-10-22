@@ -1715,9 +1715,9 @@ namespace FrostySdk.Managers
             return null;
         }
 
-        public ChunkAssetEntry GetChunkEntry(Guid id)
+        public ChunkAssetEntry GetChunkEntry(Guid id, bool sbChunkOnly = false)
         {
-            if (Chunks.TryGetValue(id, out var entry))
+            if (!sbChunkOnly && Chunks.TryGetValue(id, out var entry))
                 return entry;
 
             if (SuperBundleChunks.TryGetValue(id, out var sbChunkEntry))
@@ -2535,9 +2535,12 @@ namespace FrostySdk.Managers
             return CacheManager.CacheRead(out prePatchCache);
         }
 
+        public bool ShouldCacheWrite { get; set; } = true;
+
         public void CacheWrite()
         {
-            CacheManager.CacheWrite();
+            if(ShouldCacheWrite)
+                CacheManager.CacheWrite();
         }
 
         public bool DoLegacyImageImport(MemoryStream stream, LegacyFileEntry lfe)
