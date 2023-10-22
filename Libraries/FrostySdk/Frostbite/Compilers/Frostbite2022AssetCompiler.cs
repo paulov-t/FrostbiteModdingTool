@@ -166,7 +166,9 @@ namespace FrostySdk.Frostbite.Compilers
                     continue;
                 }
 
-                using var tfBundles = (TOCFile)Activator.CreateInstance(FileSystem.Instance.TOCFileType, tocFileRAW);
+                ModExecuter.Logger.Log($"Searching for edits to {tocFileRAW}");
+
+                var tfBundles = (TOCFile)Activator.CreateInstance(FileSystem.Instance.TOCFileType, tocFileRAW);
                 using (var nrTOC = new NativeReader(new FileStream(tocFileLocation, FileMode.Open)))
                 {
                     tfBundles.ReadOnlyBundles(nrTOC);
@@ -181,14 +183,21 @@ namespace FrostySdk.Frostbite.Compilers
                         hasBundles = true;
                 }
 
+                //tfBundles.Dispose();
+                tfBundles = null;
+
                 if (!hasBundles)
                     continue;
+
+                ModExecuter.Logger.Log($"Found edits to {tocFileRAW}. Finding files.");
 
                 using var tf = (TOCFile)Activator.CreateInstance(FileSystem.Instance.TOCFileType, tocFileRAW, false, false, false, 0, false);
 
                 var namesOfObjects = tf.GetNamesOfObjects();
                 if (namesOfObjects.Count == 0)
                     continue;
+
+                int countOfMods = 0;
 
                 foreach (var mod in ModExecuter.ModifiedAssets)
                 {
@@ -218,8 +227,16 @@ namespace FrostySdk.Frostbite.Compilers
                             casToMods.Add(casPath, new List<ModdedFile>());
 
                         casToMods[casPath].Add(new ModdedFile(mod.Value.Sha1, mod.Value.Name, false, mod.Value, originalEntry));
+
+                        countOfMods++;
                     }
                 }
+
+                ModExecuter.Logger.Log($"Found edits to {tocFileRAW}. Found {countOfMods} files.");
+                namesOfObjects.Clear();
+                namesOfObjects = null;
+                
+
             }
 
             if (directory == "native_patch")
