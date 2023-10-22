@@ -256,6 +256,9 @@ namespace Frostbite.FileManagers
                         };
                         //nativeReader.Position = 0;
                         //chunkBatch.Initial64Data = nativeReader.ReadBytes((int)chunkBatch.FileFirstPosition);
+                        if (chunkBatch.Offset1_Unk < 0 || chunkBatch.Offset2_Files < 0 || chunkBatch.Offset1_Unk > int.MaxValue || chunkBatch.Offset2_Files > int.MaxValue)
+                            continue;
+
                         nativeReader.Position = chunkBatch.Offset1_Unk;
                         for (uint index = 0u; index < chunkBatch.UnkCount1; index++)
                         {
@@ -549,7 +552,7 @@ namespace Frostbite.FileManagers
             if (rootObject != null)
             {
                 dynamic val = rootObject.Manifest;
-                chunkAssetEntry = AssetManager.Instance.GetChunkEntry(val.ChunkId);
+                chunkAssetEntry = AssetManager.Instance.GetChunkEntry(val.ChunkId, true);
                 if (chunkAssetEntry == null)
                 {
                     Debug.WriteLine($"Unable to find the ChunkAssetEntry for {ebxAssetEntry.Name}");
