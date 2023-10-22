@@ -21,6 +21,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
@@ -371,7 +372,8 @@ namespace FrostbiteModdingUI.Windows
                 this.DataContext = this;
                 this.UpdateLayout();
 
-                btnLaunchEditor.IsEnabled = ProfileManager.LoadedProfile.CanLaunchMods;
+                //btnLaunchEditor.IsEnabled = ProfileManager.LoadedProfile.CanLaunchMods;
+                LaunchGameVisibility = ProfileManager.LoadedProfile.CanLaunchMods ? Visibility.Visible : Visibility.Collapsed;
 
             });
 
@@ -816,7 +818,44 @@ namespace FrostbiteModdingUI.Windows
 
             loadingDialog.Update("Launching game", "-", 0);
             await Dispatcher.InvokeAsync(() => { btnLaunchEditor.IsEnabled = false; });
+            string testmodname = await AutoSaveAndWriteToMod();
 
+            var useModData = swUseModData.IsOn;
+
+            if (launcherOptions != null)
+            {
+                launcherOptions.UseModData = swUseModData.IsOn;
+                launcherOptions.Save();
+            }
+
+            try
+            {
+                loadingDialog.Update("Launching game", "Compiling", 99);
+
+                await Task.Run(() =>
+                {
+                    ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+                    ModdingSupport.ModExecutor.UseModData = useModData;
+                    frostyModExecutor.UseSymbolicLinks = false;
+                    frostyModExecutor.ForceRebuildOfMods = true;
+                    frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { testmodname }.ToArray()).Wait();
+                });
+            }
+            catch (Exception ex)
+            {
+                LogError("Error when trying to compile mod and launch game. Message: " + ex.Message);
+            }
+
+
+            await Dispatcher.InvokeAsync(() => { btnLaunchEditor.IsEnabled = true; });
+
+            //LegacyFileManager_FMTV2.CleanUpChunks();
+            loadingDialog.Update("", "");
+
+        }
+
+        private async Task<string> AutoSaveAndWriteToMod()
+        {
             if (!string.IsNullOrEmpty(ProjectManagement.Project.Filename))
             {
                 loadingDialog.Update("Launching game", "Autosaving project", 25);
@@ -855,39 +894,7 @@ namespace FrostbiteModdingUI.Windows
                 ProjectManagement.Project.WriteToMod(testmodname
                     , new ModSettings() { Author = author, Category = category, Description = desc, Title = title, Version = version });
             });
-
-            var useModData = swUseModData.IsOn;
-
-            if (launcherOptions != null)
-            {
-                launcherOptions.UseModData = swUseModData.IsOn;
-                launcherOptions.Save();
-            }
-
-            try
-            {
-                loadingDialog.Update("Launching game", "Compiling", 99);
-
-                await Task.Run(() =>
-                {
-                    ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
-                    ModdingSupport.ModExecutor.UseModData = useModData;
-                    frostyModExecutor.UseSymbolicLinks = false;
-                    frostyModExecutor.ForceRebuildOfMods = true;
-                    frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { testmodname }.ToArray()).Wait();
-                });
-            }
-            catch (Exception ex)
-            {
-                LogError("Error when trying to compile mod and launch game. Message: " + ex.Message);
-            }
-
-
-            await Dispatcher.InvokeAsync(() => { btnLaunchEditor.IsEnabled = true; });
-
-            //LegacyFileManager_FMTV2.CleanUpChunks();
-            loadingDialog.Update("", "");
-
+            return testmodname;
         }
 
         private async void btnProjectNew_Click(object sender, RoutedEventArgs e)
@@ -1327,6 +1334,49 @@ namespace FrostbiteModdingUI.Windows
         public void ShowLoadingDialog(string message, string title, int progress)
         {
             loadingDialog.UpdateAsync(title, message, progress);
+        }
+
+        public static readonly DependencyProperty LaunchGameVisibilityProperty = DependencyProperty.Register("LaunchGameVisibility", typeof(Visibility), typeof(DefaultEditor), new FrameworkPropertyMetadata(null));
+        public Visibility LaunchGameVisibility
+        {
+            get => (Visibility)GetValue(LaunchGameVisibilityProperty);
+            set => SetValue(LaunchGameVisibilityProperty, value);
+        }
+
+        public Visibility CompileGameVisibility
+        {
+            get => LaunchGameVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private async void btnCompile_Click(object sender, RoutedEventArgs e)
+        {
+            string testmodname = await AutoSaveAndWriteToMod();
+
+            var useModData = swUseModData.IsOn;
+
+            if (launcherOptions != null)
+            {
+                launcherOptions.UseModData = swUseModData.IsOn;
+                launcherOptions.Save();
+            }
+
+            try
+            {
+                loadingDialog.Update("Launching game", "Compiling", 99);
+
+                await Task.Run(() =>
+                {
+                    ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+                    ModdingSupport.ModExecutor.UseModData = useModData;
+                    frostyModExecutor.UseSymbolicLinks = false;
+                    frostyModExecutor.ForceRebuildOfMods = true;
+                    frostyModExecutor.BuildModData(this, new List<string>() { testmodname }.ToArray()).Wait();
+                });
+            }
+            catch (Exception ex)
+            {
+                LogError("Error when trying to compile mod and launch game. Message: " + ex.Message);
+            }
         }
     }
 }

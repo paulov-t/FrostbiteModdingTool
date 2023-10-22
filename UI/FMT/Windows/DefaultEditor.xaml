@@ -229,13 +229,23 @@
             <StackPanel  HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,0,0,5">
                 <Controls:ToggleSwitch x:Name="swUseModData" Content="Use Mod Data" IsOn="True" IsEnabled="True"></Controls:ToggleSwitch>
                 <Button x:Name="btnLaunchEditor" Height="30" Background="Transparent" BorderBrush="{x:Null}" VerticalAlignment="Center" IsEnabled="True"
-                        ToolTip="Launch with Editor Only Mod" Click="btnLaunchFIFAInEditor_Click">
+                        ToolTip="Launch with Editor Only Mod" Click="btnLaunchFIFAInEditor_Click"
+                         Visibility="{Binding LaunchGameVisibility}"
+                        >
                     <StackPanel Height="30" VerticalAlignment="Center"  HorizontalAlignment="Right" Orientation="Horizontal">
                         <MaterialDesign:PackIcon Kind="Play" Foreground="Green" VerticalAlignment="Center" />
                         <Label Content="Launch Game" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
-
+                <Button x:Name="btnCompile" Height="30" Background="Transparent" BorderBrush="{x:Null}" VerticalAlignment="Center" IsEnabled="True"
+                        ToolTip="Compiles Game" Click="btnCompile_Click"
+                         Visibility="{Binding CompileGameVisibility}"
+                        >
+                    <StackPanel Height="30" VerticalAlignment="Center"  HorizontalAlignment="Right" Orientation="Horizontal">
+                        <MaterialDesign:PackIcon Kind="Build" Foreground="Wheat" VerticalAlignment="Center" />
+                        <Label Content="Compile Game" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
 
         </Grid>
