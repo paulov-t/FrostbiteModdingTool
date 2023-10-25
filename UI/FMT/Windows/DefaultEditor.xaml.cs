@@ -51,6 +51,9 @@ namespace FrostbiteModdingUI.Windows
 
         public LauncherOptions launcherOptions { get; set; }
 
+        public FMTAppSettings AppSettings { get; } = FMTAppSettings.Instance;
+
+
         [Obsolete("Incorrect usage of Editor Windows")]
         public DefaultEditor()
         {
@@ -87,17 +90,17 @@ namespace FrostbiteModdingUI.Windows
             });
 
 
-            if (!string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
+            if (!string.IsNullOrEmpty(AppSettings.GameInstallEXEPath))
             {
-                await InitialiseOfSelectedGame(AppSettings.Settings.GameInstallEXEPath);
+                await InitialiseOfSelectedGame(AppSettings.GameInstallEXEPath);
             }
             else
             {
                 var findGameEXEWindow = new FindGameEXEWindow();
                 var result = findGameEXEWindow.ShowDialog();
-                if (result.HasValue && !string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
+                if (result.HasValue && !string.IsNullOrEmpty(AppSettings.GameInstallEXEPath))
                 {
-                    await InitialiseOfSelectedGame(AppSettings.Settings.GameInstallEXEPath);
+                    await InitialiseOfSelectedGame(AppSettings.GameInstallEXEPath);
                 }
                 else
                 {

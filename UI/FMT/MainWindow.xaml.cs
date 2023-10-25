@@ -68,6 +68,8 @@ namespace FMT
 
         public string WindowTitle { get; set; }
 
+        public FMTAppSettings AppSettings { get; } = FMTAppSettings.Instance;
+
 
         public MainWindow()
         {
@@ -101,7 +103,7 @@ namespace FMT
         {
             if (!string.IsNullOrEmpty(filePath))
             {
-                AppSettings.Settings.GameInstallEXEPath = filePath;
+                AppSettings.GameInstallEXEPath = filePath;
 
                 if (GameInstanceSingleton.InitializeSingleton(filePath, false))
                 {
@@ -231,7 +233,7 @@ namespace FMT
         private void OpenEditorByProfile(Profile SelectedProfile)
         {
             var bS = new FindGameEXEWindow().ShowDialog();
-            if (bS.HasValue && bS.Value == true && !string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
+            if (bS.HasValue && bS.Value == true && !string.IsNullOrEmpty(AppSettings.GameInstallEXEPath))
             {
                 foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
                 {
@@ -377,9 +379,9 @@ namespace FMT
         private void OpenGame(Profile profile)
         {
             var bS = new FindGameEXEWindow().ShowDialog();
-            if (bS.HasValue && bS.Value == true && !string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
+            if (bS.HasValue && bS.Value == true && !string.IsNullOrEmpty(AppSettings.GameInstallEXEPath))
             {
-                if (new FileInfo(AppSettings.Settings.GameInstallEXEPath).Name.Replace(".exe", "").Replace(" ", "") != profile.Name.Replace(" ", ""))
+                if (new FileInfo(AppSettings.GameInstallEXEPath).Name.Replace(".exe", "").Replace(" ", "") != profile.Name.Replace(" ", ""))
                 {
                     MessageBox.Show("Your EXE does not match the Profile selected!");
                     return;

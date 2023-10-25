@@ -25,24 +25,31 @@ namespace FrostbiteModdingUI.Windows
         {
             get
             {
-
-                using (RegistryKey key = Registry.LocalMachine.OpenSubKey($"Software\\EA Sports\\{ProfileManager.DisplayName}"))
+                try
                 {
-                    if (key != null)
+                    using (RegistryKey key = Registry.LocalMachine.OpenSubKey($"Software\\EA Sports\\{ProfileManager.DisplayName}"))
                     {
-                        string installDir = key.GetValue("Install Dir").ToString();
-                        return installDir + $"{ProfileManager.ProfileName}.exe";
+                        if (key != null)
+                        {
+                            string installDir = key.GetValue("Install Dir").ToString();
+                            return installDir + $"{ProfileManager.ProfileName}.exe";
+                        }
+                    }
+
+                    using (RegistryKey key = Registry.LocalMachine.OpenSubKey($"Software\\EA Games\\{ProfileManager.DisplayName}"))
+                    {
+                        if (key != null)
+                        {
+                            string installDir = key.GetValue("Install Dir").ToString();
+                            return installDir + $"{ProfileManager.ProfileName}.exe";
+                        }
                     }
                 }
-
-                using (RegistryKey key = Registry.LocalMachine.OpenSubKey($"Software\\EA Games\\{ProfileManager.DisplayName}"))
+                catch (Exception ex)
                 {
-                    if (key != null)
-                    {
-                        string installDir = key.GetValue("Install Dir").ToString();
-                        return installDir + $"{ProfileManager.ProfileName}.exe";
-                    }
+                    FileLogger.WriteLine(ex.ToString());
                 }
+
                 return string.Empty;
             }
         }
@@ -55,10 +62,7 @@ namespace FrostbiteModdingUI.Windows
             Directory.CreateDirectory(App.ApplicationDirectory + "\\Mods\\Profiles\\");
 
             Loaded += FindGameEXEWindow_Loaded;
-            
-
-
-           
+   
         }
 
         private void FindGameEXEWindow_Loaded(object sender, RoutedEventArgs e)
@@ -72,7 +76,7 @@ namespace FrostbiteModdingUI.Windows
 
             // If the Registry has the key and path, use that!
             var registryPath = GamePathEXE;
-            if (File.Exists(registryPath))
+            if (!FMTAppSettings.Instance.DoNotUseRegistry && File.Exists(registryPath))
             {
                 InitializeOfSelectedGame(registryPath);
                 this.Close();
@@ -114,11 +118,13 @@ namespace FrostbiteModdingUI.Windows
 
         }
 
+        public FMTAppSettings AppSettings { get; } = FMTAppSettings.Instance;
+
         private void InitializeOfSelectedGame(string filePath)
         {
             if (!string.IsNullOrEmpty(filePath))
             {
-                AppSettings.Settings.GameInstallEXEPath = filePath;
+                AppSettings.GameInstallEXEPath = filePath;
 
                 if (GameInstanceSingleton.InitializeSingleton(filePath, false, this))
                 {

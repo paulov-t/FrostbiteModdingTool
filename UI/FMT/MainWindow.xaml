@@ -81,6 +81,19 @@
                     </ItemsControl>
                 </ScrollViewer>
             </mah:MetroTabItem>
+            <mah:MetroTabItem Selector.IsSelected="True" Visibility="Visible" VerticalContentAlignment="Stretch" VerticalAlignment="Stretch">
+                <mah:MetroTabItem.Header>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                        <MaterialDesign:PackIcon Kind="Settings" VerticalAlignment="Center" />
+                        <Label Content="App Settings"></Label>
+                    </StackPanel>
+                </mah:MetroTabItem.Header>
+                <ScrollViewer>
+                    <StackPanel>
+                        <CheckBox IsChecked="{Binding AppSettings.DoNotUseRegistry}" >Do not use Registry to search for games</CheckBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </mah:MetroTabItem>
         </mah:MetroAnimatedTabControl>
         
         <!--<WrapPanel Grid.Row="4" Width="940" Height="382" HorizontalAlignment="Left" VerticalAlignment="Top">

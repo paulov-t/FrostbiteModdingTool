@@ -55,14 +55,16 @@ namespace FMT
             Loaded += LaunchWindow_Loaded;
         }
 
+        public FMTAppSettings AppSettings { get; } = FMTAppSettings.Instance;
+
         private void LaunchWindow_Loaded(object sender, RoutedEventArgs e)
         {
             WindowTitle = "FMT Launcher - " + App.ProductVersion;
-            GameLocation = AppSettings.Settings.GameInstallEXEPath;
+            GameLocation = AppSettings.GameInstallEXEPath;
 
             DataContext = this;
 
-            InitialiseSelectedGame(AppSettings.Settings.GameInstallEXEPath);
+            InitialiseSelectedGame(AppSettings.GameInstallEXEPath);
         }
 
         protected override void OnClosed(EventArgs e)
@@ -86,7 +88,7 @@ namespace FMT
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.WaitForFullGCComplete(-1);
-            AppSettings.Settings.GameInstallEXEPath = null;
+            AppSettings.GameInstallEXEPath = null;
            
         }
 

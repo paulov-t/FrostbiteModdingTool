@@ -50,6 +50,9 @@ namespace FIFAModdingUI.Windows
 
         public LauncherOptions launcherOptions { get; set; }
 
+        public FMTAppSettings AppSettings { get; } = FMTAppSettings.Instance;
+
+
         [Obsolete("Incorrect usage of Editor Windows")]
         public FIFA21Editor()
         {
@@ -82,17 +85,17 @@ namespace FIFAModdingUI.Windows
                 cacheManagerControl.Visibility = Visibility.Collapsed;
             });
 
-            if (!string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
+            if (!string.IsNullOrEmpty(AppSettings.GameInstallEXEPath))
             {
-                await InitialiseOfSelectedGame(AppSettings.Settings.GameInstallEXEPath);
+                await InitialiseOfSelectedGame(AppSettings.GameInstallEXEPath);
             }
             else
             {
                 var findGameEXEWindow = new FindGameEXEWindow();
                 var result = findGameEXEWindow.ShowDialog();
-                if (result.HasValue && !string.IsNullOrEmpty(AppSettings.Settings.GameInstallEXEPath))
+                if (result.HasValue && !string.IsNullOrEmpty(AppSettings.GameInstallEXEPath))
                 {
-                    await InitialiseOfSelectedGame(AppSettings.Settings.GameInstallEXEPath);
+                    await InitialiseOfSelectedGame(AppSettings.GameInstallEXEPath);
                 }
                 else
                 {
