@@ -181,18 +181,18 @@ namespace FrostySdk
 
 #if DEBUG
                 var debuggingFileStreamDirectoryPath = Directory.CreateDirectory(AppContext.BaseDirectory + "\\Debugging\\EBX\\");
-                if (
-                    name.Contains("default/settings")
-                    || name.Contains("head_")
-                    || name.Contains("fifa/attribulator/gameplay/groups/gp_cpuai/gp_cpuai_crossingdecision_runtime")
-                    || name.Contains("fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime")
-                    || name.Contains("fifa/attribulator/gameplay/groups/gp_collision/gp_collision_playercollision_runtime")
-                    || name.Contains("splashscreen")
-                    )
-                {
+                //if (
+                //    name.Contains("default/settings")
+                //    || name.Contains("head_")
+                //    || name.Contains("fifa/attribulator/gameplay/groups/gp_cpuai/gp_cpuai_crossingdecision_runtime")
+                //    || name.Contains("fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime")
+                //    || name.Contains("fifa/attribulator/gameplay/groups/gp_collision/gp_collision_playercollision_runtime")
+                //    || name.Contains("splashscreen")
+                //    )
+                //{
                     //File.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray);
                     DebugBytesToFileLogger.Instance.WriteAllBytes($"ebx.{entry.Filename.Replace("\\", "_")}.write.dat", decompressedArray, "EBX/Write");
-                }
+                //}
 #endif
 
                 if (compressedArray.Length > 0)

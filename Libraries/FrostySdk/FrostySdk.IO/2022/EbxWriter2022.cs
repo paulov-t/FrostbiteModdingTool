@@ -27,7 +27,7 @@ namespace FrostySdk.FrostySdk.IO
 
         private readonly List<object> objs = new List<object>();
 
-        private readonly List<object> sortedObjs = new List<object>();
+        private List<object> sortedObjs { get; } = new List<object>();
 
         private readonly List<Guid> dependencies = new List<Guid>();
 
@@ -440,7 +440,10 @@ namespace FrostySdk.FrostySdk.IO
             {
                 return (ushort)classIndex;
             }
-            type.GetCustomAttribute<EbxClassMetaAttribute>();
+            // Class Meta
+            var classMeta = type.GetCustomAttribute<EbxClassMetaAttribute>();
+
+            // Obtain and Order the Properties
             PropertyInfo[] properties = type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
             List<PropertyInfo> propertiesToInclude = new List<PropertyInfo>();
             foreach (PropertyInfo propertyInfo in properties)
@@ -450,9 +453,11 @@ namespace FrostySdk.FrostySdk.IO
                     propertiesToInclude.Add(propertyInfo);
                 }
             }
+            propertiesToInclude = properties.OrderBy(x => x.GetCustomAttribute<EbxFieldMetaAttribute>()?.Offset).ToList();
             if (!isBaseType)
             {
-                classIndex = AddClass(type.Name, type);
+                if (classMeta.Type == EbxFieldType.Pointer)
+                    classIndex = AddClass(type.Name, type);
             }
             if (type.IsEnum)
                 return (ushort)classIndex;
@@ -593,16 +598,16 @@ namespace FrostySdk.FrostySdk.IO
             }
             object primaryInstance = exportedInstances[0];
             exportedInstances.RemoveAt(0);
-            exportedInstances.Sort(delegate (dynamic a, dynamic b)
-            {
-                AssetClassGuid assetClassGuid2 = a.GetInstanceGuid();
-                AssetClassGuid assetClassGuid3 = b.GetInstanceGuid();
-                byte[] array = assetClassGuid2.ExportedGuid.ToByteArray();
-                byte[] array2 = assetClassGuid3.ExportedGuid.ToByteArray();
-                uint num = (uint)((array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3]);
-                uint value3 = (uint)((array2[0] << 24) | (array2[1] << 16) | (array2[2] << 8) | array2[3]);
-                return num.CompareTo(value3);
-            });
+            //exportedInstances.Sort(delegate (dynamic a, dynamic b)
+            //{
+            //    AssetClassGuid assetClassGuid2 = a.GetInstanceGuid();
+            //    AssetClassGuid assetClassGuid3 = b.GetInstanceGuid();
+            //    byte[] array = assetClassGuid2.ExportedGuid.ToByteArray();
+            //    byte[] array2 = assetClassGuid3.ExportedGuid.ToByteArray();
+            //    uint num = (uint)((array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3]);
+            //    uint value3 = (uint)((array2[0] << 24) | (array2[1] << 16) | (array2[2] << 8) | array2[3]);
+            //    return num.CompareTo(value3);
+            //});
             nonExportedInstances.Sort((object a, object b) => string.CompareOrdinal(a.GetType().Name, b.GetType().Name));
             sortedObjs.Add(primaryInstance);
             sortedObjs.AddRange(exportedInstances);
@@ -793,7 +798,11 @@ namespace FrostySdk.FrostySdk.IO
         {
             nativeWriter.WritePadding(16);
 
+            // When checking this in HXD, remember real position is Position + 32
             arraysPosition = (int)nativeWriter.Position;
+
+            var realPosition = arraysPosition + 32;
+
             nativeWriter.WriteEmpty(32);
 
             _ = this.arrays;
@@ -864,19 +873,26 @@ namespace FrostySdk.FrostySdk.IO
                     //        default: alignment = arrayClass.Alignment; break;
                     //    }
                     //}
-                    nativeWriter.WritePadding(alignment);
+                    //nativeWriter.WritePadding(alignment);
                     // shift where the count is so that the array data is properly aligned
-                    long dataPos = nativeWriter.Position + 4;
-                    if (alignment != 4)
-                    {
-                        while (dataPos % alignment != 0)
-                        {
-                            nativeWriter.Write((byte)0);
-                            dataPos = nativeWriter.Position;
-                        }
-                        nativeWriter.Position -= 0x4;
-                    }
+                    //long dataPos = nativeWriter.Position + 4;
+                    //if (alignment != 4)
+                    //{
+                    //    while (dataPos % alignment != 0)
+                    //    {
+                    //        nativeWriter.Write((byte)0);
+                    //        dataPos = nativeWriter.Position;
+                    //    }
+                    //    nativeWriter.Position -= 0x4;
+                    //}
 
+                    if (alignment == 4)
+                    {
+                        if (nativeWriter.Position % 8 == 0)
+                        {
+                            nativeWriter.WriteEmpty(12);
+                        }
+                    }
 
                     nativeWriter.WriteUInt32LittleEndian(arrayInfo.Count);
                     long beforeArrayPosition = nativeWriter.Position;
@@ -1008,6 +1024,7 @@ namespace FrostySdk.FrostySdk.IO
             var propertiesOrderedByIndex = properties.OrderBy(x => x.GetCustomAttribute<FieldIndexAttribute>().Index).ToArray();
 
             foreach (var propertyInfo in propertiesOrderedByOffset)
+            //foreach (var propertyInfo in propertiesOrderedByIndex)
             {
                 IsTransientAttribute isTransientAttribute = propertyInfo.GetCustomAttribute<IsTransientAttribute>();
                 if (isTransientAttribute != null)
@@ -1130,7 +1147,6 @@ namespace FrostySdk.FrostySdk.IO
                                 throw new IndexOutOfRangeException("");
                             }
                             pointerRefPositionToDataContainerIndex[((int)writer.Position, currentArrayIndex)] = pointerRefValue;
-                            //pointerRefPositionToDataContainerIndex.Add(((int)writer.Position, currentArrayIndex), pointerRefValue);
                             pointerOffsets.Add(((int)writer.Position, currentArrayIndex));
                         }
                         writer.WriteUInt64LittleEndian((uint)pointerRefValue);
