@@ -190,7 +190,9 @@ namespace FrostySdk.FrostySdk.IO
                         imports.Add(pointerRef2.External);
                     }
                 }
-                else if (propertyInfo.PropertyType.Namespace == "FrostySdk.Ebx" && propertyInfo.PropertyType.BaseType != typeof(Enum))
+                else if (
+                    (propertyInfo.PropertyType.Namespace == "FrostySdk.Ebx" || propertyInfo.PropertyType.Namespace == "Sdk.Ebx")
+                    && propertyInfo.PropertyType.BaseType != typeof(Enum))
                 {
                     object value = propertyInfo.GetValue(obj);
                     dataContainers.AddRange(ExtractClass(value.GetType(), value, add: false));
@@ -379,7 +381,7 @@ namespace FrostySdk.FrostySdk.IO
             for (var iEbxxArray = 0; iEbxxArray < ebxxArrayCount; iEbxxArray++)
             {
                 var arr = ebxxArrays[iEbxxArray];
-                if (origEbxArrays.Count - 1 > iEbxxArray)
+                if (origEbxArrays.Count > iEbxxArray)
                 {
                     Write(arr.Offset);
                     Write(arr.Count);
@@ -429,7 +431,7 @@ namespace FrostySdk.FrostySdk.IO
             {
                 return 0;
             }
-            if (type.BaseType!.Namespace == "FrostySdk.Ebx")
+            if (type.BaseType!.Namespace == "FrostySdk.Ebx" || type.BaseType!.Namespace == "Sdk.Ebx")
             {
                 ProcessClass(type.BaseType, obj, isBaseType: true);
             }

@@ -186,6 +186,7 @@ namespace FrostySdk
                     || name.Contains("head_")
                     || name.Contains("fifa/attribulator/gameplay/groups/gp_cpuai/gp_cpuai_crossingdecision_runtime")
                     || name.Contains("fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime")
+                    || name.Contains("fifa/attribulator/gameplay/groups/gp_collision/gp_collision_playercollision_runtime")
                     || name.Contains("splashscreen")
                     )
                 {
