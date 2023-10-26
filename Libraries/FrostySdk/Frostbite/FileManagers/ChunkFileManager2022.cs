@@ -34,6 +34,7 @@ namespace Frostbite.FileManagers
 
         public Dictionary<string, LegacyFileEntry> LegacyEntries { get; private set; } = new Dictionary<string, LegacyFileEntry>();
 
+
         public List<ChunkAssetEntry> ModifiedChunks { get; private set; } = new List<ChunkAssetEntry>();
 
         protected Dictionary<Guid, List<LegacyFileEntry>> LegacyChunksToParent = new Dictionary<Guid, List<LegacyFileEntry>>();
@@ -196,6 +197,11 @@ namespace Frostbite.FileManagers
         public virtual void Initialize(ILogger logger)
         {
             Logger = logger;
+
+            if (LegacyEntries != null && LegacyEntries.Count > 0) 
+            {
+                return;
+            }
 
             logger.Log("Loading legacy files");
             AddedFileEntries = new List<LegacyFileEntry>();

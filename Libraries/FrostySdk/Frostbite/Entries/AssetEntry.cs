@@ -1,5 +1,6 @@
 using FMT.FileTools;
 using FrostySdk.FrostbiteSdk.Managers;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -481,9 +482,14 @@ namespace FrostySdk.Managers
             return this.MemberwiseClone() as AssetEntry;
         }
 
-        public virtual T Clone<T>()
+        public virtual T Clone<T>(bool deep = true)
         {
-            return (T)this.MemberwiseClone();
+            //return (T)this.MemberwiseClone();
+            if(deep)
+                return (T)this.MemberwiseClone();
+            else
+                return JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings() { MaxDepth = 0 }));
+
         }
 
         public bool IsOfType(string type, bool acceptSubType = true)

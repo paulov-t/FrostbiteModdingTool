@@ -318,6 +318,7 @@ namespace FrostySdk.Frostbite.Compilers
                 Dictionary<string, byte[]> legacyData = ModExecuter.modifiedLegacy.ToDictionary(x => x.Key, x => x.Value.ModifiedEntry.Data);
                 var countLegacyChunksModified = 0;
 
+
                 if (AssetManager.Instance.GetLegacyAssetManager() == null)
                     AssetManager.Instance.RegisterLegacyAssetManager();
 
@@ -326,7 +327,7 @@ namespace FrostySdk.Frostbite.Compilers
                     return;
 
                 // Initialize the LFM
-                chunkFileManager.Initialize(new NullLogger());
+                chunkFileManager.Initialize(ModExecuter.Logger);
 
                 chunkFileManager.ModifyAssets(legacyData, true);
 
