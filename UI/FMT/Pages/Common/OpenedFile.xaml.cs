@@ -1,5 +1,6 @@
 ﻿using AvalonDock.Layout;
 using CSharpImageLibrary;
+using FIFAModdingUI.Pages.Common;
 using FMT.FileTools;
 using FMT.FileTools.AssetEntry;
 using FMT.Logging;
@@ -72,12 +73,34 @@ namespace FMT.Pages.Common
             set => SetValue(SelectedEntryProperty, value);
         }
 
-        private EbxAsset ebxAsset;
+        //private EbxAsset ebxAsset;
 
+        //public EbxAsset SelectedEbxAsset
+        //{
+        //    get { return ebxAsset; }
+        //    set { ebxAsset = value; }
+        //}
+
+        public static readonly DependencyProperty SelectedEbxAssetProperty = DependencyProperty.Register("SelectedEbxAsset", typeof(EbxAsset), typeof(OpenedFile), new FrameworkPropertyMetadata(null));
         public EbxAsset SelectedEbxAsset
         {
-            get { return ebxAsset; }
-            set { ebxAsset = value; }
+            get => (EbxAsset)GetValue(SelectedEbxAssetProperty);
+            set => SetValue(SelectedEbxAssetProperty, value);
+        }
+
+
+        public static readonly DependencyProperty LoadingVisibilityProperty = DependencyProperty.Register("LoadingVisibility", typeof(Visibility), typeof(OpenedFile), new FrameworkPropertyMetadata(null));
+        public Visibility LoadingVisibility
+        {
+            get => (Visibility)GetValue(LoadingVisibilityProperty);
+            set => SetValue(LoadingVisibilityProperty, value);
+        }
+
+        public static readonly DependencyProperty AssetPathProperty = DependencyProperty.Register("AssetPath", typeof(AssetPath), typeof(Editor), new FrameworkPropertyMetadata(null));
+        public AssetPath AssetPath
+        {
+            get => (AssetPath)GetValue(AssetPathProperty);
+            set => SetValue(AssetPathProperty, value);
         }
 
 
@@ -87,15 +110,16 @@ namespace FMT.Pages.Common
         {
             get
             {
-                return App.MainEditorWindow as IEditorWindow;
+                return (IEditorWindow)App.MainEditorWindow;
             }
         }
 
-        public OpenedFile(IAssetEntry entry)
+        public OpenedFile(IAssetEntry entry, AssetPath assetPath)
         {
             InitializeComponent();
 
             SelectedEntry = entry;
+            AssetPath = assetPath;
 
             Loaded += OpenedFile_Loaded;
         }
@@ -123,10 +147,12 @@ namespace FMT.Pages.Common
 
         public async Task UpdateLoadingVisibility(bool show)
         {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                this.borderLoading.Visibility = show ? Visibility.Visible : Visibility.Hidden;
-            });
+            LoadingVisibility = show ? Visibility.Visible : Visibility.Hidden;
+            await Task.CompletedTask;
+            //await Dispatcher.InvokeAsync(() =>
+            //{
+            //    this.borderLoading.Visibility = show ? Visibility.Visible : Visibility.Hidden;
+            //});
         }
 
         private async Task OpenAsset(IAssetEntry entry)
@@ -388,7 +414,7 @@ namespace FMT.Pages.Common
                     return;
                 }
 
-                var successful = await EBXViewer.LoadEbx(ebxEntry, SelectedEbxAsset, MainEditorWindow);
+                var successful = await EBXViewer.LoadEbx(ebxEntry, SelectedEbxAsset, MainEditorWindow, AssetPath);
                 await Dispatcher.InvokeAsync(() =>
                 {
                     EBXViewer.Visibility = Visibility.Visible;
@@ -468,7 +494,7 @@ namespace FMT.Pages.Common
                 this.ModelViewer.DataContext = ModelViewerModel;
                 this.ModelDockingManager.Visibility = Visibility.Visible;
 
-                await ModelViewerEBX.LoadEbx(ebxEntry, SelectedEbxAsset, MainEditorWindow);
+                await ModelViewerEBX.LoadEbx(ebxEntry, SelectedEbxAsset, MainEditorWindow, AssetPath);
 
                 await Dispatcher.InvokeAsync(() =>
                 {
@@ -794,7 +820,7 @@ namespace FMT.Pages.Common
         {
             MainEditorWindow.Log("Loading EBX " + entry.Filename);
             var ebx = entry.GetAsset();
-            var successful = EBXViewer.LoadEbx(entry, ebx, MainEditorWindow);
+            var successful = EBXViewer.LoadEbx(entry, ebx, MainEditorWindow, AssetPath);
             EBXViewer.Visibility = Visibility.Visible;
         }
 

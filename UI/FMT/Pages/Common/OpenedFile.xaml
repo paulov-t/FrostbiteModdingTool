@@ -22,7 +22,7 @@
             <RowDefinition MaxHeight="35"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <Border x:Name="borderLoading" BorderBrush="Black" Grid.Row="0" Grid.RowSpan="2" BorderThickness="1" Panel.ZIndex="999" Background="#80000000">
+        <Border x:Name="borderLoading" Visibility="{Binding LoadingVisibility}" BorderBrush="Black" Grid.Row="0" Grid.RowSpan="2" BorderThickness="1" Panel.ZIndex="999" Background="#80000000">
             <Grid>
                 <TextBlock Margin="0" TextWrapping="Wrap" Text="Busy...Please Wait" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="26.667" FontWeight="Bold" Foreground="#7EFFFFFF"/>
             </Grid>

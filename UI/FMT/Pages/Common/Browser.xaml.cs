@@ -728,7 +728,7 @@ namespace FIFAModdingUI.Pages.Common
             var layoutDocument = new LayoutDocument();
             layoutDocument.Title = assetEntry.Filename;
             layoutDocument.Description = assetEntry.Path + assetEntry.Filename;
-            layoutDocument.Content = new OpenedFile(assetEntry);
+            layoutDocument.Content = new OpenedFile(assetEntry, assetPath);
             browserDocuments.Children.Insert(0, layoutDocument);
             browserDocuments.SelectedContentIndex = 0;
         }

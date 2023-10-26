@@ -2,6 +2,7 @@
 using FMT.FileTools;
 using FMT.Logging;
 using FMT.Models;
+using FMT.Pages.Common;
 using FrostbiteModdingUI.Windows;
 using FrostbiteSdk;
 using FrostySdk;
@@ -26,10 +27,6 @@ namespace FIFAModdingUI.Pages.Common
     public partial class Editor : UserControl
     {
 
-        public static readonly DependencyProperty AssetEntryProperty;
-
-        public static readonly DependencyProperty AssetModifiedProperty;
-
         protected IEditorWindow EditorWindow;
 
         protected List<object> objects;
@@ -38,9 +35,9 @@ namespace FIFAModdingUI.Pages.Common
 
         protected Dictionary<Guid, EbxAsset> dependentObjects = new Dictionary<Guid, EbxAsset>();
 
-        protected EbxAsset asset;
+        //protected EbxAsset asset;
 
-        public object RootObject { get { return asset.RootObject; } }
+        public object RootObject { get { return Asset.RootObject; } }
 
         private List<ModdableEntity> _rootObjProps;
 
@@ -75,7 +72,7 @@ namespace FIFAModdingUI.Pages.Common
                     Utilities.SetPropertyValue(RootObject, item.PropertyName, item.PropertyValue);
                 }
 
-                AssetManager.Instance.ModifyEbx(AssetEntry.Name, asset);
+                AssetManager.Instance.ModifyEbx(AssetEntry.Name, Asset);
             }
         }
 
@@ -92,7 +89,7 @@ namespace FIFAModdingUI.Pages.Common
             //	EditorWindow.UpdateAllBrowsers();
 
             if (EditorWindow != null)
-                EditorWindow.Log($"[{DateTime.Now.ToString("t")}] {asset.RootObject} Saved");
+                EditorWindow.Log($"[{DateTime.Now.ToString("t")}] {Asset.RootObject} Saved");
         }
 
         public void RevertAsset()
@@ -101,14 +98,38 @@ namespace FIFAModdingUI.Pages.Common
             this.Visibility = Visibility.Collapsed;
         }
 
-        public IEnumerable<object> RootObjects => asset.RootObjects;
+        public IEnumerable<object> RootObjects => Asset.RootObjects;
 
-        public IEnumerable<object> Objects => asset.Objects;
+        public IEnumerable<object> Objects => Asset.Objects;
 
-        public IAssetEntry AssetEntry { get; set; }
+        //public IAssetEntry AssetEntry { get; set; }
+
+        public static readonly DependencyProperty AssetEntryProperty = DependencyProperty.Register("AssetEntry", typeof(IAssetEntry), typeof(Editor), new FrameworkPropertyMetadata(null));
+        public IAssetEntry AssetEntry
+        {
+            get => (IAssetEntry)GetValue(AssetEntryProperty);
+            set => SetValue(AssetEntryProperty, value);
+        }
+
 
         //public EbxAsset Asset { get { return asset; } set { asset = value; if(PropertyChanged != null) PropertyChanged.Invoke(this, null); } }
-        public EbxAsset Asset { get { return asset; } set { asset = value; } }
+        //public EbxAsset Asset { get { return asset; } set { asset = value; } }
+
+        public static readonly DependencyProperty AssetProperty = DependencyProperty.Register("Asset", typeof(EbxAsset), typeof(Editor), new FrameworkPropertyMetadata(null));
+        public EbxAsset Asset
+        {
+            get => (EbxAsset)GetValue(AssetProperty);
+            set => SetValue(AssetProperty, value);
+        }
+
+        //public static readonly DependencyProperty AssetPathProperty = DependencyProperty.Register("AssetPath", typeof(AssetPath), typeof(Editor), new FrameworkPropertyMetadata(null));
+        //public AssetPath AssetPath
+        //{
+        //    get => (AssetPath)GetValue(AssetPathProperty);
+        //    set => SetValue(AssetPathProperty, value);
+        //}
+
+        public AssetPath TheAssetPath { get; set; }
 
         [Obsolete("Incorrect usage of Editor Windows")]
 
@@ -148,7 +169,8 @@ namespace FIFAModdingUI.Pages.Common
         public async Task<bool> LoadEbx(
             IAssetEntry inAssetEntry
             , EbxAsset inAsset
-            , IEditorWindow inEditorWindow)
+            , IEditorWindow inEditorWindow
+            , AssetPath assetPath)
         {
 
             if (inAssetEntry == null)
@@ -166,6 +188,7 @@ namespace FIFAModdingUI.Pages.Common
             AssetEntry = inAssetEntry;
             Asset = inAsset;
             EditorWindow = inEditorWindow;
+            TheAssetPath = assetPath;
 
             bool success = true;
 
@@ -503,14 +526,16 @@ namespace FIFAModdingUI.Pages.Common
             await Dispatcher.InvokeAsync(() =>
             {
                 if (EditorWindow != null)
-                    EditorWindow.Log($"[{DateTime.Now.ToString("t")}] {asset.RootObject} Saved");
+                    EditorWindow.Log($"[{DateTime.Now.ToString("t")}] {Asset.RootObject} Saved");
 
             });
 
             if (forceReload)
             {
-                await LoadEbx(AssetEntry, Asset, EditorWindow);
+                await LoadEbx(AssetEntry, Asset, EditorWindow, TheAssetPath);
             }
+
+            TheAssetPath.AssetChanged();
 
         }
 
