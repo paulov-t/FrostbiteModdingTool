@@ -1225,12 +1225,11 @@ namespace ModdingSupport
                 StringBuilder sb = new StringBuilder(allTextOfUserIni);
                 //if (!allTextOfUserIni.Contains(ProfileManager.LoadedProfile.EADesktopCommandLineSetting.Trim(), StringComparison.OrdinalIgnoreCase)
                 //    || 
-                if(    !allTextOfUserIni.Contains(desiredCommandLineSetting.Trim(), StringComparison.OrdinalIgnoreCase)
-                    )
+                if(!desiredSettingAlreadyExists)
                 {
                     FileLogger.WriteLine($"ModExecutor:RunEADesktop: -dataPath {ModDirectoryName} does not exist for this game. Setting it up.");
                     // Kill the EA Desktop process if needed
-                    //KillEADesktopProcess();
+                    KillEADesktopProcess();
 
                     sb.AppendLine(string.Empty);
                     sb.Append(desiredCommandLineSetting.Trim());
