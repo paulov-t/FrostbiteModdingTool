@@ -1,4 +1,5 @@
-﻿using FMT.FileTools;
+﻿using DirectXTexNet;
+using FMT.FileTools;
 using Frostbite.Textures;
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Managers;
@@ -29,6 +30,7 @@ namespace FC24Plugin.Textures
 
             MemoryStream memoryStream = null;
             TextureUtils.BlobData pOutData = default(TextureUtils.BlobData);
+            byte[] outData = null;
             if (imageFormat == TextureUtils.ImageFormat.DDS)
             {
                 memoryStream = new MemoryStream(NativeReader.ReadInStream(new FileStream(path, FileMode.Open, FileAccess.Read)));
@@ -46,8 +48,13 @@ namespace FC24Plugin.Textures
                 options.resizeWidth = textureAsset.Width;
                 if (textureAsset.Type == TextureType.TT_2d)
                 {
+                    var sf = TextureUtils.ToShaderFormat(textureAsset.PixelFormat, false);
                     byte[] pngarray = NativeReader.ReadInStream(new FileStream(path, FileMode.Open, FileAccess.Read));
                     TextureUtils.ConvertImageToDDS(pngarray, pngarray.Length, imageFormat, options, ref pOutData);
+                    if (Enum.TryParse<DXGI_FORMAT>(sf.ToString().ToUpper(), out var r)) 
+                    {
+                        TextureUtils.TryConvertImageToDDS(pngarray, TextureUtils.ImageFormat.PNG, r, TextureType.TT_2d, out outData);
+                    }
                 }
                 else
                 {
@@ -57,7 +64,14 @@ namespace FC24Plugin.Textures
 
             if (imageFormat != TextureUtils.ImageFormat.DDS)
             {
-                memoryStream = new MemoryStream(pOutData.Data);
+                if (outData != null && outData.Length > 0)
+                {
+                    memoryStream = new MemoryStream(outData);
+                }
+                else
+                {
+                    memoryStream = new MemoryStream(pOutData.Data);
+                }
             }
 
             //if (!Directory.Exists("Debugging"))
@@ -89,7 +103,7 @@ namespace FC24Plugin.Textures
                 byte[] textureArray = new byte[nativeReader.Length - nativeReader.Position];
                 nativeReader.Read(textureArray, 0, (int)(nativeReader.Length - nativeReader.Position));
                 AssetManager.Instance.ModifyChunk(textureAsset.ChunkId, textureArray, textureAsset);
-                //AssetManager.Instance.ModifyRes(resRid, textureAsset.ToBytes());
+                //AssetManager.Instance.ModifyRes(resEntry, textureAsset.ToBytes());
                 AssetManager.Instance.ModifyEbx(assetEntry.Name, ebxAsset);
                 resEntry.LinkAsset(chunkEntry);
                 assetEntry.LinkAsset(resEntry);
