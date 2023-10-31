@@ -414,7 +414,7 @@ namespace FrostySdk.Resources
             {
                 ResStream.Position = 0;
 #if DEBUG
-                DebugBytesToFileLogger.Instance.WriteAllBytes("TextureAssetExport.bin", ((MemoryStream)ResStream).ToArray());
+                DebugBytesToFileLogger.Instance.WriteAllBytes("TextureAssetExport.bin", ((MemoryStream)ResStream).ToArray(), "Texture");
                 ResStream.Position = 0;
 #endif
 
@@ -627,7 +627,13 @@ namespace FrostySdk.Resources
             chunkSize = nativeReader.ReadUInt();
             assetNameHash = nativeReader.ReadUInt();
             TextureGroup = nativeReader.ReadSizedString(16);
-            unknownBytes.Add(nativeReader.ReadBytes(8));
+
+            List<byte> lastBytes = new();
+            while(nativeReader.Position != nativeReader.Length)
+            {
+                lastBytes.Add(nativeReader.ReadByte());
+            }
+            unknownBytes.Add(lastBytes.ToArray());
 
             if (AssetManager.Instance.Logger != null)
                 AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {chunkId}");

@@ -94,6 +94,11 @@ namespace FrostySdk
             /// <summary>
             /// 
             /// </summary>
+            public List<string> ExportModFileTypes { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
             public string ModCompilerFileType { get; set; }
 
             /// <summary>

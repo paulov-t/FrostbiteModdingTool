@@ -435,13 +435,6 @@ namespace FrostySdk.Frostbite.Compilers
 
         protected virtual bool WriteChangesToSuperBundleRes(DbObject origDbo, NativeWriter writer, AssetEntry assetEntry)
         {
-#if DEBUG
-            if (origDbo["name"].ToString().EndsWith("head_202231_0_0_mesh"))
-            {
-
-            }
-#endif
-
 
             if (origDbo == null)
                 throw new ArgumentNullException(nameof(origDbo));
@@ -486,35 +479,17 @@ namespace FrostySdk.Frostbite.Compilers
 
             var modifiedResource = ModExecuter.modifiedRes[assetEntry.Name];
 
-            //if (assetBundle.Key.Type != "MeshSet")
-            //{
-                writer.BaseStream.Position = resMetaPosition;
-                writer.WriteBytes(modifiedResource.ResMeta);
-            //}
+            writer.BaseStream.Position = resMetaPosition;
+            writer.WriteBytes(modifiedResource.ResMeta);
 
-            //if (assetBundle.Key.Type != "MeshSet")
-            //{
-                if (modifiedResource.ResRid != 0)
-                {
-                    writer.BaseStream.Position = origDbo.GetValue<int>("SB_ReRid_Position");
-                    writer.WriteULong(modifiedResource.ResRid);
-                }
-            //}
+            writer.Position = originalSizePosition;
+            writer.Write((uint)originalSizeOfData, Endian.Little);
 
-            //if (assetBundle.Key.Type != "MeshSet")
-            //{
-                writer.Position = originalSizePosition;
-                writer.Write((uint)originalSizeOfData, Endian.Little);
-            //}
-
-            //if (assetBundle.Key.Type != "MeshSet")
-            //{ 
-                if (sha1Position.HasValue && modifiedResource.Sha1 != Sha1.Zero)
-                {
-                    writer.Position = sha1Position.Value;
-                    writer.Write(modifiedResource.Sha1);
-                }
-            //}
+            if (sha1Position.HasValue && modifiedResource.Sha1 != Sha1.Zero)
+            {
+                writer.Position = sha1Position.Value;
+                writer.Write(modifiedResource.Sha1);
+            }
 
             return true;
         }

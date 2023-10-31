@@ -334,7 +334,7 @@ namespace Frostbite.Textures
 
         public virtual byte[] WriteToDDS(Texture textureAsset)
         {
-            if (textureAsset.Flags.HasFlag(TextureFlags.Ps4))
+            if (textureAsset.Flags.HasFlag(TextureFlags.Ps4Swizzle))
             {
                 return WriteToDDSPs4(textureAsset);
             }
@@ -374,7 +374,7 @@ namespace Frostbite.Textures
                 else
                 {
                     // If it is a PS4 texture. Make some changes.
-                    if (textureAsset.Flags.HasFlag(TextureFlags.Ps4))
+                    if (textureAsset.Flags.HasFlag(TextureFlags.Ps4Swizzle))
                     {
                         var arraySize = textureAsset.width * textureAsset.height * 4 / 8;
                         //byte[] array = new byte[arraySize];
@@ -472,7 +472,7 @@ namespace Frostbite.Textures
                 pxFormat = pxFormat.Replace("UNORM", "SRGB");
             }
 
-            if (pxFormat.StartsWith("BC") && textureAsset.Flags.HasFlag(TextureFlags.Ps4))
+            if (pxFormat.StartsWith("BC") && textureAsset.Flags.HasFlag(TextureFlags.Ps4Swizzle))
             {
                 pxFormat = pxFormat.Replace("SRGB", "UNORM");
             }
