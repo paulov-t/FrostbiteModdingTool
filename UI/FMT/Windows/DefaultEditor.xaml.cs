@@ -377,6 +377,7 @@ namespace FrostbiteModdingUI.Windows
 
                 //btnLaunchEditor.IsEnabled = ProfileManager.LoadedProfile.CanLaunchMods;
                 LaunchGameVisibility = ProfileManager.LoadedProfile.CanLaunchMods ? Visibility.Visible : Visibility.Collapsed;
+                WriteToFIFAModVisibility = ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.FC24) ? Visibility.Visible : Visibility.Collapsed;
 
             });
 
@@ -1349,6 +1350,14 @@ namespace FrostbiteModdingUI.Windows
         public Visibility CompileGameVisibility
         {
             get => LaunchGameVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+
+        public static readonly DependencyProperty WriteToFIFAModVisibilityProperty = DependencyProperty.Register("WriteToFIFAModVisibility", typeof(Visibility), typeof(DefaultEditor), new FrameworkPropertyMetadata(null));
+        public Visibility WriteToFIFAModVisibility
+        {
+            get => (Visibility)GetValue(WriteToFIFAModVisibilityProperty);
+            set => SetValue(WriteToFIFAModVisibilityProperty, value);
         }
 
         private async void btnCompile_Click(object sender, RoutedEventArgs e)

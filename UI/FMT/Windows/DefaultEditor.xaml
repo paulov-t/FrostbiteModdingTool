@@ -216,9 +216,17 @@
                         </MenuItem>
                         <MenuItem x:Name="btnProjectWriteToMod"  Height="30" Click="btnProjectWriteToMod_Click" Background="Transparent" BorderBrush="{x:Null}">
                             <MenuItem.Header>
-                                <StackPanel Height="30" VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal">
+                                <StackPanel Height="30" VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
                                     <MaterialDesign:PackIcon Kind="ContentSaveMove" VerticalAlignment="Center" />
                                     <Label FontSize="10" Content="Save Frostbite Mod (*.fbmod)" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </MenuItem.Header>
+                        </MenuItem>
+                        <MenuItem x:Name="btnProjectWriteToFIFAMod"  Height="30" Click="btnProjectWriteToFIFAMod_Click" Visibility="{Binding WriteToFIFAModVisibility}" >
+                            <MenuItem.Header>
+                                <StackPanel Height="30" VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <MaterialDesign:PackIcon Kind="ContentSaveMove" VerticalAlignment="Center" />
+                                    <Label FontSize="10" Content="Save FIFA Mod (*.fifamod)" VerticalAlignment="Center" />
                                 </StackPanel>
                             </MenuItem.Header>
                         </MenuItem>
