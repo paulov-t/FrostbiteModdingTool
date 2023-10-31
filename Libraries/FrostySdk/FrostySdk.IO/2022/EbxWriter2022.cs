@@ -656,7 +656,7 @@ namespace FrostySdk.FrostySdk.IO
             ProcessDataArray(nativeWriter);
             ProcessDataBoxedValues(nativeWriter);
 
-            nativeWriter.WritePadding(16);
+            //nativeWriter.WritePadding(16);
 
 
 
@@ -665,9 +665,8 @@ namespace FrostySdk.FrostySdk.IO
             stringTablePosition = (int)nativeWriter.Position;
             foreach (KeyValuePair<string, List<(int, int)>> stringsToCStringOffset in stringsToCStringOffsets)
             {
-                stringsToCStringOffset.Deconstruct(out var key, out var value);
-                string stringValue = key;
-                List<(int, int)> list = value;
+                string stringValue = stringsToCStringOffset.Key;
+                List<(int, int)> list = stringsToCStringOffset.Value;
                 long stringPosition = nativeWriter.Position;
                 nativeWriter.WriteNullTerminatedString(stringValue);
                 long afterStringPosition = nativeWriter.Position;
@@ -986,7 +985,7 @@ namespace FrostySdk.FrostySdk.IO
                 nativeWriter.Write(boxedValue.Data);
             }
 
-            nativeWriter.WritePadding(16);
+            //nativeWriter.WritePadding(16);
         }
 
 
