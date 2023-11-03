@@ -405,11 +405,11 @@ namespace FrostySdk
             // Convert Locale.Ini mod to EmbeddedFileEntry
             if (AssetManager.Instance.LocaleINIMod.HasUserData)
             {
-                project.AssetManager.EmbeddedFileEntries.RemoveAll(x
+                AssetManager.Instance.EmbeddedFileEntries.RemoveAll(x
                     => x.ImportedFileLocation.Contains("Locale.ini", StringComparison.OrdinalIgnoreCase)
                     || x.ExportedRelativePath.Contains("Locale.ini", StringComparison.OrdinalIgnoreCase)
                     );
-                project.AssetManager.EmbeddedFileEntries.Add(new EmbeddedFileEntry()
+                AssetManager.Instance.EmbeddedFileEntries.Add(new EmbeddedFileEntry()
                 {
                     Name = "Locale.ini",
                     ImportedFileLocation = "PROJECT",
@@ -419,15 +419,15 @@ namespace FrostySdk
             }
             // 5 = Icon and Screenshots
             // The count of embedded files is added
-            Write(5 + project.AssetManager.EmbeddedFileEntries.Count);
+            Write(5 + AssetManager.Instance.EmbeddedFileEntries.Count);
             AddResource(new EmbeddedResource("Icon;", modSettings.Icon, manifest));
             for (int i = 0; i < 4; i++)
             {
                 AddResource(new EmbeddedResource("Screenshot;" + i.ToString(), modSettings.GetScreenshot(i), manifest));
             }
-            for (int i = 0; i < project.AssetManager.EmbeddedFileEntries.Count; i++)
+            for (int i = 0; i < AssetManager.Instance.EmbeddedFileEntries.Count; i++)
             {
-                var efe = project.AssetManager.EmbeddedFileEntries[i];
+                var efe = AssetManager.Instance.EmbeddedFileEntries[i];
                 AddResource(new EmbeddedResource("efe;" + efe.ExportedRelativePath, efe.Data, manifest));
             }
             // end of embedded
@@ -494,117 +494,7 @@ namespace FrostySdk
 
         public virtual void WriteProject()
         {
-            Write(FrostbiteMod.MagicFMT);
-            Write(FrostbiteMod.CurrentVersion);
-            Write(16045690984833335023uL);
-            Write(3735928559u);
-            Write(ProfileManager.ProfileName);
-            Write(FileSystem.Instance.Head);
-            ModSettings modSettings = overrideSettings;
-            if (modSettings == null)
-            {
-                modSettings = ProjectManagement.Instance.Project.ModSettings;
-            }
-            WriteLengthPrefixedString(modSettings.Title);
-            WriteLengthPrefixedString(modSettings.Author);
-            WriteLengthPrefixedString(modSettings.Category);
-            WriteLengthPrefixedString(modSettings.Version);
-            WriteLengthPrefixedString(modSettings.Description);
-
-            // -----------------------------------------------------
-            // Embedded Files
-            // --------------------------------------------------
-            // Convert Locale.Ini mod to EmbeddedFileEntry
-            if (AssetManager.Instance.LocaleINIMod.HasUserData)
-            {
-                AssetManager.Instance.EmbeddedFileEntries.RemoveAll(x
-                    => x.ImportedFileLocation.Contains("Locale.ini", StringComparison.OrdinalIgnoreCase)
-                    || x.ExportedRelativePath.Contains("Locale.ini", StringComparison.OrdinalIgnoreCase)
-                    );
-                AssetManager.Instance.EmbeddedFileEntries.Add(new EmbeddedFileEntry()
-                {
-                    Name = "Locale.ini",
-                    ImportedFileLocation = "PROJECT",
-                    ExportedRelativePath = "Data\\Locale.ini",
-                    Data = AssetManager.Instance.LocaleINIMod.UserDataEncrypted
-                });
-            }
-            // 5 = Icon and Screenshots
-            // The count of embedded files is added
-            Write(5 + AssetManager.Instance.EmbeddedFileEntries.Count);
-            AddResource(new EmbeddedResource("Icon;", modSettings.Icon, manifest));
-            for (int i = 0; i < 4; i++)
-            {
-                AddResource(new EmbeddedResource("Screenshot;" + i.ToString(), modSettings.GetScreenshot(i), manifest));
-            }
-            for (int i = 0; i < AssetManager.Instance.EmbeddedFileEntries.Count; i++)
-            {
-                var efe = AssetManager.Instance.EmbeddedFileEntries[i];
-                AddResource(new EmbeddedResource("efe;" + efe.ExportedRelativePath, efe.Data, manifest));
-            }
-            // end of embedded
-            // ----------------------------------------------------
-
-            foreach (BundleEntry bundleEntry in AssetManager.Instance.EnumerateBundles(BundleType.None, modifiedOnly: true))
-            {
-                if (bundleEntry.Added)
-                {
-                    AddResource(new BundleResource(bundleEntry, manifest));
-                }
-            }
-            foreach (EbxAssetEntry ebxAsset in AssetManager.Instance.EnumerateEbx("", modifiedOnly: true))
-            {
-                if (ebxAsset.ModifiedEntry != null && !ebxAsset.ModifiedEntry.IsTransientModified && ebxAsset.HasModifiedData)
-                {
-                    AddResource(new EbxResource(ebxAsset, manifest));
-                }
-            }
-            foreach (ResAssetEntry resAsset in AssetManager.Instance.EnumerateRes(0u, modifiedOnly: true))
-            {
-                if (resAsset.HasModifiedData)
-                {
-                    AddResource(new ResResource(resAsset, manifest));
-                }
-            }
-            foreach (ChunkAssetEntry chunkEntry in AssetManager.Instance.EnumerateChunks(modifiedOnly: true))
-            {
-                if (chunkEntry.HasModifiedData)
-                {
-                    AddResource(new ChunkResource(chunkEntry, manifest));
-                }
-            }
-            if (AssetManager.Instance.CustomAssetManagers.ContainsKey("legacy"))
-            {
-                // Write Legacy stuff
-                foreach (LegacyFileEntry lfe in AssetManager.Instance.EnumerateCustomAssets("legacy", true))
-                {
-                    if (lfe.HasModifiedData)
-                    {
-                        AddResource(new LegacyFileResource(lfe, manifest));
-                    }
-                }
-            }
-            // Write Embedded stuff
-            foreach (EmbeddedFileEntry efe in AssetManager.Instance.EmbeddedFileEntries)
-            {
-                AddResource(new EmbeddedFileResource(efe, manifest));
-            }
-            Write(resources.Count);
-            foreach (EditorModResource resource in resources)
-            {
-                resource.Write(this);
-            }
-
-
-            long manifestDataPosition = BaseStream.Position;
-            manifest.Write(this);
-            long legacyFilePosition = BaseStream.Position;
-            BaseStream.Position = 12L;
-            Write(manifestDataPosition);
-            Write(manifest.Count);
-
-
-
+            WriteProject(ProjectManagement.Instance != null ? ProjectManagement.Instance.Project : null);
         }
 
         public void AddResource(BaseModResource resource)
