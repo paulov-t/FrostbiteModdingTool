@@ -101,6 +101,8 @@
 	  <None Include="..\..\Plugins\FC24Plugin\bin\Debug\net7.0-windows\FC24Plugin.dll" Link="Plugins\FC24Plugin.dll">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
+	  <EmbeddedResource Include="FmtProjects\FC24\FC24.Gamplay.UltraSlowUltraMiss.Test.fmtproj" />
+	  <EmbeddedResource Include="FmtProjects\FC24\FC24.GrassFlow.Test.fmtproj" />
 	  <EmbeddedResource Include="FmtProjects\FC24\FC24.LegacyFile.FinanceTest.fmtproj" />
 	  <EmbeddedResource Include="FmtProjects\FC24\FC24.LegacyFile.RotherhamCrest.fmtproj" />
 	  <EmbeddedResource Include="FmtProjects\FIFA23\FIFA23.UltraSlowMovementMod.fmtproj">

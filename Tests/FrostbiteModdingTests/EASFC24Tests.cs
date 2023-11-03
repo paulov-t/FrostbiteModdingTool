@@ -205,5 +205,33 @@ namespace FrostbiteModdingTests
 
         }
 
+        [TestMethod]
+        public void LoadGrassTextureProjectAndLaunch()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
+            var fmtproj = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.GrassFlow.Test.fmtproj");
+            FMTProject project = FMTProject.Read(fmtproj);
+            project.ModSettings.Author = "Grass Texture Test";
+            project.ModSettings.Title = "Grass Texture Test";
+            project.WriteToMod("test.fbmod", project.ModSettings);
+            ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+            frostyModExecutor.ForceRebuildOfMods = true;
+            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
+        }
+
+        [TestMethod]
+        public void LoadUltraSlowGPProjectAndLaunch()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this);
+            var fmtproj = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.Gamplay.UltraSlowUltraMiss.Test.fmtproj");
+            FMTProject project = FMTProject.Read(fmtproj);
+            project.ModSettings.Author = "Ultra Slow Test";
+            project.ModSettings.Title = "Ultra Slow Test";
+            project.WriteToMod("test.fbmod", project.ModSettings);
+            ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+            frostyModExecutor.ForceRebuildOfMods = true;
+            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
+        }
+
     }
 }
