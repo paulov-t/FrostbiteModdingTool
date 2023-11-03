@@ -181,7 +181,7 @@ namespace Madden24Plugin
                 FileLogger.WriteLine(entriesErrorText);
                 foreach(var entry in entriesToNewPosition)
                 {
-                    FileLogger.WriteLine(entry.Name);
+                    FileLogger.WriteLine(entry.Key.Name);
                 }
 
                 // Write to File Logger the error list

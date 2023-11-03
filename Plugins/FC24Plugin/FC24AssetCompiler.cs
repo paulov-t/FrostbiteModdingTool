@@ -153,7 +153,7 @@ namespace FC24Plugin
                 parent.Logger.Log(entriesErrorText);
                 foreach (var entry in entriesToNewPosition)
                 {
-                    FileLogger.WriteLine(entry.Name);
+                    FileLogger.WriteLine(entry.Key.Name);
                 }
             }
 
@@ -320,7 +320,8 @@ namespace FC24Plugin
             return result;
         }
 
-        protected override bool WriteNewDataChangesToSuperBundles(ref List<AssetEntry> listOfModifiedAssets, string directory = "native_patch")
+        //protected override bool WriteNewDataChangesToSuperBundles(ref List<AssetEntry> listOfModifiedAssets, string directory = "native_patch")
+        protected override bool WriteNewDataChangesToSuperBundles(ref Dictionary<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> listOfModifiedAssets, string directory = "native_patch")
         {
             if (listOfModifiedAssets == null)
             {
@@ -336,40 +337,25 @@ namespace FC24Plugin
             //
             // ---------
             // Step 1a. Cache has the SBFileLocation or TOCFileLocation
-            var editedBundles = listOfModifiedAssets.SelectMany(x => x.Bundles).Distinct();
+            // Step 1a. Cache has the SBFileLocation or TOCFileLocation
+            var editedBundles = listOfModifiedAssets.SelectMany(x => x.Key.Bundles).Distinct();
             var groupedByTOCSB = new Dictionary<string, List<AssetEntry>>();
             if (listOfModifiedAssets.Any(
-                x => !string.IsNullOrEmpty(x.SBFileLocation)
-                || !string.IsNullOrEmpty(x.TOCFileLocation)
+                x => !string.IsNullOrEmpty(x.Key.SBFileLocation)
+                || !string.IsNullOrEmpty(x.Key.TOCFileLocation)
                 ))
             {
                 foreach (var item in listOfModifiedAssets)
                 {
-                    var tocPath = !string.IsNullOrEmpty(item.SBFileLocation) ? item.SBFileLocation : item.TOCFileLocation;
-                    if (tocPath == null)
-                        continue;
-
+                    var tocPath = !string.IsNullOrEmpty(item.Key.SBFileLocation) ? item.Key.SBFileLocation : item.Key.TOCFileLocation;
                     if (!tocPath.Contains(directory))
                         continue;
 
                     if (!groupedByTOCSB.ContainsKey(tocPath))
                         groupedByTOCSB.Add(tocPath, new List<AssetEntry>());
 
-                    groupedByTOCSB[tocPath].Add(item);
+                    groupedByTOCSB[tocPath].Add(item.Key);
                 }
-                // Group By SBFileLocation or TOCFileLocation
-                //foreach(var grp in listOfModifiedAssets
-                //    .Where(x => !string.IsNullOrEmpty(x.SBFileLocation) ? x.SBFileLocation.Contains(directory) : x.TOCFileLocation.Contains(directory))
-                //    .GroupBy(x => !string.IsNullOrEmpty(x.SBFileLocation) ? x.SBFileLocation : x.TOCFileLocation).ToArray())
-                //{
-                //    if (!groupedByTOCSB.ContainsKey(grp.Key))
-                //        groupedByTOCSB.Add(grp.Key, new List<AssetEntry>());
-                //}
-                //groupedByTOCSB = listOfModifiedAssets
-                //    .Where(x => !string.IsNullOrEmpty(x.SBFileLocation) ? x.SBFileLocation.Contains(directory) : x.TOCFileLocation.Contains(directory))
-                //    .GroupBy(x => !string.IsNullOrEmpty(x.SBFileLocation) ? x.SBFileLocation : x.TOCFileLocation)
-                //    .ToDictionary(x => x, x => x);
-
             }
 
             var groupedByTOCSBCount = groupedByTOCSB.Values.Sum(y => y.Count);
@@ -509,7 +495,7 @@ namespace FC24Plugin
                             }
 #endif
 
-                            var positionOfNewData = assetBundle.ExtraData.DataOffset;
+                            var positionOfNewData = listOfModifiedAssets[assetBundle].Item1;// assetBundle.ExtraData.DataOffset;
                             var sizeOfData = assetBundle.Size;
 
                             long sb_cas_size_position = origDbo.GetValue<long>("TOCSizePosition");// assetBundle.Key.SB_CAS_Size_Position;

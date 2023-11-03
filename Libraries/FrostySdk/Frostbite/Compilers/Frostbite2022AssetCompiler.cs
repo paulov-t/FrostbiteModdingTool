@@ -9,6 +9,7 @@ using ModdingSupport;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -154,7 +155,7 @@ namespace FrostySdk.Frostbite.Compilers
 
         public virtual bool RequiresCacheToCompile { get; } = true;
 
-        public virtual void FindModdedCasFilesWithoutCache(ref Dictionary<string, List<ModdedFile>> casToMods, string directory = "native_patch")
+        public virtual void FindModdedCasFilesWithoutCache(ref Dictionary<string, HashSet<ModdedFile>> casToMods, string directory = "native_patch")
         {
             foreach (var sbName in FileSystem.Instance.SuperBundles)
             {
@@ -224,7 +225,7 @@ namespace FrostySdk.Frostbite.Compilers
 
                         var casPath = originalEntry.ExtraData.CasPath;
                         if (!casToMods.ContainsKey(casPath))
-                            casToMods.Add(casPath, new List<ModdedFile>());
+                            casToMods.Add(casPath, new HashSet<ModdedFile>());
 
                         casToMods[casPath].Add(new ModdedFile(mod.Value.Sha1, mod.Value.Name, false, mod.Value, originalEntry));
 
@@ -243,12 +244,12 @@ namespace FrostySdk.Frostbite.Compilers
                 FindModdedCasFilesWithoutCache(ref casToMods, "native_data");
         }
 
-        protected Dictionary<string, List<ModdedFile>> GetModdedCasFiles(CancellationToken cancellationToken = default(CancellationToken))
+        protected Dictionary<string, HashSet<ModdedFile>> GetModdedCasFiles(CancellationToken cancellationToken = default(CancellationToken))
         {
             if (cancellationToken.IsCancellationRequested)
                 return null;
 
-            Dictionary<string, List<ModdedFile>> casToMods = new Dictionary<string, List<ModdedFile>>();
+            Dictionary<string, HashSet<ModdedFile>> casToMods = new Dictionary<string, HashSet<ModdedFile>>();
 
             // -----------------------------------------------------------
             // Only load cache when required
@@ -258,7 +259,7 @@ namespace FrostySdk.Frostbite.Compilers
                 CacheManager cacheManager = new CacheManager();
                 cacheManager.LoadData(ProfileManager.ProfileName, ModExecuter.GamePath, ModExecuter.Logger, false, true);
             }
-            else
+            else if(!RequiresCacheToCompile)
             {
                 FindModdedCasFilesWithoutCache(ref casToMods);
             }
@@ -283,7 +284,7 @@ namespace FrostySdk.Frostbite.Compilers
 
                 var casPath = originalEntry.ExtraData.CasPath;
                 if (!casToMods.ContainsKey(casPath))
-                    casToMods.Add(casPath, new List<ModdedFile>());
+                    casToMods.Add(casPath, new HashSet<ModdedFile>());
 
                 casToMods[casPath].Add(new ModdedFile(mod.Value.Sha1, mod.Value.Name, false, mod.Value, originalEntry));
 
@@ -687,8 +688,8 @@ namespace FrostySdk.Frostbite.Compilers
         /// <param name="dictOfModsToCas"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        //protected Dictionary<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> WriteNewDataToCasFiles(Dictionary<string, List<ModdedFile>> dictOfModsToCas)
-        protected List<AssetEntry> WriteNewDataToCasFiles(Dictionary<string, List<ModdedFile>> dictOfModsToCas)
+        protected Dictionary<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> WriteNewDataToCasFiles(Dictionary<string, HashSet<ModdedFile>> dictOfModsToCas)
+        //protected List<AssetEntry> WriteNewDataToCasFiles(Dictionary<string, HashSet<ModdedFile>> dictOfModsToCas)
         {
             if (dictOfModsToCas == null || dictOfModsToCas.Count == 0)
                 return null;
@@ -825,7 +826,6 @@ namespace FrostySdk.Frostbite.Compilers
                         }
                         else
                         {
-                            EntriesToNewPosition.Add(originalEntry, (positionOfData, data.Length, origSize, modItem.Sha1));
 
                             // Update Modified Asset with Information / Data
                             if (modifiedAsset.ExtraData == null)
@@ -851,17 +851,21 @@ namespace FrostySdk.Frostbite.Compilers
                                     ModExecuter.ModifiedChunks[Guid.Parse(modItem.NamePath)] = (ChunkAssetEntry)modifiedAsset;
                                     break;
                             }
+
+                            EntriesToNewPosition.Add(modifiedAsset, (positionOfData, data.Length, origSize, modItem.Sha1));
+
                         }
                     }
 
                 }
             }
 
-            return ModExecuter.ModifiedAssets.Select(x => x.Value).ToList();
-            //return EntriesToNewPosition;
+            //return ModExecuter.ModifiedAssets.Select(x => x.Value).ToList();
+            return EntriesToNewPosition;
         }
 
-        protected virtual bool WriteNewDataChangesToSuperBundles(ref List<AssetEntry> listOfModifiedAssets, string directory = "native_patch")
+        protected virtual bool WriteNewDataChangesToSuperBundles(ref Dictionary<AssetEntry, (long, int, int, FMT.FileTools.Sha1)> listOfModifiedAssets, string directory = "native_patch")
+        //protected virtual bool WriteNewDataChangesToSuperBundles(ref List<AssetEntry> listOfModifiedAssets, string directory = "native_patch")
         {
             if (listOfModifiedAssets == null)
             {
@@ -877,37 +881,24 @@ namespace FrostySdk.Frostbite.Compilers
             //
             // ---------
             // Step 1a. Cache has the SBFileLocation or TOCFileLocation
-            var editedBundles = listOfModifiedAssets.SelectMany(x => x.Bundles).Distinct();
+            var editedBundles = listOfModifiedAssets.SelectMany(x => x.Key.Bundles).Distinct();
             var groupedByTOCSB = new Dictionary<string, List<AssetEntry>>();
             if (listOfModifiedAssets.Any(
-                x => !string.IsNullOrEmpty(x.SBFileLocation)
-                || !string.IsNullOrEmpty(x.TOCFileLocation)
+                x => !string.IsNullOrEmpty(x.Key.SBFileLocation)
+                || !string.IsNullOrEmpty(x.Key.TOCFileLocation)
                 ))
             {
                 foreach(var item in listOfModifiedAssets)
                 {
-                    var tocPath = !string.IsNullOrEmpty(item.SBFileLocation) ? item.SBFileLocation : item.TOCFileLocation;
+                    var tocPath = !string.IsNullOrEmpty(item.Key.SBFileLocation) ? item.Key.SBFileLocation : item.Key.TOCFileLocation;
                     if (!tocPath.Contains(directory))
                         continue;
 
                     if (!groupedByTOCSB.ContainsKey(tocPath))
                         groupedByTOCSB.Add(tocPath, new List<AssetEntry>());
 
-                    groupedByTOCSB[tocPath].Add(item);
+                    groupedByTOCSB[tocPath].Add(item.Key);
                 }
-                // Group By SBFileLocation or TOCFileLocation
-                //foreach(var grp in listOfModifiedAssets
-                //    .Where(x => !string.IsNullOrEmpty(x.SBFileLocation) ? x.SBFileLocation.Contains(directory) : x.TOCFileLocation.Contains(directory))
-                //    .GroupBy(x => !string.IsNullOrEmpty(x.SBFileLocation) ? x.SBFileLocation : x.TOCFileLocation).ToArray())
-                //{
-                //    if (!groupedByTOCSB.ContainsKey(grp.Key))
-                //        groupedByTOCSB.Add(grp.Key, new List<AssetEntry>());
-                //}
-                //groupedByTOCSB = listOfModifiedAssets
-                //    .Where(x => !string.IsNullOrEmpty(x.SBFileLocation) ? x.SBFileLocation.Contains(directory) : x.TOCFileLocation.Contains(directory))
-                //    .GroupBy(x => !string.IsNullOrEmpty(x.SBFileLocation) ? x.SBFileLocation : x.TOCFileLocation)
-                //    .ToDictionary(x => x, x => x);
-
             }
 
             var groupedByTOCSBCount = groupedByTOCSB.Values.Sum(y => y.Count);
@@ -1271,6 +1262,16 @@ namespace FrostySdk.Frostbite.Compilers
                 IsAdded = inAdded;
                 OriginalEntry = inOrigEntry;
                 ModEntry = null;
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+
+            public override bool Equals([NotNullWhen(true)] object obj)
+            {
+                return base.Equals(obj) || obj.ToString().Equals(this.ToString());
             }
 
             public override string ToString()

@@ -199,7 +199,7 @@ namespace FrostySdk
                 {
                     size = decompressedArray.LongLength;
                     resourceIndex = manifest.Add(compressedArray);
-                    sha1 = FMT.FileTools.Sha1.Create(compressedArray);
+                    sha1 = entry.Sha1;// FMT.FileTools.Sha1.Create(compressedArray);
                 }
                 //}
                 foreach (int bundle in entry.Bundles)

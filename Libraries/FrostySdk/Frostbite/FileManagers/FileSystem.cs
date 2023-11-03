@@ -937,6 +937,10 @@ namespace FrostySdk
 
                     if (catalogInfo.PersistentIndex.HasValue && !CatalogsIndexed.ContainsKey(catalogInfo.PersistentIndex.Value))
                         CatalogsIndexed.Add(catalogInfo.PersistentIndex.Value, catalogInfo);
+                    else
+                    {
+
+                    }
 
                     //}
                     //}

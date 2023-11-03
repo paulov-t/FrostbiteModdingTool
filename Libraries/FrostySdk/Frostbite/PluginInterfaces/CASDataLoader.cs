@@ -116,6 +116,7 @@ namespace FrostySdk.Frostbite.PluginInterfaces
                                 dbo.SetValue("cas", casBundle.TOCCas[indexInList]);
                                 dbo.SetValue("catalog", casBundle.TOCCatalog[indexInList]);
                                 dbo.SetValue("patch", casBundle.TOCPatch[indexInList]);
+                                dbo.SetValue("dataPath", FileSystem.Instance.GetCasFilePath(casBundle.TOCCatalog[indexInList], casBundle.TOCCas[indexInList], casBundle.TOCPatch[indexInList]));
 
                                 dbo.SetValue("BundleIndex", BaseBundleInfo.BundleItemIndex);
                                 dbo.SetValue("Bundle", casBundle.BaseEntry.Name);

@@ -1461,15 +1461,13 @@ namespace ModdingSupport
         {
             FileLogger.WriteLine($"Launching {processName} {args}");
             Logger.Log($"Launching {processName} {args}");
-            //using Process p = new Process();
-            //p.StartInfo.FileName = "cmd.exe";
-            //p.StartInfo.Arguments = $"/K \"\"{processName}\" \"{args}\"\" && exit";
-            //p.Start();
-            //await Task.Delay(20000);
-            //p.Kill();
 
             if (Process.GetProcessesByName(processName).Length > 0)
+            {
+                FileLogger.WriteLine($"{processName} is already running");
+                Logger.Log($"{processName} is already running");
                 return;
+            }
 
             using (Process process = new())
             {
@@ -1483,29 +1481,12 @@ namespace ModdingSupport
                     process.StartInfo.UseShellExecute = true;
                     process.StartInfo.Verb = "runas";
                 }
-                //try
-                //{
-                    if (!process.Start())
-                    {
-                        throw new Exception($"Unable to start {processName}");
-                    }
-                    //int waitedTime = 0;
-                    //while (true)
-                    //{
-                    //    await Task.Delay(1000);
-                    //    if (Process.GetProcesses().Any(x => x.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase)))
-                    //        break;
 
-                    //    if(++waitedTime > 60)
-                    //    {
-                    //        throw new Exception("Process did not start. If your EA Desktop is setup correctly. You can still start the game manually now!");
-                    //    }
-                    //}
-                //}
-                //catch (Exception e)
-                //{
-                //    throw e;
-                //}
+                if (!process.Start())
+                {
+                    throw new Exception($"Unable to start {processName}");
+                }
+            
             }
            
         }
