@@ -48,7 +48,7 @@ namespace FIFAModdingUI.Windows
     {
         public Window OwnerWindow { get; set; }
 
-        public LauncherOptions launcherOptions { get; set; }
+        public FMTLauncherOptions launcherOptions { get; set; }
 
         public FMTAppSettings AppSettings { get; } = FMTAppSettings.Instance;
 
@@ -104,7 +104,7 @@ namespace FIFAModdingUI.Windows
                 }
             }
 
-            launcherOptions = await LauncherOptions.LoadAsync();
+            launcherOptions = await FMTLauncherOptions.LoadAsync();
 
         }
 
@@ -221,7 +221,7 @@ namespace FIFAModdingUI.Windows
 
             DiscordInterop.DiscordRpcClient.UpdateDetails("In Editor [" + GameInstanceSingleton.Instance.GAMEVERSION + "]");
 
-            LauncherOptions = await LauncherOptions.LoadAsync();
+            LauncherOptions = await FMTLauncherOptions.LoadAsync();
             swUseModData.IsEnabled = ProfileManager.LoadedProfile.CanUseModData && !ProfileManager.LoadedProfile.ForceUseModData;
             swUseModData.IsOn = LauncherOptions.UseModData.HasValue ? LauncherOptions.UseModData.Value : true;
 
@@ -276,7 +276,7 @@ namespace FIFAModdingUI.Windows
             _ = UpdateBrowsersAllFull();
         }
 
-        LauncherOptions LauncherOptions { get; set; }
+        FMTLauncherOptions LauncherOptions { get; set; }
 
         public bool DoNotLog { get; set; }
 

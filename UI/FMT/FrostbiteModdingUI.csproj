@@ -76,8 +76,8 @@
 	  <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.10.0" />
 	  <PackageReference Include="HelixToolkit.SharpDX.Assimp" Version="2.10.0" />
     <PackageReference Include="MahApps.Metro" Version="2.4.9" />
-    <PackageReference Include="MaterialDesignThemes" Version="4.1.0" />
-    <PackageReference Include="MaterialDesignThemes.MahApps" Version="0.1.7" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
+    <PackageReference Include="MaterialDesignThemes.MahApps" Version="0.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.2" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.14.0" />
     <PackageReference Include="NetDiscordRpc" Version="1.0.2" />

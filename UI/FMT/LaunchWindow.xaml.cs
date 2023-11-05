@@ -380,14 +380,15 @@ namespace FMT
                     Dispatcher.Invoke(() =>
                     {
 
+                        try
+                        {
+
                         DiscordInterop.DiscordRpcClient.UpdateDetails("Launching " + GameInstanceSingleton.Instance.GAMEVERSION + " with " + ListOfMods.Count + " mods");
                         DiscordInterop.DiscordRpcClient.UpdateState("V." + App.ProductVersion);
+                        }
 
-                        //var presence = new DiscordRPC.RichPresence();
-                        //presence.Details = ;
-                        //presence.State = "V." + App.ProductVersion;
-                        //App.DiscordRpcClient.SetPresence(presence);
-                        //App.DiscordRpcClient.Invoke();
+                        catch { }
+                        
                     });
 
                     var launchSuccess = false;
@@ -543,28 +544,43 @@ namespace FMT
                             //App.DiscordRpcClient.SetPresence(presence);
                             //App.DiscordRpcClient.Invoke();
 
-                            DiscordInterop.DiscordRpcClient.UpdateDetails("Playing " + GameInstanceSingleton.Instance.GAMEVERSION + " with " + ListOfMods.Count + " mods");
+                            try
+                            {
+                                DiscordInterop.DiscordRpcClient.UpdateDetails("Playing " + GameInstanceSingleton.Instance.GAMEVERSION + " with " + ListOfMods.Count + " mods");
 
+                            }
+                            catch
+                            {
+
+                            }
                         });
 
-                        if (AssetManager.Instance != null)
+                        try
                         {
-                            AssetManager.Instance.Reset();
-                            // Do Cleanup of Resources - Saving Memory
-                            //AssetManager.Instance.Dispose();
-                            AssetManager.Instance = null;
+                            if (AssetManager.Instance != null)
+                            {
+                                AssetManager.Instance.Reset();
+                                // Do Cleanup of Resources - Saving Memory
+                                AssetManager.Instance.Dispose();
+                                AssetManager.Instance = null;
+                            }
+                            ProjectManagement.Instance = null;
                         }
-                        ProjectManagement.Instance = null;
-
-                        GC.Collect();
-                        GC.WaitForPendingFinalizers();
+                        catch 
+                        { 
+                        
+                        }
 
                     }
                     else
                     {
                         Dispatcher.Invoke(() =>
                         {
-                            DiscordInterop.DiscordRpcClient.ClearPresence();
+                            try
+                            {
+                                DiscordInterop.DiscordRpcClient.ClearPresence();
+                            }
+                            catch { }
                         });
                     }
 
@@ -581,10 +597,10 @@ namespace FMT
 
                         if (switchAutoCloseAfterLaunch.IsOn && launchSuccess)
                         {
-                            if(Owner != null)
-                            {
-                                Owner.Close();
-                            }
+                            //if(Owner != null)
+                            //{
+                            //    Owner.Close();
+                            //}
                             FileLogger.WriteLine("Automatically shutting down App after game Launch");
                             App.Current.Shutdown();
                         }
@@ -819,7 +835,7 @@ namespace FMT
                 }
 
                 //launcherOptions = await LauncherOptions.LoadAsync();
-                launcherOptions = LauncherOptions.Load();
+                launcherOptions = FMTLauncherOptions.Load();
                 switchUseModData.IsOn = launcherOptions.UseModData.HasValue
                                                 ? launcherOptions.UseModData.Value : ProfileManager.LoadedProfile.CanUseModData;
                 switchUseLegacyModSupport.IsOn = launcherOptions.UseLegacyModSupport.HasValue && GameInstanceSingleton.IsCompatibleWithLegacyMod()
@@ -833,7 +849,7 @@ namespace FMT
             DataContext = this;
         }
 
-        public LauncherOptions launcherOptions { get; set; }
+        public FMTLauncherOptions launcherOptions { get; set; }
 
         public void Log(string text, params object[] vars)
         {

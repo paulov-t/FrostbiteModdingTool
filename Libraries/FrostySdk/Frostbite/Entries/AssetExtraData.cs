@@ -76,5 +76,10 @@ namespace FrostySdk.Managers
 
             return base.ToString();
         }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }
