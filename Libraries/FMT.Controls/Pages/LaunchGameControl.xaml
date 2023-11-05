@@ -1,0 +1,227 @@
+﻿<UserControl x:Class="FMT.Controls.Pages.LaunchGameControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+               xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+              xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+              xmlns:MaterialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:LocalControls="clr-namespace:FMT.Controls.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition MaxHeight="45" Height="45"></RowDefinition>
+            <RowDefinition MaxHeight="20" Height="0"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition MaxHeight="20" Height="0"></RowDefinition>
+        </Grid.RowDefinitions>
+        <LocalControls:LoadingDialog x:Name="loadingDialog" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Collapsed">
+
+        </LocalControls:LoadingDialog>
+        <LocalControls:CacheManagerControl x:Name="cacheManagerControl" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Visible" AutoRebuild="False" >
+
+        </LocalControls:CacheManagerControl>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+                <Label FontSize="14" FontWeight="Bold">Profile:</Label>
+                <Label FontSize="14" FontWeight="Bold" Content="{Binding Profile.ProfileName}"></Label>
+                <Label FontSize="13" FontWeight="Bold" Content="{Binding GameLocation}"></Label>
+            </StackPanel>
+            <Button Grid.Column="2" x:Name="btnLaunch" Height="30" Click="btnLaunch_Click" IsEnabled="False" Background="Transparent" >
+                <StackPanel Height="30" VerticalAlignment="Center" HorizontalAlignment="Left" Orientation="Horizontal">
+                    <!--<MaterialDesign:PackIcon Kind="RocketLaunch" VerticalAlignment="Center" />-->
+                    <Label Content="{DynamicResource textLaunchGame}" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </Grid>
+        <Label x:Name="txtImportantMessage" Grid.Row="1"  HorizontalAlignment="Stretch" Background="OrangeRed">
+        </Label>
+        <DockingManager Grid.Row="2" VerticalContentAlignment="Stretch">
+            <LayoutRoot>
+                <LayoutPanel Orientation="Vertical">
+                    <LayoutDocumentPane ShowHeader="False" DockMinWidth="650" DockHeight="500" CanRepositionItems="False" x:Name="topLeftAnchor">
+                        <LayoutDocument CanClose="False">
+                            <mah:MetroTabControl>
+                                <mah:MetroTabItem Header="Mods" Selector.IsSelected="True" IsSelected="True">
+                                    <Grid>
+                                        <Grid.Resources >
+                                            <Style TargetType="Border" >
+                                                <Setter Property="Padding" Value="5,5,5,5" />
+                                            </Style>
+                                        </Grid.Resources>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="60"></RowDefinition>
+                                            <RowDefinition Height="*"></RowDefinition>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="3*"></ColumnDefinition>
+                                            <ColumnDefinition Width="2*"></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <Label FontSize="14" FontWeight="Bold" Content="{DynamicResource textModList}"></Label>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition></ColumnDefinition>
+                                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="25"></RowDefinition>
+                                                </Grid.RowDefinitions>
+                                                <Button x:Name="btnUp" Click="up_click" Grid.Column="0" Padding="0">
+                                                    <StackPanel VerticalAlignment="Stretch" Orientation="Horizontal">
+                                                        <MaterialDesign:PackIcon Kind="ArrowUpCircleOutline" VerticalAlignment="Center" />
+                                                        <Label Content="Up" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button x:Name="btnDown" Click="down_click" Grid.Column="1" Padding="0">
+                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal">
+                                                        <MaterialDesign:PackIcon Kind="ArrowDownCircleOutline" VerticalAlignment="Center" />
+                                                        <Label Content="Down" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button x:Name="btnRemove" Click="btnRemove_Click" Grid.Column="2" Padding="0">
+                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal">
+                                                        <MaterialDesign:PackIcon Kind="RemoveCircleOutline" VerticalAlignment="Center" />
+                                                        <Label Content="{DynamicResource textRemove}" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button x:Name="btnAdd" Click="btnAdd_Click" Grid.Column="3" Padding="0">
+                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal">
+                                                        <MaterialDesign:PackIcon Kind="Import" VerticalAlignment="Center" />
+                                                        <Label Content="{DynamicResource textImport}" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </Grid>
+
+                                        </StackPanel>
+                                        <Border Grid.Row="1">
+                                            <ListView x:Name="listMods" BorderThickness="1"
+                                                  ItemsSource="{Binding ListOfMods}"
+                     SelectionChanged="listMods_SelectionChanged"
+                      VirtualizingStackPanel.IsVirtualizing="False"
+                     >
+                                                <ListView.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <VirtualizingStackPanel>
+                                                        </VirtualizingStackPanel>
+                                                    </ItemsPanelTemplate>
+                                                </ListView.ItemsPanel>
+                                                <ListView.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="1">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="30" MaxWidth="30"></ColumnDefinition>
+                                                                <ColumnDefinition></ColumnDefinition>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition></RowDefinition>
+                                                                <RowDefinition></RowDefinition>
+                                                            </Grid.RowDefinitions>
+                                                            <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold" Text="{Binding}"  VerticalAlignment="Center"></TextBlock>
+                                                            <TextBlock FontSize="9" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Path}"></TextBlock>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ListView.ItemTemplate>
+                                            </ListView>
+                                        </Border>
+                                        <Border Grid.Row="1" Grid.Column="1">
+                                            <DockPanel VerticalAlignment="Top">
+                                                <ScrollViewer VerticalScrollBarVisibility="Visible">
+                                                    <mah:MetroTabControl>
+                                                        <mah:MetroTabItem Header="Details" BorderThickness="1">
+                                                            <StackPanel Grid.Column="1" VerticalAlignment="Stretch" CanVerticallyScroll="True">
+                                                                <TextBlock x:Name="txtModTitle" Text="{Binding SelectedFrostbiteMod.ModDetails.Title, Mode=OneWay}" FontSize="18"  Grid.Row="0">
+                                                                </TextBlock>
+                                                                <StackPanel Grid.Row="1">
+                                                                    <TextBlock  FontSize="16" >Description</TextBlock>
+                                                                    <TextBox IsReadOnly="True" x:Name="txtModDescription" MaxHeight="150" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="WrapWithOverflow"
+                             Text="{Binding SelectedFrostbiteMod.ModDetails.Description, Mode=OneWay}"   />
+                                                                </StackPanel>
+                                                                <StackPanel Grid.Row="2">
+                                                                    <TextBlock  FontSize="16" >Version</TextBlock>
+                                                                    <TextBox IsReadOnly="True" x:Name="txtModVersion"  Text="{Binding SelectedFrostbiteMod.ModDetails.Version, Mode=OneWay}"></TextBox>
+                                                                </StackPanel>
+                                                                <StackPanel Grid.Row="3">
+                                                                    <TextBlock  FontSize="16" >Author / Creator</TextBlock>
+                                                                    <TextBox IsReadOnly="True" x:Name="txtModAuthor"  Text="{Binding SelectedFrostbiteMod.ModDetails.Author, Mode=OneWay}"></TextBox>
+                                                                </StackPanel>
+
+                                                            </StackPanel>
+                                                        </mah:MetroTabItem>
+                                                        <mah:MetroTabItem Header="Files">
+                                                            <Grid VerticalAlignment="Stretch">
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition></RowDefinition>
+                                                                    <RowDefinition></RowDefinition>
+                                                                </Grid.RowDefinitions>
+                                                                <TextBlock FontWeight="Bold" Text="{Binding SelectedModListItem}"></TextBlock>
+                                                                <ListView Grid.Row="1" ItemsSource="{Binding SelectedModListItem.ModResources}" 
+                          VerticalContentAlignment="Stretch" VerticalAlignment="Stretch"
+                          >
+                                                                    <ListView.View>
+                                                                        <GridView>
+                                                                            <GridViewColumn Width="auto" Header="Name">
+                                                                                <GridViewColumn.CellTemplate>
+                                                                                    <DataTemplate>
+                                                                                        <TextBlock Text="{Binding Name}" />
+                                                                                    </DataTemplate>
+                                                                                </GridViewColumn.CellTemplate>
+                                                                            </GridViewColumn>
+                                                                            <GridViewColumn Width="auto" Header="Size">
+                                                                                <GridViewColumn.CellTemplate>
+                                                                                    <DataTemplate>
+                                                                                        <TextBlock Text="{Binding Size}" />
+                                                                                    </DataTemplate>
+                                                                                </GridViewColumn.CellTemplate>
+                                                                            </GridViewColumn>
+                                                                        </GridView>
+                                                                    </ListView.View>
+                                                                </ListView>
+                                                            </Grid>
+                                                        </mah:MetroTabItem>
+                                                    </mah:MetroTabControl>
+
+                                                </ScrollViewer>
+
+                                            </DockPanel>
+                                        </Border>
+                                    </Grid>
+
+                                </mah:MetroTabItem>
+                                <mah:MetroTabItem Header="Settings">
+                                    <StackPanel Grid.Column="1" Margin="2">
+
+                                        <Controls:ToggleSwitch x:Name="switchForceReinstallMods" Content="Force Reinstall Mods" ToolTip="Useful if you want to force the compiler to reinstall mods or fix a bug"  />
+                                        <Controls:ToggleSwitch x:Name="switchUseModData" Content="Use Mod Data" Toggled="switchUseModData_Toggled" />
+
+                                        <Controls:ToggleSwitch x:Name="switchInstallEmbeddedFiles" IsEnabled="False" Content="Install Embedded Files" ToolTip="Installs files from Mods to your Game folder"  />
+                                        <Controls:ToggleSwitch x:Name="switchUseLiveEditor" Content="Use Aranaktu's Live Editor"  />
+                                        <Controls:ToggleSwitch x:Name="switchUseLegacyModSupport" Content="Install Legacy Mods (*.lmod)"  />
+                                        <Controls:ToggleSwitch x:Name="switchCleanLegacyModDirectory" Content="Clean Legacy Mods (*.lmod)"  />
+
+                                        <Controls:ToggleSwitch x:Name="switchUseSymbolicLink" Content="Use Symbolic Link (Reduces Disk Space)" Visibility="Collapsed" Toggled="switchUseSymbolicLink_Toggled" ToolTip="Disabling this will make a copy of your data folder requiring 30GB+ of disk space"  />
+                                        <Controls:ToggleSwitch x:Name="switchAutoCloseAfterLaunch" Content="Automatically Close after Launch" Toggled="switchAutoCloseAfterLaunch_Toggled" />
+
+
+                                    </StackPanel>
+                                </mah:MetroTabItem>
+                            </mah:MetroTabControl>
+
+                        </LayoutDocument>
+                    </LayoutDocumentPane>
+                </LayoutPanel>
+            </LayoutRoot>
+        </DockingManager>
+
+    </Grid>
+
+</UserControl>
