@@ -933,6 +933,8 @@ namespace ModdingSupport
                 fs.Initialize();
             }
 
+            EnsureBaseLocaleIniIsInstalled();
+
             // -----------------------------------------------------------------------------------
             // Always uninstall InstallerData.xml change
             if (ProfileManager.IsFIFA23DataVersion())
@@ -1146,6 +1148,18 @@ namespace ModdingSupport
             GC.Collect();
             GC.WaitForPendingFinalizers();
             return true;
+        }
+
+        private void EnsureBaseLocaleIniIsInstalled()
+        {
+            if(File.Exists(Path.Combine(FileSystem.Instance.BasePath, "Data", "locale.ini")))
+            {
+                if (File.Exists(Path.Combine(FileSystem.Instance.BasePath, "Data", "locale.ini.bak")))
+                {
+                    File.Copy(Path.Combine(FileSystem.Instance.BasePath, "Data", "locale.ini.bak")
+                        , Path.Combine(FileSystem.Instance.BasePath, "Data", "locale.ini"), true);
+                }
+            }
         }
 
         private void RemoveCryptBaseDll()
