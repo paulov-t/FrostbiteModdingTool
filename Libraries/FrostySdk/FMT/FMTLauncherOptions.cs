@@ -4,9 +4,9 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace FrostbiteModdingUI.Models
+namespace FMT
 {
-    public class LauncherOptions
+    public class FMTLauncherOptions
     {
         public bool? InstallEmbeddedFiles { get; set; }
         public bool? CleanLegacyMods { get; set; }
@@ -40,7 +40,7 @@ namespace FrostbiteModdingUI.Models
             set { useLegacyModSupport = value; }
         }
 
-        public bool? UseLiveEditor { get; internal set; }
+        public bool? UseLiveEditor { get; set; }
 
         public bool? AutoCloseAppAfterLaunch { get; set; }
 
@@ -65,7 +65,7 @@ namespace FrostbiteModdingUI.Models
             }
         }
 
-        public static LauncherOptions Load()
+        public static FMTLauncherOptions Load()
         {
             if (File.Exists(OldSaveFileLocation) && !File.Exists(SaveFileLocation))
             {
@@ -75,12 +75,12 @@ namespace FrostbiteModdingUI.Models
             if (File.Exists(SaveFileLocation))
             {
                 var loText = File.ReadAllText(SaveFileLocation);
-                return JsonConvert.DeserializeObject<LauncherOptions>(loText);
+                return JsonConvert.DeserializeObject<FMTLauncherOptions>(loText);
             }
-            return new LauncherOptions();
+            return new FMTLauncherOptions();
         }
 
-        public static async Task<LauncherOptions> LoadAsync()
+        public static async Task<FMTLauncherOptions> LoadAsync()
         {
             return await Task.Run(() => { return Load(); });
         }

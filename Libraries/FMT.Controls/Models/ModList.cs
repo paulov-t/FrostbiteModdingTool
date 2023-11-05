@@ -9,9 +9,9 @@ using System.Linq;
 //namespace FIFAModdingUI.Mods
 namespace FMT.Mods
 {
-    public class ModList
+    public partial class ModList
     {
-        public class ModItem
+        public partial class ModItem
         {
             public string Path { get; set; }
             public string Type

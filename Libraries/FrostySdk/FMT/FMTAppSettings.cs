@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,7 +13,15 @@ namespace FMT
     public class FMTAppSettings : INotifyPropertyChanged
     {
 
-        private static FMTAppSettings instance;// = new LauncherConfig();
+        public static string ProductVersion
+        {
+            get
+            {
+                return Assembly.GetEntryAssembly().GetName().Version.ToString();
+            }
+        }
+
+        private static FMTAppSettings instance;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -33,10 +42,10 @@ namespace FMT
         public bool DoNotUseRegistry
         {
             get { return doNotUseRegistry; }
-            set 
-            { 
-                doNotUseRegistry = value; 
-                if (PropertyChanged != null) 
+            set
+            {
+                doNotUseRegistry = value;
+                if (PropertyChanged != null)
                     PropertyChanged(this, new PropertyChangedEventArgs("DoNotUseRegistry"));
 
                 Save();
@@ -62,7 +71,7 @@ namespace FMT
             Instance.Save();
         }
 
-        public static string FMTAppSettingsPath { get; } = Path.Combine(App.ApplicationDirectory, "FMTAppSettings.json");
+        public static string FMTAppSettingsPath { get; } = Path.Combine(AppContext.BaseDirectory, "FMTAppSettings.json");
 
         private static FMTAppSettings Load()
         {
