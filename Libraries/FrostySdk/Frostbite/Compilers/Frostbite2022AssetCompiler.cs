@@ -259,7 +259,7 @@ namespace FrostySdk.Frostbite.Compilers
                 CacheManager cacheManager = new CacheManager();
                 cacheManager.LoadData(ProfileManager.ProfileName, ModExecuter.GamePath, ModExecuter.Logger, false, true);
             }
-            else if(!RequiresCacheToCompile)
+            else if(!RequiresCacheToCompile && (AssetManager.Instance != null && !AssetManager.Instance.EBX.Any()))
             {
                 FindModdedCasFilesWithoutCache(ref casToMods);
             }
@@ -728,13 +728,13 @@ namespace FrostySdk.Frostbite.Compilers
 
                 Debug.WriteLine($"Modifying CAS file - {casPath}");
 
-                using (NativeWriter nwCas = new NativeWriter(new FileStream(casPath, FileMode.Open)))
-                {
+                using NativeWriter nwCas = new NativeWriter(new FileStream(casPath, FileMode.Open));
+                //{
                     foreach (var modItem in item.Value.OrderBy(x => x.NamePath))
                     {
                         nwCas.Position = nwCas.Length;
                         byte[] data = new byte[0];
-                        AssetEntry originalEntry = modItem.OriginalEntry;
+                        using AssetEntry originalEntry = modItem.OriginalEntry;
                         if (originalEntry == null)
                             continue;
 
@@ -755,7 +755,7 @@ namespace FrostySdk.Frostbite.Compilers
                         }
 
                         AssetEntry modifiedAsset = null;
-                        
+
                         switch (modItem.ModType)
                         {
                             case ModType.EBX:
@@ -773,7 +773,7 @@ namespace FrostySdk.Frostbite.Compilers
                             continue;
 
                         var origSize = 0;
-                       
+
 
                         if (modifiedAsset is ChunkAssetEntry)
                         {
@@ -813,9 +813,7 @@ namespace FrostySdk.Frostbite.Compilers
                         if (string.IsNullOrEmpty(originalEntry.TOCFileLocation))
                             continue;
 
-                        var positionOfData = nwCas.Position;
-                        // write the new data to end of the file (this should be fine)
-                        nwCas.Write(data);
+                       
 
                         if (ModExecuter.UseVerboseLogging)
                             FileLogger.WriteLine($"Written {modItem.ModType} {modItem.NamePath} to {casPath}");
@@ -823,41 +821,55 @@ namespace FrostySdk.Frostbite.Compilers
                         if (EntriesToNewPosition.ContainsKey(originalEntry))
                         {
                             FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as it already been processed");
+                            continue;
                         }
-                        else
-                        {
 
-                            // Update Modified Asset with Information / Data
-                            if (modifiedAsset.ExtraData == null)
-                                modifiedAsset.ExtraData = new AssetExtraData();
-
-                            modifiedAsset.SBFileLocation = originalEntry.SBFileLocation;
-                            modifiedAsset.TOCFileLocation = originalEntry.TOCFileLocation;
-                            modifiedAsset.ExtraData.DataOffset = Convert.ToUInt32(positionOfData);
-                            modifiedAsset.Size = data.Length;
-                            modifiedAsset.OriginalSize = origSize;
-                            modifiedAsset.Sha1 = modItem.Sha1;
-                            //modifiedAsset.Bundles = modifiedAsset.Bundles.Distinct().ToList();
-
-                            switch (modItem.ModType)
-                            {
-                                case ModType.EBX:
-                                    ModExecuter.modifiedEbx[modItem.NamePath] = (EbxAssetEntry)modifiedAsset;
-                                    break;
-                                case ModType.RES:
-                                    ModExecuter.modifiedRes[modItem.NamePath] = (ResAssetEntry)modifiedAsset;
-                                    break;
-                                case ModType.CHUNK:
-                                    ModExecuter.ModifiedChunks[Guid.Parse(modItem.NamePath)] = (ChunkAssetEntry)modifiedAsset;
-                                    break;
-                            }
-
-                            EntriesToNewPosition.Add(modifiedAsset, (positionOfData, data.Length, origSize, modItem.Sha1));
-
-                        }
+                    if (EntriesToNewPosition.ContainsKey(modifiedAsset))
+                    {
+                        FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as it already been processed");
+                        continue;
                     }
 
-                }
+                    var positionOfData = nwCas.Position;
+                    // write the new data to end of the file (this should be fine)
+                    nwCas.Write(data);
+
+                    // Update Modified Asset with Information / Data
+                    if (modifiedAsset.ExtraData == null)
+                            modifiedAsset.ExtraData = new AssetExtraData();
+
+                        modifiedAsset.SBFileLocation = originalEntry.SBFileLocation;
+                        modifiedAsset.TOCFileLocation = originalEntry.TOCFileLocation;
+                        modifiedAsset.ExtraData.DataOffset = Convert.ToUInt32(positionOfData);
+                        modifiedAsset.Size = data.Length;
+                        modifiedAsset.OriginalSize = origSize;
+                        modifiedAsset.Sha1 = modItem.Sha1;
+                        //modifiedAsset.Bundles = modifiedAsset.Bundles.Distinct().ToList();
+
+                        if (EntriesToNewPosition.ContainsKey(modifiedAsset))
+                        {
+                            FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as it already been processed");
+                            continue;
+                        }
+
+                        //switch (modItem.ModType)
+                        //{
+                        //    case ModType.EBX:
+                        //        ModExecuter.modifiedEbx[modItem.NamePath] = (EbxAssetEntry)modifiedAsset;
+                        //        break;
+                        //    case ModType.RES:
+                        //        ModExecuter.modifiedRes[modItem.NamePath] = (ResAssetEntry)modifiedAsset;
+                        //        break;
+                        //    case ModType.CHUNK:
+                        //        ModExecuter.ModifiedChunks[Guid.Parse(modItem.NamePath)] = (ChunkAssetEntry)modifiedAsset;
+                        //        break;
+                        //}
+
+                        EntriesToNewPosition.Add(modifiedAsset, (positionOfData, data.Length, origSize, modItem.Sha1));
+
+                    }
+
+                //}
             }
 
             //return ModExecuter.ModifiedAssets.Select(x => x.Value).ToList();

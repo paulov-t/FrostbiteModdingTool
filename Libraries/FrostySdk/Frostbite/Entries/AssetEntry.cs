@@ -11,11 +11,37 @@ using Fnv1a = FMT.FileTools.Fnv1a;
 namespace FrostySdk.Managers
 {
     //[Serializable]
-    public abstract class AssetEntry : IAssetEntry, INotifyPropertyChanged
+    public abstract class AssetEntry : IAssetEntry, INotifyPropertyChanged, IDisposable
     {
         public AssetEntry(ModifiedAssetEntry modifiedAssetEntry = null)
         {
             ModifiedEntry = modifiedAssetEntry;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            // any other managed resource cleanups you can do here
+            GC.SuppressFinalize(this);
+        }
+
+        ~AssetEntry()      // finalizer
+        {
+            Dispose(false);
+        }
+
+        bool _disposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                }
+
+                _disposed = true;
+            }
         }
 
         public CompressionType OriginalCompressionType { get; set; } = CompressionType.Default;
@@ -448,15 +474,38 @@ namespace FrostySdk.Managers
 
             else if (this.GetType() == obj.GetType())
             {
-                if (other.Sha1 == this.Sha1 && other.ToString() == this.ToString())
-                    return true;
+                var tocsEqual = true;
+                if (!string.IsNullOrEmpty(other.TOCFileLocation) && !string.IsNullOrEmpty(this.TOCFileLocation))
+                {
+                    tocsEqual = other.TOCFileLocation == this.TOCFileLocation;
+                }
 
-                if (other.FullPath == this.FullPath 
-                    && !string.IsNullOrEmpty(other.Type) && !string.IsNullOrEmpty(this.Type) && other.Type == this.Type)
+                if (tocsEqual
+                    && other.ExtraData != null && this.ExtraData != null && other.ExtraData.Equals(this.ExtraData)
+                    && other.Sha1 == this.Sha1
+                    && other.ToString() == this.ToString()
+                        )
                     return true;
+                else
+                    return false;
 
-                if (other.FullPath == this.FullPath && other.Sha1 == this.Sha1)
-                    return true;
+                //return
+                //    other.Sha1 == this.Sha1 && other.ToString() == this.ToString()
+                //    &&
+                //    (
+                //        (other.ExtraData == null || this.ExtraData == null)
+                //        || (
+                //            other.ExtraData != null && this.ExtraData != null
+                //            && other.ExtraData.Equals(this.ExtraData)
+                //            )
+                //    );
+
+                //if (other.FullPath == this.FullPath 
+                //    && !string.IsNullOrEmpty(other.Type) && !string.IsNullOrEmpty(this.Type) && other.Type == this.Type)
+                //    return true;
+
+                //if (other.FullPath == this.FullPath && other.Sha1 == this.Sha1)
+                //    return true;
             }
 
             //if (obj is IAssetEntry iOther)

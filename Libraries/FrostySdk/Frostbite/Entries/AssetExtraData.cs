@@ -46,6 +46,35 @@ namespace FrostySdk.Managers
 
         public byte Unk { get; set; }
 
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() == typeof(AssetExtraData))
+            {
+                var other = (AssetExtraData)obj;
+                if (Cas.HasValue && Catalog.HasValue && DataOffset != 0)
+                {
+                    if(other.Cas.HasValue && other.Catalog.HasValue && other.DataOffset != 0)
+                    { 
+                        if(other.Cas == this.Cas
+                            && other.Catalog == this.Catalog 
+                            && other.IsPatch == this.IsPatch
+                            && other.DataOffset == this.DataOffset)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
 
+            return base.Equals(obj);
+        }
+
+        public override string ToString()
+        {
+            if (!string.IsNullOrEmpty(CasPath))
+                return CasPath;
+
+            return base.ToString();
+        }
     }
 }
