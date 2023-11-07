@@ -5,7 +5,7 @@
   "CacheName": "nhl23ps4",
   "Deobfuscator": "NullDeobfuscator",
   "AssetLoader": "Frostbite2022AssetLoader",
-  "AssetCompiler": "NullAssetCompiler",
+  "AssetCompiler": "DirectTextureSwapperCompiler",
   "EditorScreen": "DefaultEditor",
   "TextureImporter": "TextureImporter",
   "TextureExporter": "TextureExporter",
