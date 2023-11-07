@@ -22,6 +22,12 @@ namespace FrostySdk.Managers
 
         public byte[] Data { get; set; }
 
+        /// <summary>
+        /// If not using ModData folder, this is a save of the original data from the file
+        /// </summary>
+        public byte[] OriginalData { get; set; }
+
+
         public long? NewOffset
         {
             get; set;
