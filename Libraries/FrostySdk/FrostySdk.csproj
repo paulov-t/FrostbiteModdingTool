@@ -77,6 +77,10 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </None>
+	  <None Update="FrostbiteProfiles\FC24SwitchProfile.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </None>
 	  <None Update="FrostbiteProfiles\FMTProfileSchema.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>

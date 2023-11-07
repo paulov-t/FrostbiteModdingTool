@@ -229,6 +229,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
+    <None Update="SDK\FC24SwitchSDK.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
 	  <None Update="SDK\FIFA17SDK.dll">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>

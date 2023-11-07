@@ -90,11 +90,13 @@ namespace FC24Plugin.Textures
 
             using (NativeReader nativeReader = new NativeReader(memoryStream))
             {
+                // Reads past the header, the texture array doesn't need the DDS header
                 TextureUtils.DDSHeader dDSHeader = new TextureUtils.DDSHeader();
                 if (dDSHeader.Read(nativeReader))
                 {
 
                 }
+                // 
 
                 var ebxAsset = AssetManager.Instance.GetEbx(assetEntry);
                 ulong resRid = ((dynamic)ebxAsset.RootObject).Resource;
@@ -102,6 +104,17 @@ namespace FC24Plugin.Textures
                 ChunkAssetEntry chunkEntry = AssetManager.Instance.GetChunkEntry(textureAsset.ChunkId);
                 byte[] textureArray = new byte[nativeReader.Length - nativeReader.Position];
                 nativeReader.Read(textureArray, 0, (int)(nativeReader.Length - nativeReader.Position));
+                if(textureAsset.Flags.HasFlag(TextureFlags.Swizzle))
+                {
+                    var ti = new TextureImporter();
+                    textureArray = ti.ConvertToSwizzle(textureArray, textureAsset);
+                }
+                else if (textureAsset.Flags.HasFlag(TextureFlags.Ps4Swizzle))
+                {
+                    var ti = new TextureImporter();
+                    textureArray = ti.ConvertToSwizzlePS4(textureArray, textureAsset);
+                }
+
                 AssetManager.Instance.ModifyChunk(textureAsset.ChunkId, textureArray, textureAsset);
                 //AssetManager.Instance.ModifyRes(resEntry, textureAsset.ToBytes());
                 AssetManager.Instance.ModifyEbx(assetEntry.Name, ebxAsset);

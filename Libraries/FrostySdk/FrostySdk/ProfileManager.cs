@@ -207,6 +207,7 @@ namespace FrostySdk
             public string LegacyFileManager { get; set; }
 
             public bool DoesNotUsePlugin { get; set; }
+            public string PluginName { get; set; }
 
             public string EBXSharedTypeDescriptorNameInMemory { get; set; }
 

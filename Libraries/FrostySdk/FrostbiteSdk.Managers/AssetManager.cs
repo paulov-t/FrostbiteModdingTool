@@ -247,7 +247,13 @@ namespace FrostySdk.Managers
             // Load Game Profile Plugin
             foreach (var fiPlugin in pluginAssemblies)
             {
-                if (fiPlugin.Name.Contains(ProfileManager.ProfileName.Replace(" ", ""), StringComparison.OrdinalIgnoreCase))
+                if (fiPlugin.Name.Contains(ProfileManager.ProfileName.Replace(" ", ""), StringComparison.OrdinalIgnoreCase)
+                    || 
+                        (
+                        !string.IsNullOrEmpty(ProfileManager.LoadedProfile.PluginName)
+                        && fiPlugin.Name.Contains(ProfileManager.LoadedProfile.PluginName, StringComparison.OrdinalIgnoreCase)
+                        )
+                    )
                 {
                     if (Assembly.UnsafeLoadFrom(fiPlugin.FullName) != null)
                     {
@@ -260,6 +266,7 @@ namespace FrostySdk.Managers
                     }
                 }
             }
+
 
             // Load Application wide Plugins
             foreach (var fiPlugin in pluginAssemblies)
@@ -1032,10 +1039,19 @@ namespace FrostySdk.Managers
             if (compressionOverride == CompressionType.Default)
                 compressionOverride = ProfileManager.GetCompressionType(ProfileManager.CompTypeArea.Chunks);
 
+            byte[] originalData = null;
+            if (!ProfileManager.LoadedProfile.CanUseModData)
+                originalData = ((MemoryStream)GetAsset(chunkAssetEntry, false)).ToArray();
+
             if (chunkAssetEntry.ModifiedEntry == null)
             {
                 chunkAssetEntry.ModifiedEntry = new ModifiedAssetEntry();
             }
+
+            // Save Original Data here
+            if (originalData != null && chunkAssetEntry.ModifiedEntry.OriginalData == null)
+                chunkAssetEntry.ModifiedEntry.OriginalData = originalData;
+
             chunkAssetEntry.ModifiedEntry.OriginalSize = buffer.Length;
             chunkAssetEntry.ModifiedEntry.Data = ((texture != null) ? Utils.CompressTexture(buffer, texture, compressionOverride) : Utils.CompressFile(buffer, null, ResourceType.Invalid, compressionOverride));
             chunkAssetEntry.ModifiedEntry.Size = chunkAssetEntry.ModifiedEntry.Data.Length;
@@ -1082,80 +1098,55 @@ namespace FrostySdk.Managers
             }
         }
 
-        public void ModifyRes(ResAssetEntry resAssetEntry, byte[] buffer, byte[] meta = null, CompressionType compressionOverride = CompressionType.Default)
+        public void ModifyRes(ResAssetEntry assetEntry, byte[] buffer, byte[] meta = null, CompressionType compressionOverride = CompressionType.Default)
         {
-            resAssetEntry.ModifiedEntry = new ModifiedAssetEntry();
-            resAssetEntry.ModifiedEntry.Data = Utils.CompressFile(buffer, null, (ResourceType)resAssetEntry.ResType, compressionOverride);
-            resAssetEntry.ModifiedEntry.OriginalSize = buffer.Length;
-            resAssetEntry.ModifiedEntry.Sha1 = GenerateSha1(resAssetEntry.ModifiedEntry.Data);
+            byte[] originalData = null;
+            if (!ProfileManager.LoadedProfile.CanUseModData)
+                originalData = ((MemoryStream)GetAsset(assetEntry, false)).ToArray();
+
+            assetEntry.ModifiedEntry = new ModifiedAssetEntry();
+            if (originalData != null && assetEntry.ModifiedEntry.OriginalData == null)
+                assetEntry.ModifiedEntry.OriginalData = originalData;
+
+            assetEntry.ModifiedEntry.Data = Utils.CompressFile(buffer, null, (ResourceType)assetEntry.ResType, compressionOverride);
+            assetEntry.ModifiedEntry.OriginalSize = buffer.Length;
+            assetEntry.ModifiedEntry.Sha1 = GenerateSha1(assetEntry.ModifiedEntry.Data);
             if (meta != null)
             {
-                resAssetEntry.ModifiedEntry.ResMeta = meta;
+                assetEntry.ModifiedEntry.ResMeta = meta;
             }
-            resAssetEntry.IsDirty = true;
+            assetEntry.IsDirty = true;
         }
-
-        public void ModifyResCompressed(string resName, byte[] resData, byte[] resMeta = null)
-        {
-            if (RES.ContainsKey(resName))
-            {
-                ResAssetEntry resAssetEntry = RES[resName];
-
-                resAssetEntry.ModifiedEntry = new ModifiedAssetEntry();
-                resAssetEntry.ModifiedEntry.Data = resData;
-                using (CasReader casReader = new CasReader(new MemoryStream(resData)))
-                    resAssetEntry.ModifiedEntry.OriginalSize = casReader.Read().Length;
-
-                resAssetEntry.ModifiedEntry.Sha1 = GenerateSha1(resAssetEntry.ModifiedEntry.Data);
-
-                if (resMeta != null)
-                {
-                    resAssetEntry.ModifiedEntry.ResMeta = resMeta;
-                }
-                resAssetEntry.IsDirty = true;
-            }
-        }
-
-        //public void ModifyRes(string resName, Resource resource, byte[] meta = null)
-        //{
-        //	if (RES.ContainsKey(resName))
-        //	{
-        //		ResAssetEntry resAssetEntry = RES[resName];
-        //		if (resAssetEntry.ModifiedEntry == null)
-        //		{
-        //			resAssetEntry.ModifiedEntry = new ModifiedAssetEntry();
-        //		}
-        //		resAssetEntry.ModifiedEntry.DataObject = resource.Save();
-        //		if (meta != null)
-        //		{
-        //			resAssetEntry.ModifiedEntry.ResMeta = meta;
-        //		}
-        //		resAssetEntry.IsDirty = true;
-        //	}
-        //}
 
         public void ModifyEbx(string name, EbxAsset asset)
         {
             if (!EBX.ContainsKey(name))
                 throw new KeyNotFoundException($"{name} was not found in EBX list");
 
-            EbxAssetEntry ebxAssetEntry = EBX[name];
-            if (ebxAssetEntry.ModifiedEntry == null)
+            EbxAssetEntry assetEntry = EBX[name];
+
+            byte[] originalData = null;
+            if (!ProfileManager.LoadedProfile.CanUseModData)
+                originalData = ((MemoryStream)GetAsset(assetEntry, false)).ToArray();
+
+            if (assetEntry.ModifiedEntry == null)
             {
-                ebxAssetEntry.ModifiedEntry = new ModifiedAssetEntry();
+                assetEntry.ModifiedEntry = new ModifiedAssetEntry();
             }
-            ebxAssetEntry.ModifiedEntry.Data = null;
-            ((ModifiedAssetEntry)ebxAssetEntry.ModifiedEntry).DataObject = asset;
-            ebxAssetEntry.ModifiedEntry.OriginalSize = 0L;
-            ebxAssetEntry.ModifiedEntry.Sha1 = Sha1.Zero;
-            ebxAssetEntry.ModifiedEntry.IsTransientModified = asset.TransientEdit;
-            ebxAssetEntry.ModifiedEntry.DependentAssets.Clear();
-            ebxAssetEntry.ModifiedEntry.DependentAssets.AddRange(asset.Dependencies);
-            ebxAssetEntry.IsDirty = true;
-            ebxAssetEntry.IsBinary = false;
+            assetEntry.ModifiedEntry.Data = null;
+            ((ModifiedAssetEntry)assetEntry.ModifiedEntry).DataObject = asset;
+            if (originalData != null && assetEntry.ModifiedEntry.OriginalData == null)
+                assetEntry.ModifiedEntry.OriginalData = originalData;
+            assetEntry.ModifiedEntry.OriginalSize = 0L;
+            assetEntry.ModifiedEntry.Sha1 = Sha1.Zero;
+            assetEntry.ModifiedEntry.IsTransientModified = asset.TransientEdit;
+            assetEntry.ModifiedEntry.DependentAssets.Clear();
+            assetEntry.ModifiedEntry.DependentAssets.AddRange(asset.Dependencies);
+            assetEntry.IsDirty = true;
+            assetEntry.IsBinary = false;
 
             if (AssetManagerModified != null)
-                AssetManagerModified(ebxAssetEntry);
+                AssetManagerModified(assetEntry);
 
         }
 
@@ -2730,6 +2721,11 @@ namespace FrostySdk.Managers
             {
                 if(!Instance.EmbeddedFileEntries.Any(x=>x.Name == embeddedFileEntry.Name))
                     Instance.EmbeddedFileEntries.Add(embeddedFileEntry);
+            }
+
+            foreach(var cam in CustomAssetManagers)
+            {
+                var camEntry = cam.Value.GetAsset(entry);
             }
 
             return false;

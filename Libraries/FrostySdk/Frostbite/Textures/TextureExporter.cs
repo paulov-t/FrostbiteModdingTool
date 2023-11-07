@@ -331,9 +331,157 @@ namespace Frostbite.Textures
             return arrayBytes;
         }
 
+        private int[] swi { get; } = new int[32]
+    {
+        0, 4, 1, 5, 8, 12, 9, 13, 16, 20,
+        17, 21, 24, 28, 25, 29, 2, 6, 3, 7,
+        10, 14, 11, 15, 18, 22, 19, 23, 26, 30,
+        27, 31
+    };
+
+        public virtual byte[] WriteToDDSSwizzle(Texture textureAsset)
+        {
+            var inputDataStream = textureAsset.Data as MemoryStream;
+            new BinaryReader(inputDataStream);
+            var outputDataStream = new MemoryStream();
+            BinaryWriter binaryWriter = new BinaryWriter(outputDataStream);
+            long length = inputDataStream.Length;
+            if (length < 0)
+            {
+                length = 0L;
+            }
+            int value = 1;
+
+            string pxFormat = textureAsset.PixelFormat;
+            DDSHeader ddsHeader = GetDDSHeaderForTextureAsset(textureAsset);
+
+            int fourCC = ddsHeader.ddspf.dwFourCC; // 808540228;
+            int divisable = 4;
+
+            //if (ddDXGI.SelectedIndex == 71)
+            //{
+            //    num3 = 827611204;
+            //}
+            //if (ddDXGI.SelectedIndex == 74)
+            //{
+            //    num3 = 861165636;
+            //}
+            //if (ddDXGI.SelectedIndex == 77)
+            //{
+            //    num3 = 894720068;
+            //}
+            //if (ddDXGI.SelectedIndex == 80)
+            //{
+            //    num3 = 826889281;
+            //}
+            //if (ddDXGI.SelectedIndex == 83)
+            //{
+            //    num3 = 843666497;
+            //}
+
+            var ddsSize = 4;
+            switch (fourCC)
+            {
+                case 808540228:
+                case 843666497:
+                    ddsSize = 8;
+                    break;
+                default:
+                    ddsSize = 4;
+                    break;
+            }
+            int doubleDdsSize = ddsSize * 2;
+
+            length = textureAsset.Width * textureAsset.Height * ddsSize / 8;
+            //binaryWriter.Write(ddsHeader.ToBytes());
+            binaryWriter.Write(533118272580L);
+            binaryWriter.Write(4103);
+            binaryWriter.Write((uint)textureAsset.Height);
+            binaryWriter.Write((uint)textureAsset.Width);
+            binaryWriter.Write((int)length);
+            binaryWriter.Write(0);
+            binaryWriter.Write(value);
+            outputDataStream.Seek(44L, SeekOrigin.Current);
+            binaryWriter.Write(32);
+            binaryWriter.Write(4);
+            binaryWriter.Write(fourCC);
+            outputDataStream.Seek(40L, SeekOrigin.Current);
+            if (fourCC == 808540228)
+            {
+                //binaryWriter.Write((uint)(int)ddsHeader.ExtendedHeader.dxgiFormat);
+                binaryWriter.Write(71);
+                binaryWriter.Write((uint)(int)ddsHeader.ExtendedHeader.resourceDimension);
+                binaryWriter.Write(0);
+                binaryWriter.Write(1);
+                binaryWriter.Write(0);
+            }
+
+            byte[] finalBuffer = new byte[length * 4];
+            byte[] buffer16 = new byte[16];
+            int heightByDiv = (int)textureAsset.Height / divisable;
+            int widthByDiv = (int)textureAsset.Width / divisable;
+            int swizzlerIndex2 = 0;
+            int swizzlerIndex1 = 0;
+            int heightByDivByDiv8 = heightByDiv / 8;
+            if (heightByDivByDiv8 > 16)
+            {
+                heightByDivByDiv8 = 16;
+            }
+            int i5max = 1;
+            if (doubleDdsSize == 16)
+            {
+                i5max = 1;
+            }
+            if (doubleDdsSize == 8)
+            {
+                i5max = 2;
+            }
+            if (doubleDdsSize == 4)
+            {
+                i5max = 4;
+            }
+            for (int i1 = 0; i1 < heightByDiv / 8 / heightByDivByDiv8; i1++)
+            {
+                for (int i2 = 0; i2 < widthByDiv / 4 / i5max; i2++)
+                {
+                    for (int i3 = 0; i3 < heightByDivByDiv8; i3++)
+                    {
+                        for (int i4 = 0; i4 < 32; i4++)
+                        {
+                            for (int i5 = 0; i5 < i5max; i5++)
+                            {
+                                int swizzlerIndex = swi[i4];
+                                swizzlerIndex1 = swizzlerIndex / 4;
+                                swizzlerIndex2 = swizzlerIndex % 4;
+                                inputDataStream.Read(buffer16, 0, doubleDdsSize);
+
+                                int index1 = (i1 * heightByDivByDiv8 + i3) * 8 + swizzlerIndex1;
+                                int index2 = (i2 * 4 + swizzlerIndex2) * i5max + i5;
+                                int destinationIndex4 = doubleDdsSize * (index1 * widthByDiv + index2);
+                                Array.Copy(buffer16, 0, finalBuffer, destinationIndex4, doubleDdsSize);
+                            }
+                        }
+                    }
+                }
+            }
+
+            outputDataStream.Write(finalBuffer, 0, (int)length);
+
+            var arrayBytes = outputDataStream.ToArray();
+            outputDataStream.Close();
+            outputDataStream.Dispose();
+
+            return arrayBytes;
+        }
+
 
         public virtual byte[] WriteToDDS(Texture textureAsset)
         {
+            if (textureAsset.Flags.HasFlag(TextureFlags.Swizzle))
+            {
+                return WriteToDDSSwizzle(textureAsset);
+            }
+
             if (textureAsset.Flags.HasFlag(TextureFlags.Ps4Swizzle))
             {
                 return WriteToDDSPs4(textureAsset);

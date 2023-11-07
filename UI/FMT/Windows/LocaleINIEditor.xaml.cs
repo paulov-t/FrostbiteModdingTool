@@ -38,7 +38,7 @@ namespace FMT.Windows
         {
             get
             {
-                if (data == null)
+                if (data == null && AssetManager.Instance.LocaleINIMod.OriginalData != null)
                     data = Encoding.UTF8.GetString(AssetManager.Instance.LocaleINIMod.OriginalData);
 
                 if (AssetManager.Instance.LocaleINIMod.UserData != null && AssetManager.Instance.LocaleINIMod.UserData.Length > 0)
