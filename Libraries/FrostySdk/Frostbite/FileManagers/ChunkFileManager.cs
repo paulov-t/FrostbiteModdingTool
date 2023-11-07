@@ -199,7 +199,7 @@ namespace FrostbiteSdk.Frostbite.FileManagers
             return null;
         }
 
-        public Stream GetAsset(AssetEntry entry)
+        public Stream GetAsset(IAssetEntry entry)
         {
             LegacyFileEntry legacyFileEntry = entry as LegacyFileEntry;
             Stream chunkStream = GetChunkStream(legacyFileEntry);
@@ -218,7 +218,7 @@ namespace FrostbiteSdk.Frostbite.FileManagers
             }
         }
 
-        public ReadOnlySpan<byte> GetAssetAsSpan(AssetEntry entry)
+        public ReadOnlySpan<byte> GetAssetAsSpan(IAssetEntry entry)
         {
             LegacyFileEntry legacyFileEntry = (LegacyFileEntry)GetAssetEntry(entry.Name);
 

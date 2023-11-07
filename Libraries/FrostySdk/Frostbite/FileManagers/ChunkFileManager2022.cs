@@ -633,7 +633,7 @@ namespace Frostbite.FileManagers
         //long? testDO;
         private bool disposedValue;
 
-        public virtual Stream GetAsset(AssetEntry entry)
+        public virtual Stream GetAsset(IAssetEntry entry)
         {
             if (LegacyEntries.Count == 0)
                 Initialize(Logger == null ? new NullLogger() : Logger);
@@ -646,7 +646,7 @@ namespace Frostbite.FileManagers
             return new MemoryStream(GetAssetAsSpan(entry).ToArray());
         }
 
-        public ReadOnlySpan<byte> GetAssetAsSpan(AssetEntry entry)
+        public ReadOnlySpan<byte> GetAssetAsSpan(IAssetEntry entry)
         {
             if (LegacyEntries.Count == 0)
                 Initialize(Logger == null ? new NullLogger() : Logger);

@@ -1,3 +1,4 @@
+using FMT.FileTools;
 using FMT.Logging;
 using FrostySdk;
 using FrostySdk.Interfaces;
@@ -14,9 +15,9 @@ namespace Frostbite.FileManagers
 
         void FlushCache();
 
-        Stream GetAsset(AssetEntry entry);
+        Stream GetAsset(IAssetEntry entry);
 
-        ReadOnlySpan<byte> GetAssetAsSpan(AssetEntry entry);
+        ReadOnlySpan<byte> GetAssetAsSpan(IAssetEntry entry);
 
         AssetEntry GetAssetEntry(string key);
 
