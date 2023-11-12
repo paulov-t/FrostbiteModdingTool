@@ -314,7 +314,6 @@
 
   <ItemGroup>
     <Folder Include="Pages\Common\Property\" />
-    <Folder Include="Pages\Gameplay\" />
     <Folder Include="Properties\DataSources\" />
     <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
