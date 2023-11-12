@@ -8,7 +8,6 @@
         mc:Ignorable="d"
          xmlns:localControls="clr-namespace:FIFAModdingUI.Pages.Common"
          xmlns:ToolControls="clr-namespace:FMT.Pages.Common"
-         xmlns:localPlayerControls="clr-namespace:FrostbiteModdingUI.Pages.Player"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:MaterialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
