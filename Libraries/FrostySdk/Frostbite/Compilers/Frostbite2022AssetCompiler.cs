@@ -155,10 +155,20 @@ namespace FrostySdk.Frostbite.Compilers
 
         public virtual bool RequiresCacheToCompile { get; } = true;
 
+        public HashSet<(string, string)> ProcessedModdedCasFiles = new();
+
         public virtual void FindModdedCasFilesWithoutCache(ref Dictionary<string, HashSet<ModdedFile>> casToMods, string directory = "native_patch")
         {
+            if (casToMods.Values.Sum(x => x.Count) == ModExecuter.ModifiedAssets.Count)
+                return;
+
             foreach (var sbName in FileSystem.Instance.SuperBundles)
             {
+                // If modified assets count equals the total count of mods, then stop this process
+                if (casToMods.Values.Sum(x => x.Count) == ModExecuter.ModifiedAssets.Count)
+                    break;
+
+
                 var tocFileRAW = $"{directory}/{sbName}.toc";
                 string tocFileLocation = FileSystem.Instance.ResolvePath(tocFileRAW);
                 if (string.IsNullOrEmpty(tocFileLocation) || !File.Exists(tocFileLocation))
@@ -181,7 +191,10 @@ namespace FrostySdk.Frostbite.Compilers
                 foreach (var mod in ModExecuter.ModifiedAssets)
                 {
                     if (tfBundles.BundleEntries.Any(x => mod.Value.Bundles.Contains(x.NameHash)))
+                    {
                         hasBundles = true;
+                        break;
+                    }
                 }
 
                 //tfBundles.Dispose();
@@ -199,38 +212,53 @@ namespace FrostySdk.Frostbite.Compilers
                     continue;
 
                 int countOfMods = 0;
+                Dictionary<string, Dictionary<string, DbObject>> objects = null;
 
                 foreach (var mod in ModExecuter.ModifiedAssets)
                 {
+                    // This is a bit of a hack because for some reason OriginalEntry is overwriting a previous Mod?
+                    if(ProcessedModdedCasFiles.Contains(mod.Value is EbxAssetEntry ? ("ebx", mod.Key) : mod.Value is ResAssetEntry ? ("res", mod.Key) : mod.Value is ChunkAssetEntry ? ("chunks", mod.Key) : (null, null)))
+                    {
+                        continue;
+                    }
+
                     if (!namesOfObjects.Contains(mod.Key))
                         continue;
 
-                    var objects = tf.GetObjects();
+                    if (objects == null)
+                        objects = tf.GetObjects();
 
-                    
+#if DEBUG
+                    if (mod.Key == "fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime")
                     {
-                        AssetEntry originalEntry = null;
-                        if (mod.Value is EbxAssetEntry)
-                            originalEntry = objects["ebx"].ContainsKey(mod.Key) ? AssetLoaderHelpers.ConvertDbObjectToAssetEntry(objects["ebx"][mod.Key], new EbxAssetEntry()) : null;
-                        else if (mod.Value is ResAssetEntry)
-                            originalEntry = objects["res"].ContainsKey(mod.Key) ? AssetLoaderHelpers.ConvertDbObjectToAssetEntry(objects["res"][mod.Key], new ResAssetEntry()) : null;
-                        else if (mod.Value is ChunkAssetEntry)
-                            originalEntry = objects["chunks"].ContainsKey(mod.Key) ? AssetLoaderHelpers.ConvertDbObjectToAssetEntry(objects["chunks"][mod.Key], new ChunkAssetEntry()) : null;
 
-                        if (originalEntry == null)
-                            continue;
-
-                        if (originalEntry.ExtraData == null || string.IsNullOrEmpty(originalEntry.ExtraData.CasPath))
-                            continue;
-
-                        var casPath = originalEntry.ExtraData.CasPath;
-                        if (!casToMods.ContainsKey(casPath))
-                            casToMods.Add(casPath, new HashSet<ModdedFile>());
-
-                        casToMods[casPath].Add(new ModdedFile(mod.Value.Sha1, mod.Value.Name, false, mod.Value, originalEntry));
-
-                        countOfMods++;
                     }
+#endif 
+
+
+                    AssetEntry originalEntry = null;
+                    if (mod.Value is EbxAssetEntry)
+                        originalEntry = objects["ebx"].ContainsKey(mod.Key) ? AssetLoaderHelpers.ConvertDbObjectToAssetEntry(objects["ebx"][mod.Key], new EbxAssetEntry()) : null;
+                    else if (mod.Value is ResAssetEntry)
+                        originalEntry = objects["res"].ContainsKey(mod.Key) ? AssetLoaderHelpers.ConvertDbObjectToAssetEntry(objects["res"][mod.Key], new ResAssetEntry()) : null;
+                    else if (mod.Value is ChunkAssetEntry)
+                        originalEntry = objects["chunks"].ContainsKey(mod.Key) ? AssetLoaderHelpers.ConvertDbObjectToAssetEntry(objects["chunks"][mod.Key], new ChunkAssetEntry()) : null;
+
+                    if (originalEntry == null)
+                        continue;
+
+                    if (originalEntry.ExtraData == null || string.IsNullOrEmpty(originalEntry.ExtraData.CasPath))
+                        continue;
+
+                    var casPath = originalEntry.ExtraData.CasPath;
+                    if (!casToMods.ContainsKey(casPath))
+                        casToMods.Add(casPath, new HashSet<ModdedFile>());
+
+                    casToMods[casPath].Add(new ModdedFile(mod.Value.Sha1, mod.Value.Name, false, mod.Value, originalEntry));
+
+                    ProcessedModdedCasFiles.Add(mod.Value is EbxAssetEntry ? ("ebx", mod.Key) : mod.Value is ResAssetEntry ? ("res", mod.Key) : mod.Value is ChunkAssetEntry ? ("chunks", mod.Key) : (null,null));
+
+                    countOfMods++;
                 }
 
                 ModExecuter.Logger.Log($"Found edits to {tocFileRAW}. Found {countOfMods} files.");
@@ -268,6 +296,7 @@ namespace FrostySdk.Frostbite.Compilers
 
             foreach (var mod in ModExecuter.ModifiedAssets)
             {
+
                 AssetEntry originalEntry = null;
                 if (mod.Value is EbxAssetEntry)
                     originalEntry = AssetManager.Instance.GetEbxEntry(mod.Value.Name);
