@@ -522,18 +522,19 @@ namespace FrostbiteModdingUI.Windows
         private void btnProjectWriteToMod_Click(object sender, RoutedEventArgs e)
         {
             DisableEditor();
+            ShowLoadingDialog("Saving fbmod", "Saving fbmod", 0);
 
             try
             {
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "Mod files|*.fbmod";
+                saveFileDialog.Filter = "FMT Mod files|*.fbmod";
                 var resultValue = saveFileDialog.ShowDialog();
                 if (resultValue.HasValue && resultValue.Value)
                 {
                     ProjectManagement.Project.WriteToMod(saveFileDialog.FileName, ProjectManagement.Project.ModSettings);
                     if (File.Exists(saveFileDialog.FileName))
                     {
-                        Log("Saved mod successfully to " + saveFileDialog.FileName);
+                        Log($"[{DateTime.Now.ToShortTimeString()}] Saved mod successfully to {saveFileDialog.FileName}");
                     }
                 }
 
@@ -544,6 +545,7 @@ namespace FrostbiteModdingUI.Windows
             }
 
             EnableEditor();
+            ShowLoadingDialog("", "", 0);
         }
 
         private void btnProjectWriteToFIFAMod_Click(object sender, RoutedEventArgs e)
