@@ -101,7 +101,7 @@ namespace FMT.Windows.Football
                 catch { }
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }
@@ -118,7 +118,7 @@ namespace FMT.Windows.Football
                     CurrentCareerFile.SaveEa(saveFileDialog.FileName);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
