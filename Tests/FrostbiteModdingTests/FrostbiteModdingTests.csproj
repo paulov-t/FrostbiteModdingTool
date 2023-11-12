@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <None Remove="FbProjects\FIFA22\FIFA22.UltraSlowExampleTest.fbproject" />
+    <None Remove="FmtMod\FC24\FC24.GameplayMod.fbmod" />
     <None Remove="TOCFiles\FC24\Data\globalsfull.toc" />
     <None Remove="TOCFiles\FC24\Patch\globalsfull.toc" />
   </ItemGroup>
@@ -46,6 +47,7 @@
     <EmbeddedResource Include="FbProjects\FIFA22\FIFA22.UltraSlowExampleTest.fbproject">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="FmtMod\FC24\FC24.GameplayMod.fbmod" />
     <EmbeddedResource Include="TOCFiles\FC24\Data\globalsfull.toc" />
     <EmbeddedResource Include="TOCFiles\FC24\Patch\globalsfull.toc" />
   </ItemGroup>

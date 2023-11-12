@@ -1,4 +1,5 @@
 ﻿using FC24Plugin;
+using FMT.FileTools;
 using Frostbite.FileManagers;
 using FrostySdk;
 using FrostySdk.Frostbite;
@@ -228,6 +229,17 @@ namespace FrostbiteModdingTests
             project.ModSettings.Author = "Ultra Slow Test";
             project.ModSettings.Title = "Ultra Slow Test";
             project.WriteToMod("test.fbmod", project.ModSettings);
+            ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
+            frostyModExecutor.ForceRebuildOfMods = true;
+            frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
+        }
+
+        [TestMethod]
+        public void LoadGPModAndLaunch()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, logger: this);
+            var fmtmod = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.GameplayMod.fbmod");
+            File.WriteAllBytes("test.fbmod", new NativeReader(fmtmod).ReadToEnd());
             ModdingSupport.ModExecutor frostyModExecutor = new ModdingSupport.ModExecutor();
             frostyModExecutor.ForceRebuildOfMods = true;
             frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
