@@ -442,6 +442,15 @@ namespace FrostySdk.Managers
 
         public virtual void ClearModifications()
         {
+            if(ModifiedEntry != null && !ProfileManager.Instance.CanUseModData)
+            {
+                if(ModifiedEntry.OriginalData != null)
+                {
+                    AssetManager.Instance.ModifyEntry(this, ModifiedEntry.OriginalData);
+                    return;
+                }
+            }
+
             ModifiedEntry = null;
         }
 

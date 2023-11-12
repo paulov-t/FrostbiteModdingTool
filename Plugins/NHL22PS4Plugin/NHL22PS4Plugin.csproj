@@ -9,4 +9,10 @@
     <ProjectReference Include="..\..\Libraries\FrostySdk\FrostySdk.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="DirectXTexNet">
+      <HintPath>..\..\Libraries\FrostySdk\ThirdParty\DirectXTex\DirectXTexNet.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

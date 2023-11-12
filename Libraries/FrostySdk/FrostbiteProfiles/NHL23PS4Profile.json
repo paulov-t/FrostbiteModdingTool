@@ -5,15 +5,16 @@
   "CacheName": "nhl23ps4",
   "Deobfuscator": "NullDeobfuscator",
   "AssetLoader": "Frostbite2022AssetLoader",
-  "AssetCompiler": "DirectTextureSwapperCompiler",
+  "AssetCompiler": "NHL22PS4AssetCompiler",
   "EditorScreen": "DefaultEditor",
-  "TextureImporter": "TextureImporter",
+  "TextureImporter": "NHL22PS4TextureImporter",
   "TextureExporter": "TextureExporter",
   "EBXReader": "EbxReader22B",
   "EBXWriter": "EbxWriter2023",
   "EBXImporter": null,
   "EBXExporter": null,
 
+  "PluginName": "NHL22PS4",
   "ProjectEbxWriter": "EbxWriter2023",
   "ProjectEbxReader": "EbxReader22B",
 
@@ -79,6 +80,5 @@
     ],
     "External": []
   },
-  "MaxBufferSize": 262144,
-  "DoesNotUsePlugin": true
+  "MaxBufferSize": 262144
 }

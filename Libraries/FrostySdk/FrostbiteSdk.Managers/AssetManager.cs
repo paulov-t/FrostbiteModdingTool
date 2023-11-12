@@ -1040,7 +1040,7 @@ namespace FrostySdk.Managers
                 compressionOverride = ProfileManager.GetCompressionType(ProfileManager.CompTypeArea.Chunks);
 
             byte[] originalData = null;
-            if (!ProfileManager.LoadedProfile.CanUseModData)
+            if (!ProfileManager.LoadedProfile.CanUseModData && chunkAssetEntry.ModifiedEntry == null)
                 originalData = ((MemoryStream)GetAsset(chunkAssetEntry, false)).ToArray();
 
             if (chunkAssetEntry.ModifiedEntry == null)

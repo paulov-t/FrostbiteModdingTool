@@ -274,7 +274,7 @@ namespace Frostbite.Textures
                     ddsSize = 4;
                     break;
             }
-            int num5 = ddsSize * 2;
+            int numberOfBytesToRead = ddsSize * 2;
 
             length = textureAsset.Width * textureAsset.Height * ddsSize / 8;
             //binaryWriter.Write(ddsHeader.ToBytes());
@@ -300,29 +300,29 @@ namespace Frostbite.Textures
                 binaryWriter.Write(0);
             }
 
-            byte[] array = new byte[length * 2];
-            byte[] array2 = new byte[16];
-            int num6 = (int)textureAsset.Height / num4;
-            int num7 = (int)textureAsset.Width / num4;
-            for (int i = 0; i < (num6 + 7) / 8; i++)
+            byte[] destinationArray = new byte[length * 2];
+            byte[] inputBuffer = new byte[16];
+            int heightMax = (int)textureAsset.Height / num4;
+            int widthMax = (int)textureAsset.Width / num4;
+            for (int i = 0; i < (heightMax + 7) / 8; i++)
             {
-                for (int j = 0; j < (num7 + 7) / 8; j++)
+                for (int j = 0; j < (widthMax + 7) / 8; j++)
                 {
                     for (int k = 0; k < 64; k++)
                     {
-                        int num8 = morton(k, 8, 8);
-                        int num9 = num8 / 8;
-                        int num10 = num8 % 8;
-                        inputDataStream.Read(array2, 0, num5);
-                        if (j * 8 + num10 < num7 && i * 8 + num9 < num6)
+                        int mortonIndex = morton(k, 8, 8);
+                        int mortonIndexDiv8 = mortonIndex / 8;
+                        int mortonIndexIsDivisableBy8 = mortonIndex % 8;
+                        inputDataStream.Read(inputBuffer, 0, numberOfBytesToRead);
+                        if (j * 8 + mortonIndexIsDivisableBy8 < widthMax && i * 8 + mortonIndexDiv8 < heightMax)
                         {
-                            int destinationIndex = num5 * ((i * 8 + num9) * num7 + j * 8 + num10);
-                            Array.Copy(array2, 0, array, destinationIndex, num5);
+                            int destinationIndex = numberOfBytesToRead * ((i * 8 + mortonIndexDiv8) * widthMax + j * 8 + mortonIndexIsDivisableBy8);
+                            Array.Copy(inputBuffer, 0, destinationArray, destinationIndex, numberOfBytesToRead);
                         }
                     }
                 }
             }
-            outputDataStream.Write(array, 0, (int)length);
+            outputDataStream.Write(destinationArray, 0, (int)length);
 
             var arrayBytes = outputDataStream.ToArray();
             outputDataStream.Close();
@@ -477,12 +477,12 @@ namespace Frostbite.Textures
 
         public virtual byte[] WriteToDDS(Texture textureAsset)
         {
-            if (textureAsset.Flags.HasFlag(TextureFlags.Swizzle))
+            if (textureAsset.Flags == TextureFlags.Swizzle)
             {
                 return WriteToDDSSwizzle(textureAsset);
             }
 
-            if (textureAsset.Flags.HasFlag(TextureFlags.Ps4Swizzle))
+            if (textureAsset.Flags == TextureFlags.Ps4Swizzle)
             {
                 return WriteToDDSPs4(textureAsset);
             }

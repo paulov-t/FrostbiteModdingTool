@@ -10,7 +10,7 @@ using System.IO;
 
 namespace FC24Plugin.Textures
 {
-    public class FC24TextureImporter : ITextureImporter
+    public class NHL22PS4TextureImporter : ITextureImporter
     {
         public void DoImport(string path, EbxAssetEntry assetEntry, ref Texture textureAsset)
         {

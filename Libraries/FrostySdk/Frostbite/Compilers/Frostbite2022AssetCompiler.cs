@@ -154,6 +154,10 @@ namespace FrostySdk.Frostbite.Compilers
         }
 
         public virtual bool RequiresCacheToCompile { get; } = true;
+        public virtual bool CanProcessEbx { get; } = true;
+        public virtual bool CanProcessRes { get; } = true;
+        public virtual bool CanProcessChunks { get; } = true;
+        public virtual bool CanProcessTocChunks { get; } = true;
 
         public HashSet<(string, string)> ProcessedModdedCasFiles = new();
 
@@ -738,7 +742,6 @@ namespace FrostySdk.Frostbite.Compilers
             foreach (var item in dictOfModsToCas)
             {
 
-
                 string casPath = FileSystem.Instance.ResolvePath(item.Key, ModExecutor.UseModData);
 
 
@@ -767,7 +770,15 @@ namespace FrostySdk.Frostbite.Compilers
                         if (originalEntry == null)
                             continue;
 
-                        if (originalEntry != null && ModExecuter.archiveData.ContainsKey(modItem.Sha1))
+                    if (!CanProcessEbx && originalEntry is EbxAssetEntry)
+                        continue;
+                    if (!CanProcessRes && originalEntry is ResAssetEntry)
+                        continue;
+                    if (!CanProcessChunks && originalEntry is ChunkAssetEntry)
+                        continue;
+
+
+                    if (originalEntry != null && ModExecuter.archiveData.ContainsKey(modItem.Sha1))
                         {
                             data = ModExecuter.archiveData[modItem.Sha1].Data;
                         }
