@@ -85,6 +85,19 @@ namespace FrostySdk.Resources
             }
         }
 
+        public uint ThirdMipOffset
+        {
+            get
+            {
+                return mipOffsets[2];
+            }
+            set
+            {
+                mipOffsets[2] = value;
+            }
+        }
+
+
         public int PixelFormatNumber
         {
             get
@@ -447,11 +460,11 @@ namespace FrostySdk.Resources
                 ReadInStreamFIFA23(nativeReader);
                 return;
             }
-            if (ProfileManager.IsGameVersion(EGame.FC24))
-            {
-                ReadInStreamFC24(nativeReader);
-                return;
-            }
+            //if (ProfileManager.IsGameVersion(EGame.FC24))
+            //{
+            //    ReadInStreamFC24(nativeReader);
+            //    return;
+            //}
             if (ProfileManager.IsLoaded(EGame.NHL22PS4, EGame.NHL23PS4))
             {
                 ReadInStreamNHLPS4(nativeReader);
@@ -604,43 +617,43 @@ namespace FrostySdk.Resources
             Data = AssetManager.Instance.GetChunk(ChunkEntry);
         }
 
-        private void ReadInStreamFC24(NativeReader nativeReader)
-        {
-            mipOffsets[0] = nativeReader.ReadUInt();
-            mipOffsets[1] = nativeReader.ReadUInt();
-            type = (TextureType)nativeReader.ReadUInt();
-            pixelFormat = nativeReader.ReadInt();
-            unknown1 = nativeReader.ReadUInt();
-            flags = (TextureFlags)nativeReader.ReadUShort();
-            width = nativeReader.ReadUShort();
-            height = nativeReader.ReadUShort();
-            depth = nativeReader.ReadUShort();
-            sliceCount = nativeReader.ReadUShort();
-            mipCount = nativeReader.ReadByte();
-            firstMip = nativeReader.ReadByte();
-            unknownBytes.Add(nativeReader.ReadBytes(8));
-            chunkId = nativeReader.ReadGuid();
-            for (int i = 0; i < 15; i++)
-            {
-                mipSizes[i] = nativeReader.ReadUInt();
-            }
-            chunkSize = nativeReader.ReadUInt();
-            assetNameHash = nativeReader.ReadUInt();
-            TextureGroup = nativeReader.ReadSizedString(16);
+        //private void ReadInStreamFC24(NativeReader nativeReader)
+        //{
+        //    mipOffsets[0] = nativeReader.ReadUInt();
+        //    mipOffsets[1] = nativeReader.ReadUInt();
+        //    type = (TextureType)nativeReader.ReadUInt();
+        //    pixelFormat = nativeReader.ReadInt();
+        //    unknown1 = nativeReader.ReadUInt();
+        //    flags = (TextureFlags)nativeReader.ReadUShort();
+        //    width = nativeReader.ReadUShort();
+        //    height = nativeReader.ReadUShort();
+        //    depth = nativeReader.ReadUShort();
+        //    sliceCount = nativeReader.ReadUShort();
+        //    mipCount = nativeReader.ReadByte();
+        //    firstMip = nativeReader.ReadByte();
+        //    unknownBytes.Add(nativeReader.ReadBytes(8));
+        //    chunkId = nativeReader.ReadGuid();
+        //    for (int i = 0; i < 15; i++)
+        //    {
+        //        mipSizes[i] = nativeReader.ReadUInt();
+        //    }
+        //    chunkSize = nativeReader.ReadUInt();
+        //    assetNameHash = nativeReader.ReadUInt();
+        //    TextureGroup = nativeReader.ReadSizedString(16);
 
-            List<byte> lastBytes = new();
-            while(nativeReader.Position != nativeReader.Length)
-            {
-                lastBytes.Add(nativeReader.ReadByte());
-            }
-            unknownBytes.Add(lastBytes.ToArray());
+        //    List<byte> lastBytes = new();
+        //    while(nativeReader.Position != nativeReader.Length)
+        //    {
+        //        lastBytes.Add(nativeReader.ReadByte());
+        //    }
+        //    unknownBytes.Add(lastBytes.ToArray());
 
-            if (AssetManager.Instance.Logger != null)
-                AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {chunkId}");
+        //    if (AssetManager.Instance.Logger != null)
+        //        AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {chunkId}");
 
-            ChunkEntry = AssetManager.Instance.GetChunkEntry(chunkId);
-            Data = AssetManager.Instance.GetChunk(ChunkEntry);
-        }
+        //    ChunkEntry = AssetManager.Instance.GetChunkEntry(chunkId);
+        //    Data = AssetManager.Instance.GetChunk(ChunkEntry);
+        //}
 
         private void ReadInStreamNFSU(NativeReader nativeReader)
         {
