@@ -20,7 +20,7 @@ namespace FC24Plugin.Textures
                 nw.Write(texture.mipOffsets[0]);
                 nw.Write(texture.mipOffsets[1]);
                 nw.Write((uint)texture.Type);
-                nw.Write((uint)texture.pixelFormat);
+                nw.Write((int)texture.pixelFormat);
                 nw.Write((uint)texture.unknown1);
                 nw.Write((ushort)texture.flags);
                 nw.Write((ushort)texture.width);
@@ -36,7 +36,7 @@ namespace FC24Plugin.Textures
 
                 nw.Write((uint)texture.chunkSize);
                 nw.Write((uint)texture.assetNameHash);
-                nw.WriteNullTerminatedString(texture.textureGroup);
+                nw.WriteFixedSizedString(texture.textureGroup, 16);
                 nw.Write(texture.unknownBytes[1]);
             }
 
