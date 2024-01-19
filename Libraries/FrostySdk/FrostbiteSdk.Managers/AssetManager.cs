@@ -1070,35 +1070,25 @@ namespace FrostySdk.Managers
             return true;
         }
 
-        public void ModifyRes(ulong resRid, byte[] buffer, byte[] meta = null, CompressionType compressionOverride = CompressionType.Default)
+        public void ModifyRes(ulong resRid, byte[] buffer, byte[] meta = null)
         {
             if (resRidList.ContainsKey(resRid))
             {
                 ResAssetEntry resAssetEntry = resRidList[resRid];
-                if (compressionOverride == CompressionType.Default)
-                {
-                    compressionOverride = ProfileManager.GetCompressionType(ProfileManager.CompTypeArea.RES);
-                }
-
-                ModifyRes(resAssetEntry, buffer, meta, compressionOverride);
+                ModifyRes(resAssetEntry, buffer, meta);
             }
         }
 
-        public void ModifyRes(string resName, byte[] buffer, byte[] meta = null, CompressionType compressionOverride = CompressionType.Default)
+        public void ModifyRes(string resName, byte[] buffer, byte[] meta = null)
         {
             if (RES.ContainsKey(resName))
             {
                 ResAssetEntry resAssetEntry = RES[resName];
-                if (compressionOverride == CompressionType.Default)
-                {
-                    compressionOverride = ProfileManager.GetCompressionType(ProfileManager.CompTypeArea.RES);
-                }
-
-                ModifyRes(resAssetEntry, buffer, meta, compressionOverride);
+                ModifyRes(resAssetEntry, buffer, meta);
             }
         }
 
-        public void ModifyRes(ResAssetEntry assetEntry, byte[] buffer, byte[] meta = null, CompressionType compressionOverride = CompressionType.Default)
+        public void ModifyRes(ResAssetEntry assetEntry, byte[] buffer, byte[] meta = null)
         {
             byte[] originalData = null;
             if (!ProfileManager.LoadedProfile.CanUseModData)
@@ -1108,13 +1098,10 @@ namespace FrostySdk.Managers
             if (originalData != null && assetEntry.ModifiedEntry.OriginalData == null)
                 assetEntry.ModifiedEntry.OriginalData = originalData;
 
-            assetEntry.ModifiedEntry.Data = Utils.CompressFile(buffer, null, (ResourceType)assetEntry.ResType, compressionOverride);
+            assetEntry.ModifiedEntry.Data = Utils.CompressFile(buffer, null, (ResourceType)assetEntry.ResType, ProfileManager.GetCompressionType(ProfileManager.CompTypeArea.RES));
             assetEntry.ModifiedEntry.OriginalSize = buffer.Length;
-            assetEntry.ModifiedEntry.Sha1 = GenerateSha1(assetEntry.ModifiedEntry.Data);
-            if (meta != null)
-            {
-                assetEntry.ModifiedEntry.ResMeta = meta;
-            }
+            assetEntry.ModifiedEntry.Sha1 = assetEntry.Sha1;// GenerateSha1(assetEntry.ModifiedEntry.Data);
+            assetEntry.ModifiedEntry.ResMeta = meta != null ? meta : assetEntry.ResMeta;
             assetEntry.IsDirty = true;
         }
 

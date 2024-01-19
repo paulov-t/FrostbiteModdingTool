@@ -361,7 +361,6 @@ namespace FrostySdk
                         case CompressionType.Oodle:
                             pooledBuffer = true;
                             compressedSize = Oodle.CompressOodle(array, out compBuffer, out compressCode, ref uncompressed, oodleCO);
-                            //compressedSize = Oodle.CompressOodle1(array, out compBuffer, out compressCode, ref uncompressed, oodleCO);
                             break;
                     }
                     if (uncompressed)
@@ -375,15 +374,14 @@ namespace FrostySdk
                         totalBytesWritten = 0L;
                         continue;
                     }
-                    compressCode = (ushort)(compressCode | (ushort)((compressedSize & 0xF0000) >> 16));
+                    compressCode |= (ushort)((compressedSize & 0xF0000) >> 16);
                     outputWriter.WriteInt32BigEndian(bufferSize);
                     outputWriter.WriteUInt16BigEndian(compressCode);
                     outputWriter.WriteUInt16BigEndian((ushort)compressedSize);
                     outputWriter.BaseStream.Write(compBuffer, 0, (int)compressedSize);
                     remainingByteCount -= bufferSize;
                     totalBytesRead += bufferSize;
-                    //if (dataVersion == DataVersion.Madden22 || dataVersion == DataVersion.Madden23)
-                    if (ProfileManager.IsMadden22DataVersion(ProfileManager.Game))
+                    if (ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.MADDEN22, FMT.FileTools.Modding.EGame.MADDEN23, FMT.FileTools.Modding.EGame.MADDEN24))
                     {
                         totalBytesWritten += (long)(compressedSize + 8);
                     }
@@ -391,14 +389,15 @@ namespace FrostySdk
                     {
                         if (totalBytesRead + offset == texture.MipSizes[0])
                         {
-                            uint num3 = (texture.FirstMipOffset = (texture.SecondMipOffset = (uint)totalBytesWritten));
+                            uint secondMipOffset = (texture.ThirdMipOffset = (uint)totalBytesWritten);
+                            texture.SecondMipOffset = secondMipOffset;
                         }
                         else if (totalBytesRead + offset == texture.MipSizes[0] + texture.MipSizes[1])
                         {
-                            texture.SecondMipOffset = (uint)totalBytesWritten;
+                            texture.ThirdMipOffset = (uint)totalBytesWritten;
                         }
                     }
-                    if (!ProfileManager.IsMadden22DataVersion(ProfileManager.Game))
+                    if (!ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.MADDEN22, FMT.FileTools.Modding.EGame.MADDEN23, FMT.FileTools.Modding.EGame.MADDEN24))
                     {
                         totalBytesWritten += (long)(compressedSize + 8);
                     }

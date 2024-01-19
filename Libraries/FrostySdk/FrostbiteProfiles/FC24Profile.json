@@ -61,7 +61,7 @@
   "CanExportMeshes": true,
   // GeometryDeclarationDesc stream count
   "GDDMaxStreams": 16,
-  "CompressedFormatEBX": "Oodle", // Checked on GP files. FIFA 23 only uses Oodle!
+  "CompressedFormatEBX": "Oodle",
   "CompressedFormatRES": "Oodle",
   "CompressedFormatChunk": "Oodle",
   "CompressedFormatLegacy": "Oodle",
@@ -70,7 +70,7 @@
   "ForceUseModData": true,
   "SupportLowMemoryFootprint": true,
   "GameIdentifier": 16115019,
-  "UseACBypass": false, // Can only be used with TU2 or below
+  "UseACBypass": false, 
   "EADesktopCommandLineSetting": "user.gamecommandline.origin.ofr.50.0005306",
   "SteamId": "2195250",
   "HasAntiCheat": true,

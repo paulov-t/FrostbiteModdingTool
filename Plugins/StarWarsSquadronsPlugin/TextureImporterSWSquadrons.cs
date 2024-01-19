@@ -120,7 +120,7 @@ namespace StarWarsSquadronsPlugin.Textures
                 //pixelFormat = nativeReader.ReadInt();
                 nw.Write(texture.pixelFormat);
                 //unknown1 = nativeReader.ReadUInt();
-                nw.Write((uint)texture.unknown1);
+                nw.Write((uint)texture.poolId);
                 //flags = (TextureFlags)(Version >= 11 ? nativeReader.ReadUShort() : nativeReader.ReadUInt());
                 nw.Write((ushort)texture.flags);
                 //width = nativeReader.ReadUShort();

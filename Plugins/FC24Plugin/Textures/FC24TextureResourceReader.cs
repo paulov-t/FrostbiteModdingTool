@@ -2,10 +2,17 @@
 using FrostySdk.Frostbite.PluginInterfaces;
 using FrostySdk.Managers;
 using FrostySdk.Resources;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using static PInvoke.BCrypt.BCRYPT_ALGORITHM_IDENTIFIER;
+using System.Windows.Media.Media3D;
 
-namespace Madden24Plugin.Textures
+namespace FC24Plugin.Textures
 {
-    public class Madden24TextureResourceReader : ITextureResourceReader
+    public class FC24TextureResourceReader : ITextureResourceReader
     {
         public void ReadInStream(NativeReader nativeReader, Texture texture)
         {
@@ -21,17 +28,21 @@ namespace Madden24Plugin.Textures
             texture.sliceCount = nativeReader.ReadUShort();
             texture.mipCount = nativeReader.ReadByte();
             texture.firstMip = nativeReader.ReadByte();
-            texture.unknownBytes.Add(nativeReader.ReadBytes(4));
+            texture.unknownBytes.Add(nativeReader.ReadBytes(8));
             texture.chunkId = nativeReader.ReadGuid();
-            for (int i = 0; i < 15; i++)
-            {
-                texture.mipSizes[i] = nativeReader.ReadUInt();
-            }
+            texture.mipSizes = (from _ in Enumerable.Range(0, 15)
+                                    select nativeReader.ReadUInt()).ToArray();
+
             texture.chunkSize = nativeReader.ReadUInt();
             texture.assetNameHash = nativeReader.ReadUInt();
-            texture.unknownBytes.Add(nativeReader.ReadBytes(4));
             texture.TextureGroup = nativeReader.ReadSizedString(16);
-            texture.unknownBytes.Add(nativeReader.ReadBytes(8));
+
+            List<byte> lastBytes = new();
+            while (nativeReader.Position != nativeReader.Length)
+            {
+                lastBytes.Add(nativeReader.ReadByte());
+            }
+            texture.unknownBytes.Add(lastBytes.ToArray());
 
             if (AssetManager.Instance.Logger != null)
                 AssetManager.Instance.Logger.Log($"Texture: Loading ChunkId: {texture.chunkId}");

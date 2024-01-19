@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Text;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace SdkGenerator.FC24
@@ -154,7 +155,8 @@ namespace SdkGenerator.FC24
                 else if (Type == 8 || FieldType == EbxFieldType.Enum)
                 {
                     parentClass = 0L;
-                    fieldsPosition = array[0];
+                    //fieldsPosition = array[0];
+                    fieldsPosition = array[1];
                 }
                 else
                 {
@@ -172,6 +174,7 @@ namespace SdkGenerator.FC24
                 var resultOfFieldRead = ReadFieldsAtPosition(fieldsPosition);
                 if (!resultOfFieldRead)
                 {
+                    Debug.WriteLine($"Unable to read Initially read Fields at position {fieldsPosition} for {FieldType}:{this.name}");
                     for (var i = 0; i < array.Length; i++)
                     {
                         if (array[i] == 0L)
@@ -189,7 +192,8 @@ namespace SdkGenerator.FC24
                 if (position == 0L)
                     return true;
 
-                fields = new List<IFieldInfo>();
+                var tmpFields = new IFieldInfo[fieldCount];
+
                 reader.Position = position;
 
                 bool success = true;
@@ -214,9 +218,12 @@ namespace SdkGenerator.FC24
                             reader.Position++;
                     }
 
-                    fields.Add(fieldInfo);
+                    tmpFields[j] = fieldInfo;
 
                 }
+
+
+                fields = tmpFields.ToList();
                 return success;
             }
         }

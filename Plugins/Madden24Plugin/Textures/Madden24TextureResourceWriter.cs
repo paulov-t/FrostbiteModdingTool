@@ -26,7 +26,7 @@ namespace Madden24Plugin.Textures
                 //texture.pixelFormat = nativeReader.ReadInt();
                 nw.Write(texture.pixelFormat);
                 //texture.unknown1 = nativeReader.ReadUInt();
-                nw.Write(texture.unknown1);
+                nw.Write(texture.poolId);
                 //texture.flags = (TextureFlags)nativeReader.ReadUShort();
                 nw.Write((ushort)texture.flags);
                 //texture.width = nativeReader.ReadUShort();
