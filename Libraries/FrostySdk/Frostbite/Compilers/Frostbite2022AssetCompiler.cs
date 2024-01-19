@@ -161,7 +161,7 @@ namespace FrostySdk.Frostbite.Compilers
 
         public HashSet<(string, string)> ProcessedModdedCasFiles = new();
 
-        public virtual void FindModdedCasFilesWithoutCache(ref Dictionary<string, HashSet<ModdedFile>> casToMods, string directory = "native_patch")
+        public virtual void FindModdedCasFilesWithoutCache(ref Dictionary<string, HashSet<ModdedFile>> casToMods, string directory = "native_patch", bool autoProcessNativeData = true)
         {
             if (casToMods.Values.Sum(x => x.Count) == ModExecuter.ModifiedAssets.Count)
                 return;
@@ -272,7 +272,7 @@ namespace FrostySdk.Frostbite.Compilers
 
             }
 
-            if (directory == "native_patch")
+            if (autoProcessNativeData && directory == "native_patch")
                 FindModdedCasFilesWithoutCache(ref casToMods, "native_data");
         }
 
@@ -293,7 +293,13 @@ namespace FrostySdk.Frostbite.Compilers
             }
             else if(!RequiresCacheToCompile && (AssetManager.Instance != null && !AssetManager.Instance.EBX.Any()))
             {
-                FindModdedCasFilesWithoutCache(ref casToMods);
+                FindModdedCasFilesWithoutCache(ref casToMods, autoProcessNativeData: false);
+                FindModdedCasFilesWithoutCache(ref casToMods, "native_data");
+                if (ModExecuter.ModifiedAssets.Count != casToMods.Values.Sum(x=>x.Count))
+                {
+                    ModExecuter.Logger.LogWarning($"Number of expected modified assets {ModExecuter.ModifiedAssets.Count} does not match number of actually modified values {casToMods.Values.Sum(x => x.Count)}!");
+                    FileLogger.WriteLine($"Number of expected modified assets {ModExecuter.ModifiedAssets.Count} does not match number of actually modified values {casToMods.Values.Sum(x => x.Count)}!");
+                }
             }
 
             // ------ End of handling Legacy files ---------
@@ -517,7 +523,7 @@ namespace FrostySdk.Frostbite.Compilers
             writer.WriteBytes(modifiedResource.ResMeta);
 
             writer.Position = originalSizePosition;
-            writer.Write((uint)originalSizeOfData, Endian.Little);
+            writer.Write((uint)modifiedResource.OriginalSize, Endian.Little);
 
             if (sha1Position.HasValue && modifiedResource.Sha1 != Sha1.Zero)
             {
@@ -762,13 +768,13 @@ namespace FrostySdk.Frostbite.Compilers
 
                 using NativeWriter nwCas = new NativeWriter(new FileStream(casPath, FileMode.Open));
                 //{
-                    foreach (var modItem in item.Value.OrderBy(x => x.NamePath))
-                    {
-                        nwCas.Position = nwCas.Length;
-                        byte[] data = new byte[0];
-                        using AssetEntry originalEntry = modItem.OriginalEntry;
-                        if (originalEntry == null)
-                            continue;
+                foreach (var modItem in item.Value.OrderBy(x => x.NamePath))
+                {
+                    nwCas.Position = nwCas.Length;
+                    byte[] data = new byte[0];
+                    using AssetEntry originalEntry = modItem.OriginalEntry;
+                    if (originalEntry == null)
+                        continue;
 
                     if (!CanProcessEbx && originalEntry is EbxAssetEntry)
                         continue;
@@ -779,90 +785,93 @@ namespace FrostySdk.Frostbite.Compilers
 
 
                     if (originalEntry != null && ModExecuter.archiveData.ContainsKey(modItem.Sha1))
+                    {
+                        // obtain the data by sha1 key
+                        data = ModExecuter.archiveData[modItem.Sha1].Data;
+                        // remove the item from the list
+                        ModExecuter.archiveData.Remove(modItem.Sha1);
+                    }
+                    else
+                    {
+                        //parent.Logger.LogError($"Unable to find original archive data for {modItem.NamePath}");
+                        continue;
+                    }
+
+                    if (data.Length == 0)
+                    {
+                        ModExecuter.Logger.LogError($"Unable to find any data for {modItem.NamePath}");
+                        continue;
+                    }
+
+                    AssetEntry modifiedAsset = null;
+
+                    switch (modItem.ModType)
+                    {
+                        case ModType.EBX:
+                            modifiedAsset = ModExecuter.modifiedEbx[modItem.NamePath];
+                            break;
+                        case ModType.RES:
+                            modifiedAsset = ModExecuter.modifiedRes[modItem.NamePath];
+                            break;
+                        case ModType.CHUNK:
+                            modifiedAsset = ModExecuter.ModifiedChunks[Guid.Parse(modItem.NamePath)];
+                            break;
+                    }
+
+                    if (modifiedAsset == null)
+                        continue;
+
+                    var origSize = 0;
+
+
+                    if (modifiedAsset is ChunkAssetEntry)
+                    {
+                        var chunkModAsset = modifiedAsset as ChunkAssetEntry;
+
+                        //if (chunkModAsset.IsTocChunk)
+                        //    continue;
+
+                        if (chunkModAsset.ModifiedEntry != null && chunkModAsset.ModifiedEntry.IsLegacyFile)
                         {
-                            data = ModExecuter.archiveData[modItem.Sha1].Data;
+                            FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as its a Legacy File");
+                            continue;
+                        }
+                    }
+
+                    origSize = Convert.ToInt32(modifiedAsset.OriginalSize);
+
+                    if (origSize == 0)
+                    {
+                        if (modifiedAsset is ChunkAssetEntry cae && cae.LogicalSize > 0)
+                        {
+                            origSize = (int)cae.LogicalSize;
+                            modifiedAsset.OriginalSize = origSize;
                         }
                         else
                         {
-                            //parent.Logger.LogError($"Unable to find original archive data for {modItem.NamePath}");
-                            continue;
-                        }
-
-                        if (data.Length == 0)
-                        {
-                            ModExecuter.Logger.LogError($"Unable to find any data for {modItem.NamePath}");
-                            continue;
-                        }
-
-                        AssetEntry modifiedAsset = null;
-
-                        switch (modItem.ModType)
-                        {
-                            case ModType.EBX:
-                                modifiedAsset = ModExecuter.modifiedEbx[modItem.NamePath];
-                                break;
-                            case ModType.RES:
-                                modifiedAsset = ModExecuter.modifiedRes[modItem.NamePath];
-                                break;
-                            case ModType.CHUNK:
-                                modifiedAsset = ModExecuter.ModifiedChunks[Guid.Parse(modItem.NamePath)];
-                                break;
-                        }
-
-                        if (modifiedAsset == null)
-                            continue;
-
-                        var origSize = 0;
-
-
-                        if (modifiedAsset is ChunkAssetEntry)
-                        {
-                            var chunkModAsset = modifiedAsset as ChunkAssetEntry;
-
-                            //if (chunkModAsset.IsTocChunk)
-                            //    continue;
-
-                            if (chunkModAsset.ModifiedEntry != null && chunkModAsset.ModifiedEntry.IsLegacyFile)
+                            //parent.Logger.LogWarning($"OriginalSize is missing or 0 on {modItem.NamePath}, attempting calculation by reading it.");
+                            using (var stream = new MemoryStream(data))
                             {
-                                FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as its a Legacy File");
-                                continue;
+                                var out_data = new CasReader(new MemoryStream(data)).Read();
+                                origSize = out_data.Length;
                             }
+
                         }
+                    }
 
-                        origSize = Convert.ToInt32(modifiedAsset.OriginalSize);
+                    if (string.IsNullOrEmpty(originalEntry.TOCFileLocation))
+                        continue;
 
-                        if (origSize == 0)
-                        {
-                            if (modifiedAsset is ChunkAssetEntry cae && cae.LogicalSize > 0)
-                            {
-                                origSize = (int)cae.LogicalSize;
-                                modifiedAsset.OriginalSize = origSize;
-                            }
-                            else
-                            {
-                                //parent.Logger.LogWarning($"OriginalSize is missing or 0 on {modItem.NamePath}, attempting calculation by reading it.");
-                                using (var stream = new MemoryStream(data))
-                                {
-                                    var out_data = new CasReader(new MemoryStream(data)).Read();
-                                    origSize = out_data.Length;
-                                }
 
-                            }
-                        }
 
-                        if (string.IsNullOrEmpty(originalEntry.TOCFileLocation))
-                            continue;
+                    if (ModExecuter.UseVerboseLogging)
+                        FileLogger.WriteLine($"Written {modItem.ModType} {modItem.NamePath} to {casPath}");
 
-                       
-
-                        if (ModExecuter.UseVerboseLogging)
-                            FileLogger.WriteLine($"Written {modItem.ModType} {modItem.NamePath} to {casPath}");
-
-                        if (EntriesToNewPosition.ContainsKey(originalEntry))
-                        {
-                            FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as it already been processed");
-                            continue;
-                        }
+                    if (EntriesToNewPosition.ContainsKey(originalEntry))
+                    {
+                        FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as it already been processed");
+                        continue;
+                    }
 
                     if (EntriesToNewPosition.ContainsKey(modifiedAsset))
                     {
@@ -876,38 +885,38 @@ namespace FrostySdk.Frostbite.Compilers
 
                     // Update Modified Asset with Information / Data
                     if (modifiedAsset.ExtraData == null)
-                            modifiedAsset.ExtraData = new AssetExtraData();
+                        modifiedAsset.ExtraData = new AssetExtraData();
 
-                        modifiedAsset.SBFileLocation = originalEntry.SBFileLocation;
-                        modifiedAsset.TOCFileLocation = originalEntry.TOCFileLocation;
-                        modifiedAsset.ExtraData.DataOffset = Convert.ToUInt32(positionOfData);
-                        modifiedAsset.Size = data.Length;
-                        modifiedAsset.OriginalSize = origSize;
-                        modifiedAsset.Sha1 = modItem.Sha1;
-                        //modifiedAsset.Bundles = modifiedAsset.Bundles.Distinct().ToList();
+                    modifiedAsset.SBFileLocation = originalEntry.SBFileLocation;
+                    modifiedAsset.TOCFileLocation = originalEntry.TOCFileLocation;
+                    modifiedAsset.ExtraData.DataOffset = Convert.ToUInt32(positionOfData);
+                    modifiedAsset.Size = data.Length;
+                    modifiedAsset.OriginalSize = origSize;
+                    modifiedAsset.Sha1 = modItem.Sha1;
+                    //modifiedAsset.Bundles = modifiedAsset.Bundles.Distinct().ToList();
 
-                        if (EntriesToNewPosition.ContainsKey(modifiedAsset))
-                        {
-                            FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as it already been processed");
-                            continue;
-                        }
-
-                        //switch (modItem.ModType)
-                        //{
-                        //    case ModType.EBX:
-                        //        ModExecuter.modifiedEbx[modItem.NamePath] = (EbxAssetEntry)modifiedAsset;
-                        //        break;
-                        //    case ModType.RES:
-                        //        ModExecuter.modifiedRes[modItem.NamePath] = (ResAssetEntry)modifiedAsset;
-                        //        break;
-                        //    case ModType.CHUNK:
-                        //        ModExecuter.ModifiedChunks[Guid.Parse(modItem.NamePath)] = (ChunkAssetEntry)modifiedAsset;
-                        //        break;
-                        //}
-
-                        EntriesToNewPosition.Add(modifiedAsset, (positionOfData, data.Length, origSize, modItem.Sha1));
-
+                    if (EntriesToNewPosition.ContainsKey(modifiedAsset))
+                    {
+                        FileLogger.WriteLine($"Excluding {modItem.ModType} {modItem.NamePath} from WriteNewDataToCasFile as it already been processed");
+                        continue;
                     }
+
+                    //switch (modItem.ModType)
+                    //{
+                    //    case ModType.EBX:
+                    //        ModExecuter.modifiedEbx[modItem.NamePath] = (EbxAssetEntry)modifiedAsset;
+                    //        break;
+                    //    case ModType.RES:
+                    //        ModExecuter.modifiedRes[modItem.NamePath] = (ResAssetEntry)modifiedAsset;
+                    //        break;
+                    //    case ModType.CHUNK:
+                    //        ModExecuter.ModifiedChunks[Guid.Parse(modItem.NamePath)] = (ChunkAssetEntry)modifiedAsset;
+                    //        break;
+                    //}
+
+                    EntriesToNewPosition.Add(modifiedAsset, (positionOfData, data.Length, origSize, modItem.Sha1));
+
+                }
 
                 //}
             }

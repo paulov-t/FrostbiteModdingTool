@@ -14,14 +14,15 @@ namespace FC24Plugin.Textures
     {
         public byte[] ToBytes(Texture texture)
         {
-            MemoryStream memoryStream = new MemoryStream();
+            // Define new memory stream with a capacity of 132 bytes
+            MemoryStream memoryStream = new MemoryStream(132);
             using (var nw = new NativeWriter(memoryStream))
             {
                 nw.Write(texture.mipOffsets[0]);
                 nw.Write(texture.mipOffsets[1]);
                 nw.Write((uint)texture.Type);
                 nw.Write((int)texture.pixelFormat);
-                nw.Write((uint)texture.unknown1);
+                nw.Write((uint)texture.poolId);
                 nw.Write((ushort)texture.flags);
                 nw.Write((ushort)texture.width);
                 nw.Write((ushort)texture.height);

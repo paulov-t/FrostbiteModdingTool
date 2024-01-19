@@ -229,13 +229,13 @@ namespace FrostySdk
 
             public ResResource(ResAssetEntry entry, Manifest manifest)
             {
-                name = entry.Name.ToLower();
+                name = entry.Name.ToLowerInvariant();
                 sha1 = entry.ModifiedEntry.Sha1;
                 resourceIndex = manifest.Add(entry.ModifiedEntry.Sha1, entry.ModifiedEntry.Data);
                 size = entry.ModifiedEntry.OriginalSize;
                 resType = entry.ResType;
                 resRid = entry.ResRid;
-                resMeta = ((entry.ModifiedEntry.ResMeta != null) ? entry.ModifiedEntry.ResMeta : entry.ResMeta);
+                resMeta = entry.ModifiedEntry.ResMeta ?? entry.ResMeta;
                 UserData = entry.ModifiedEntry.UserData;
                 flags = (byte)(entry.IsInline ? 1 : 0);
                 foreach (int bundle in entry.Bundles)

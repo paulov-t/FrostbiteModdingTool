@@ -20,7 +20,7 @@ namespace FC24Plugin.Textures
             texture.mipOffsets[1] = nativeReader.ReadUInt();
             texture.type = (TextureType)nativeReader.ReadUInt();
             texture.pixelFormat = nativeReader.ReadInt();
-            texture.unknown1 = nativeReader.ReadUInt();
+            texture.poolId = nativeReader.ReadUInt();
             texture.flags = (TextureFlags)nativeReader.ReadUShort();
             texture.width = nativeReader.ReadUShort();
             texture.height = nativeReader.ReadUShort();
@@ -30,8 +30,8 @@ namespace FC24Plugin.Textures
             texture.firstMip = nativeReader.ReadByte();
             texture.unknownBytes.Add(nativeReader.ReadBytes(8));
             texture.chunkId = nativeReader.ReadGuid();
-            for (int i = 0; i < 15; i++)
-                texture.mipSizes[i] = nativeReader.ReadUInt();
+            texture.mipSizes = (from _ in Enumerable.Range(0, 15)
+                                    select nativeReader.ReadUInt()).ToArray();
 
             texture.chunkSize = nativeReader.ReadUInt();
             texture.assetNameHash = nativeReader.ReadUInt();

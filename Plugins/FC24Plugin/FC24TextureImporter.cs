@@ -74,28 +74,13 @@ namespace FC24Plugin.Textures
                 }
             }
 
-            //if (!Directory.Exists("Debugging"))
-            //	Directory.CreateDirectory("Debugging");
-
-            //if (!Directory.Exists("Debugging\\Other\\"))
-            //	Directory.CreateDirectory("Debugging\\Other\\");
-
-            //using (FileStream fileStream = new FileStream("Debugging\\Other\\_TextureImport.dat", FileMode.OpenOrCreate))
-            //{
-            //	memoryStream.CopyTo(fileStream);
-            //	fileStream.Flush();
-            //}
             memoryStream.Position = 0;
-
-
             using (NativeReader nativeReader = new NativeReader(memoryStream))
             {
                 // Reads past the header, the texture array doesn't need the DDS header
                 TextureUtils.DDSHeader dDSHeader = new TextureUtils.DDSHeader();
-                if (dDSHeader.Read(nativeReader))
-                {
-
-                }
+                if (!dDSHeader.Read(nativeReader))
+                    return;
                 // 
 
                 var ebxAsset = AssetManager.Instance.GetEbx(assetEntry);
@@ -114,8 +99,10 @@ namespace FC24Plugin.Textures
                     var ti = new TextureImporter();
                     textureArray = ti.ConvertToSwizzlePS4(textureArray, textureAsset);
                 }
-
                 AssetManager.Instance.ModifyChunk(textureAsset.ChunkId, textureArray, textureAsset);
+                textureAsset.SetData(textureAsset.ChunkId, AssetManager.Instance);
+                textureAsset.AssetNameHash = (uint)Fnv1.HashString(resEntry.Name);
+                //AssetManager.Instance.ModifyRes(resEntry, ((MemoryStream)AssetManager.Instance.GetRes(resEntry)).ToArray());
                 //AssetManager.Instance.ModifyRes(resEntry, textureAsset.ToBytes());
                 AssetManager.Instance.ModifyEbx(assetEntry.Name, ebxAsset);
                 resEntry.LinkAsset(chunkEntry);

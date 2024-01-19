@@ -1100,11 +1100,8 @@ namespace FrostySdk.Managers
 
             assetEntry.ModifiedEntry.Data = Utils.CompressFile(buffer, null, (ResourceType)assetEntry.ResType, ProfileManager.GetCompressionType(ProfileManager.CompTypeArea.RES));
             assetEntry.ModifiedEntry.OriginalSize = buffer.Length;
-            assetEntry.ModifiedEntry.Sha1 = GenerateSha1(assetEntry.ModifiedEntry.Data);
-            if (meta != null)
-            {
-                assetEntry.ModifiedEntry.ResMeta = meta;
-            }
+            assetEntry.ModifiedEntry.Sha1 = assetEntry.Sha1;// GenerateSha1(assetEntry.ModifiedEntry.Data);
+            assetEntry.ModifiedEntry.ResMeta = meta != null ? meta : assetEntry.ResMeta;
             assetEntry.IsDirty = true;
         }
 

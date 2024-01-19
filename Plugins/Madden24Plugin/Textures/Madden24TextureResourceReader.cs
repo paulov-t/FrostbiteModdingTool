@@ -13,7 +13,7 @@ namespace Madden24Plugin.Textures
             texture.mipOffsets[1] = nativeReader.ReadUInt();
             texture.type = (TextureType)nativeReader.ReadUInt();
             texture.pixelFormat = nativeReader.ReadInt();
-            texture.unknown1 = nativeReader.ReadUInt();
+            texture.poolId = nativeReader.ReadUInt();
             texture.flags = (TextureFlags)nativeReader.ReadUShort();
             texture.width = nativeReader.ReadUShort();
             texture.height = nativeReader.ReadUShort();

@@ -117,7 +117,7 @@ namespace FIFA23Plugin.Textures
                 nw.Write(texture.pixelFormat);
 
                 //unknown1 = nativeReader.ReadUInt();
-                nw.Write(texture.unknown1);
+                nw.Write(texture.poolId);
                 //}
                 //flags = (TextureFlags)nativeReader.ReadUShort();
                 nw.Write((ushort)texture.flags);

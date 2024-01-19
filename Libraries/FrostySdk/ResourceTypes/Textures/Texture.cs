@@ -17,7 +17,7 @@ namespace FrostySdk.Resources
 
         public int pixelFormat;
 
-        public uint unknown1;
+        public uint poolId;
 
         public uint unknown2 { get; set; }
 
@@ -489,7 +489,7 @@ namespace FrostySdk.Resources
             mipOffsets[1] = nativeReader.ReadUInt();
             type = (TextureType)nativeReader.ReadUInt();
             pixelFormat = nativeReader.ReadInt();
-            unknown1 = nativeReader.ReadUInt();
+            poolId = nativeReader.ReadUInt();
             flags = (TextureFlags)(Version >= 11 ? nativeReader.ReadUShort() : nativeReader.ReadUInt());
             width = nativeReader.ReadUShort();
             height = nativeReader.ReadUShort();
@@ -527,7 +527,7 @@ namespace FrostySdk.Resources
             mipOffsets[1] = nativeReader.ReadUInt();
             type = (TextureType)nativeReader.ReadUInt();
             pixelFormat = nativeReader.ReadInt();
-            unknown1 = nativeReader.ReadUInt();
+            poolId = nativeReader.ReadUInt();
             flags = (TextureFlags)nativeReader.ReadUShort();
             width = nativeReader.ReadUShort();
             height = nativeReader.ReadUShort();
@@ -559,7 +559,7 @@ namespace FrostySdk.Resources
             mipOffsets[1] = nativeReader.ReadUInt();
             type = (TextureType)nativeReader.ReadUInt();
             pixelFormat = nativeReader.ReadInt();
-            unknown1 = nativeReader.ReadUInt();
+            poolId = nativeReader.ReadUInt();
             flags = (TextureFlags)nativeReader.ReadUShort();
             width = nativeReader.ReadUShort();
             height = nativeReader.ReadUShort();
@@ -591,7 +591,7 @@ namespace FrostySdk.Resources
             mipOffsets[1] = nativeReader.ReadUInt();
             type = (TextureType)nativeReader.ReadUInt();
             pixelFormat = nativeReader.ReadInt();
-            unknown1 = nativeReader.ReadUInt();
+            poolId = nativeReader.ReadUInt();
             flags = (TextureFlags)nativeReader.ReadUShort();
             width = nativeReader.ReadUShort();
             height = nativeReader.ReadUShort();
@@ -661,7 +661,7 @@ namespace FrostySdk.Resources
             mipOffsets[1] = nativeReader.ReadUInt();
             type = (TextureType)nativeReader.ReadUInt();
             pixelFormat = nativeReader.ReadInt();
-            unknown1 = nativeReader.ReadUInt();
+            poolId = nativeReader.ReadUInt();
             flags = (TextureFlags)nativeReader.ReadUShort();
             width = nativeReader.ReadUShort();
             height = nativeReader.ReadUShort();
@@ -693,7 +693,7 @@ namespace FrostySdk.Resources
             mipOffsets[1] = nativeReader.ReadUInt();
             type = (TextureType)nativeReader.ReadUInt();
             pixelFormat = nativeReader.ReadInt();
-            unknown1 = nativeReader.ReadUInt();
+            poolId = nativeReader.ReadUInt();
             flags = (TextureFlags)nativeReader.ReadUShort();
             width = nativeReader.ReadUShort();
             height = nativeReader.ReadUShort();
@@ -754,7 +754,7 @@ namespace FrostySdk.Resources
                 nativeWriter.Write((uint)type);
                 nativeWriter.Write(pixelFormat);
 
-                nativeWriter.Write(unknown1);
+                nativeWriter.Write(poolId);
 
                 nativeWriter.Write((ushort)flags);
                 nativeWriter.Write(width);
@@ -801,7 +801,7 @@ namespace FrostySdk.Resources
                 nw.Write(texture.mipOffsets[1]);
                 nw.Write((uint)texture.Type);
                 nw.Write(texture.pixelFormat);
-                nw.Write(texture.unknown1);
+                nw.Write(texture.poolId);
                 nw.Write((ushort)texture.flags);
                 nw.Write(texture.width);
                 nw.Write(texture.height);
@@ -833,7 +833,7 @@ namespace FrostySdk.Resources
                 nativeWriter.Write(mipOffsets[1]);
                 nativeWriter.Write((uint)type);
                 nativeWriter.Write(pixelFormat);
-                nativeWriter.Write(unknown1);
+                nativeWriter.Write(poolId);
                 nativeWriter.Write((ushort)flags);
                 nativeWriter.Write(width);
                 nativeWriter.Write(height);
@@ -869,7 +869,7 @@ namespace FrostySdk.Resources
                 nw.Write(texture.mipOffsets[1]);
                 nw.Write((uint)texture.Type);
                 nw.Write(texture.pixelFormat);
-                nw.Write(texture.unknown1);
+                nw.Write(texture.poolId);
                 nw.Write((ushort)texture.flags);
                 nw.Write(texture.width);
                 nw.Write(texture.height);
@@ -901,7 +901,7 @@ namespace FrostySdk.Resources
             height = inHeight;
             depth = inDepth;
             sliceCount = inDepth;
-            unknown1 = 0u;
+            poolId = 0u;
             flags = 0;
             //unknown3[0] = uint.MaxValue;
             //unknown3[1] = uint.MaxValue;
