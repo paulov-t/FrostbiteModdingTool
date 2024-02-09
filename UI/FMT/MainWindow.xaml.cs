@@ -295,52 +295,6 @@ namespace FMT
             }
         }
 
-        //protected override void OnClosing(CancelEventArgs e)
-        //{
-        //    base.OnClosing(e);
-
-        //    if (App.MainEditorWindow != null)
-        //    {
-        //        App.MainEditorWindow.Close();
-        //        App.MainEditorWindow = null;
-        //    }
-
-        //    Application.Current.Shutdown();
-        //}
-
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void btnEditor_Click(object sender, RoutedEventArgs e)
-        {
-            //new EditorLoginWindow().Show();
-            App.MainEditorWindow = new FIFA21Editor(this);
-            if (App.MainEditorWindow != null)
-                App.MainEditorWindow.Show();
-
-            this.Visibility = Visibility.Hidden;
-        }
-
-        private void btnLauncher_Click(object sender, RoutedEventArgs e)
-        {
-            var lw = new LaunchWindow(this);
-            try
-            {
-                if (lw != null)
-                {
-                    lw.Show();
-                    this.Visibility = Visibility.Hidden;
-                }
-            }
-            catch
-            {
-
-            }
-        }
-
         private void cbLanguageSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             //if (cbLanguageSelection.SelectedItem != null && cbLanguageSelection.SelectedIndex >= 1)
