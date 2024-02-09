@@ -19,6 +19,8 @@ namespace FrostySdk.FrostySdk.IO
 {
     public class EbxWriter2022 : EbxBaseWriter
     {
+    
+
         protected readonly List<object> objsToProcess = new List<object>();
 
         private readonly List<Type> typesToProcess = new List<Type>();
@@ -115,23 +117,40 @@ namespace FrostySdk.FrostySdk.IO
 
         public void WriteEbxObjects(IEnumerable<object> objects, Guid fileGuid)
         {
+            // Check objects parameter
             if (objects == null)
+                throw new ArgumentNullException(nameof(objects));
+
+            // Check fileGuid parameter
+            if (fileGuid == Guid.Empty)
+                throw new ArgumentNullException(nameof(fileGuid));
+
+#if DEBUG
+            if (objects.ToArray()[0].GetType().Name == "AttribSchema_gp_kickshot_shooting")
             {
-                throw new ArgumentNullException("objects");
+
             }
+#endif
+
             Queue<object> queue = new Queue<object>();
             foreach (object @object in objects)
             {
                 queue.Enqueue(@object);
             }
+
             while (queue.Count > 0)
             {
                 object obj = queue.Dequeue();
                 foreach (object extractedObj in ExtractClass(obj.GetType(), obj))
                 {
+                    if (extractedObj == null)
+                        continue;
+
                     queue.Enqueue(extractedObj);
                 }
             }
+
+
             imports.Sort(delegate (EbxImportReference a, EbxImportReference b)
             {
                 byte[] array = a.FileGuid.ToByteArray();
@@ -170,9 +189,26 @@ namespace FrostySdk.FrostySdk.IO
                 objsToProcess.Add(obj);
                 objs.Add(obj);
             }
-            PropertyInfo[] properties = type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
+            //PropertyInfo[] properties = type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
+            Dictionary<PropertyInfo, EbxFieldMetaAttribute> properties = new Dictionary<PropertyInfo, EbxFieldMetaAttribute>();
+            foreach (var prp in type.GetProperties())
+            {
+                var ebxfieldmeta = prp.GetCustomAttribute<EbxFieldMetaAttribute>();
+                if (ebxfieldmeta != null)
+                {
+                    properties.Add(prp, ebxfieldmeta);
+                }
+            }
+
+            var orderedProps = properties
+                .Where(x => x.Key.GetCustomAttribute<IsTransientAttribute>() == null && x.Key.GetCustomAttribute<EbxFieldMetaAttribute>() != null)
+                .OrderBy(x => x.Value.Offset)
+                //.OrderBy(x => x.Key.GetCustomAttribute<FieldIndexAttribute>().Index)
+                .ToArray();
+
+
             List<object> dataContainers = new List<object>();
-            foreach (PropertyInfo propertyInfo in properties)
+            foreach (PropertyInfo propertyInfo in orderedProps.Select(x=>x.Key))
             {
                 if (!flags.HasFlag(EbxWriteFlags.IncludeTransient) && propertyInfo.GetCustomAttribute<IsTransientAttribute>() != null)
                 {
@@ -180,9 +216,27 @@ namespace FrostySdk.FrostySdk.IO
                 }
                 if (propertyInfo.PropertyType == typeof(PointerRef))
                 {
-                    PointerRef pointerRef2 = (PointerRef)propertyInfo.GetValue(obj);
+                    var prInstanceObj = propertyInfo.GetValue(obj);
+                    if (prInstanceObj == null)
+                    {
+                        WriteErrors.Add("COULD_NOT_WRITE_POINTERREF");
+                        continue;
+                    }
+                    PointerRef pointerRef2 = (PointerRef)prInstanceObj;
+                    if (pointerRef2 == default(PointerRef))
+                    {
+                        WriteErrors.Add("COULD_NOT_WRITE_POINTERREF");
+                        continue;
+                    }
+
                     if (pointerRef2.Type == PointerRefType.Internal)
                     {
+                        if(pointerRef2.Internal == null)
+                        {
+                            WriteErrors.Add("COULD_NOT_WRITE_POINTERREF");
+                            continue;
+                        }
+
                         dataContainers.Add(pointerRef2.Internal);
                     }
                     else if (pointerRef2.Type == PointerRefType.External && !imports.Contains(pointerRef2.External))
@@ -191,11 +245,28 @@ namespace FrostySdk.FrostySdk.IO
                     }
                 }
                 else if (
-                    (propertyInfo.PropertyType.Namespace == "FrostySdk.Ebx" || propertyInfo.PropertyType.Namespace == "Sdk.Ebx")
+                    (
+                    // Old school "FrostySdk" namespace
+                    propertyInfo.PropertyType.Namespace == "FrostySdk.Ebx" 
+                    || 
+                    // Sdk namespace, used by FIFAEditorTool
+                    propertyInfo.PropertyType.Namespace == "Sdk.Ebx"
+                    )
                     && propertyInfo.PropertyType.BaseType != typeof(Enum))
                 {
                     object value = propertyInfo.GetValue(obj);
-                    dataContainers.AddRange(ExtractClass(value.GetType(), value, add: false));
+                    if (value == null)
+                    {
+                        WriteErrors.Add("COULD_NOT_WRITE_PROPERTY_OBJECT");
+                        continue;
+                    }
+                    IEnumerable<object> extractedInstances = ExtractClass(value.GetType(), value, add: false);
+                    if (extractedInstances == null || extractedInstances.Any(x => x == null))
+                    {
+                        WriteErrors.Add("COULD_NOT_WRITE_PROPERTY_OBJECT");
+                        continue;
+                    }
+                    dataContainers.AddRange(extractedInstances);
                 }
                 else
                 {
@@ -1140,6 +1211,13 @@ namespace FrostySdk.FrostySdk.IO
                         }
                         else if (pointer.Type == PointerRefType.Internal)
                         {
+                            if (pointer.Internal == null)
+                            {
+                                Debug.WriteLine($"Error writing Pointer {obj} in {objs[0].GetType().FullName}");
+                                WriteErrors.Add("COULD_NOT_WRITE_PROPERTY_POINTERREF_INTERNAL_IS_NULL");
+                                break;
+                            }
+
                             pointerRefValue = sortedObjs.FindIndex((object value) => value == pointer.Internal);
                             if (pointerRefValue == -1)
                             {

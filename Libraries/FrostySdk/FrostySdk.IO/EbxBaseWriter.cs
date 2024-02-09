@@ -4,6 +4,7 @@ using FrostySdk.FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -11,6 +12,10 @@ namespace FrostySdk.IO
 {
     public class EbxBaseWriter : NativeWriter
     {
+        public bool HasErrorInWrite { get { return WriteErrors.Count > 0; } }
+
+        public List<string> WriteErrors { get; } = new();
+
         protected EbxWriteFlags flags;
 
         protected List<string> strings = new List<string>();
@@ -133,6 +138,11 @@ namespace FrostySdk.IO
 
         public static byte[] GetEbxArrayDecompressed(EbxAssetEntry entry)
         {
+
+#if DEBUG
+            System.Diagnostics.StackTrace t = new ();
+#endif
+
             byte[] decompressedArray = null;
             if (!Task.Run(() =>
             {
@@ -143,6 +153,13 @@ namespace FrostySdk.IO
                     var newAsset = ((ModifiedAssetEntry)entry.ModifiedEntry).DataObject as EbxAsset;
                     newAsset.ParentEntry = entry;
                     ebxBaseWriter.WriteAsset(newAsset);
+
+                    // Handle if there is an error in the Write process
+                    if (ebxBaseWriter.HasErrorInWrite)
+                    {
+                        Debug.WriteLine($"Unable to write entry {entry.Name}. There were {ebxBaseWriter.WriteErrors.Count} error(s) whilst writing.");
+                        return;
+                    }
 
                     decompressedArray = ((MemoryStream)ebxBaseWriter.BaseStream).ToArray();
                 }
