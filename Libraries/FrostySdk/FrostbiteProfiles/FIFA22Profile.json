@@ -7,7 +7,7 @@
   "AssetLoader": "AssetLoader_Fifa22",
   "AssetCompiler": "Fifa22AssetCompilerV1",
   //"AssetCompiler": "Fifa22AssetCompiler",
-  "EditorScreen": "FIFA21Editor",
+  "EditorScreen": "DefaultEditor",
   // Texture Importer (Overriding the base Importer)
   "TextureImporter": "FIFA22TextureImporter",
   // Texture Exporter (Overriding the base Exporter)
