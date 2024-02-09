@@ -33,9 +33,9 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         public Task<bool> LoadAsync(string fileName, CancellationToken cancellationToken = default(CancellationToken));
 
-        public void WriteToMod(string filename, ModSettings overrideSettings = null);
+        public void WriteToMod(string filename, ModSettings overrideSettings = null, CancellationToken cancellationToken = default(CancellationToken));
 
-        public void WriteToFIFAMod(string filename, ModSettings overrideSettings = null);
+        public void WriteToFIFAMod(string filename, ModSettings overrideSettings = null, CancellationToken cancellationToken = default(CancellationToken));
 
         public Task<bool> SaveAsync(string overrideFilename, bool updateDirtyState);
     }

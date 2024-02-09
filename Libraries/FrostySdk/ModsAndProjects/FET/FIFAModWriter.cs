@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace FrostySdk.Frosty.FET
 {
@@ -32,7 +33,7 @@ namespace FrostySdk.Frosty.FET
             overrideSettings = inOverrideSettings;
         }
 
-        public override void WriteProject(IProject project)
+        public override void WriteProject(IProject project, CancellationToken cancellationToken)
         {
             if (project == null)
             {
@@ -132,20 +133,20 @@ namespace FrostySdk.Frosty.FET
                     AddResource(ebxResource);
                 }
             }
-            foreach (ResAssetEntry item3 in assetManager.EnumerateRes(0u, modifiedOnly: true))
-            {
-                if (item3.HasModifiedData)
-                {
-                    AddResource(new ResResource(item3, ResourceManifest));
-                }
-            }
-            foreach (ChunkAssetEntry item4 in assetManager.EnumerateChunks(modifiedOnly: true))
-            {
-                if (item4.HasModifiedData)
-                {
-                    AddResource(new ChunkResource(item4, ResourceManifest));
-                }
-            }
+            //foreach (ResAssetEntry item3 in assetManager.EnumerateRes(0u, modifiedOnly: true))
+            //{
+            //    if (item3.HasModifiedData)
+            //    {
+            //        AddResource(new ResResource(item3, ResourceManifest));
+            //    }
+            //}
+            //foreach (ChunkAssetEntry item4 in assetManager.EnumerateChunks(modifiedOnly: true))
+            //{
+            //    if (item4.HasModifiedData)
+            //    {
+            //        AddResource(new ChunkResource(item4, ResourceManifest));
+            //    }
+            //}
             //foreach (LegacyFileEntry lfe in AssetManager.Instance.EnumerateCustomAssets("legacy", true))
             //{
             //    AddResource(new FIFAEditorLegacyResource(lfe.Name, lfe.EbxAssetEntry != null ? lfe.EbxAssetEntry.Name : "", lfe.ModifiedEntry.Data, null, manifest));
@@ -183,7 +184,7 @@ namespace FrostySdk.Frosty.FET
             Position = positionOfDataOffset;
             WriteInt64LittleEndian(dataOffset);
             WriteUInt32LittleEndian(dataCount);
-            //GenerateChecksums();
+            GenerateChecksums();
         }
 
         private void GenerateChecksums()
