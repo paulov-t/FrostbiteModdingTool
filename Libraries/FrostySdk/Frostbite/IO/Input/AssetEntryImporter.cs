@@ -9,6 +9,8 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -236,8 +238,6 @@ namespace FrostySdk.Frostbite.IO.Input
 
             public override bool CanConvert(Type objectType)
             {
-                // check for Array, IList, etc.
-                //return objectType.IsArray || objectType.Name == "EbxImportReference";
                 return objectType.Name == "PointerRef";
             }
 
@@ -246,38 +246,100 @@ namespace FrostySdk.Frostbite.IO.Input
                 // -----------------------------------------------------------------------
                 // This will ATTEMPT to resolve the object dynamically
 
-                try
+                //try
+                //{
+
+                //    // Load JObject from stream
+                JObject jObject = JObject.Load(reader, new JsonLoadSettings() { });
+                //    var externalObject = jObject["External"];
+                var internalObject = jObject["Internal"];
+                //    var nwInternal = jObject["Internal"].ToObject(existingValue.GetProperty("Internal").PropertyType);
+
+                // FMT: Do not handle "External" objects (yet)
+                if (internalObject == null)
+                    return existingValue;
+
+                var nwInternal = jObject["Internal"].ToObject(existingValue.GetProperty("Internal").PropertyType);
+                if(nwInternal == null)
+                    return existingValue;
+
+                foreach (var p in existingValue.GetProperties())
                 {
+                    var vRoot = p.GetValue(existingValue);
+                    if (vRoot == null)
+                        continue;
 
-                    // Load JObject from stream
-                    JObject jObject = JObject.Load(reader);
-                    var externalObject = jObject["External"];
-                    var internalObject = jObject["Internal"];
-                    var nwInternal = jObject["Internal"].ToObject(existingValue.GetProperty("Internal").PropertyType);
-
-                    foreach (var p in existingValue.GetProperties())
-                    {
-                        var vRoot = p.GetValue(existingValue);
-                        if (vRoot != null)
-                        {
-                            foreach (var pVRoot in vRoot.GetProperties().Where(x => !x.Name.Contains("Guid", StringComparison.OrdinalIgnoreCase)))
-                            {
-                                var jsonInternal = internalObject[pVRoot.Name];
-                                if (jsonInternal != null)
-                                {
-                                    pVRoot.SetValue(vRoot, jsonInternal.ToObject(pVRoot.PropertyType));
-                                }
-                            }
-                        }
-                    }
-
+                    ProcessProperty(internalObject, vRoot);
                 }
-                finally
-                {
 
-                }
+                //}
+                //catch(Exception ex)
+                //{
+
+                //}
+                //finally
+                //{
+
+                //}
 
                 return existingValue;
+            }
+
+            private void ProcessProperty(JToken internalObject, object vRoot)
+            {
+                if (internalObject == null)
+                    return;
+
+                var properties = vRoot.GetProperties();
+
+                // Handle simple Writables. Like floats
+                var writableFloatProperties = 
+                        properties
+                        .Where(x => x.PropertyType == typeof(float))
+                        .Where(x => x.CanWrite).ToArray();
+
+                foreach (var pVRoot in writableFloatProperties)
+                {
+                    var jsonInternal = internalObject[pVRoot.Name];
+                    if (jsonInternal != null)
+                    {
+                        var originalValue = (float)pVRoot.GetValue(vRoot);
+                        var newValue = float.Parse(jsonInternal.ToString());
+                        if (originalValue != newValue)
+                            pVRoot.SetValue(vRoot, newValue);
+                    }
+                }
+
+                // Handle lists
+                var writableListProperties =
+                        properties
+                        .Where(x => IsList(x.PropertyType)).ToArray();
+
+                foreach (var writablePropertyList in writableListProperties)
+                {
+                    var lst = (IList)writablePropertyList.GetValue(vRoot);
+                    if (!lst.GetType().GetGenericArguments().Any())
+                        continue;
+
+                    var index = 0;
+                    foreach (var item in lst)
+                    {
+                        var jarrayObj = internalObject[writablePropertyList.Name].ToArray()[index];
+                        ProcessProperty(jarrayObj, item);
+                        index++;
+                    }
+                }
+            }
+
+            public bool IsList(object o)
+            {
+                return o is IList && IsList(o.GetType());
+            }
+
+            public bool IsList(Type t)
+            {
+                return t.IsGenericType &&
+                   t.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>));
             }
 
             public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
