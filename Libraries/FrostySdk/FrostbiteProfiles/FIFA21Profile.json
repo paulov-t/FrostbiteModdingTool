@@ -7,7 +7,7 @@
   "KeyFile": "fifa21.key",
   "AssetLoader": "FIFA21AssetLoader",
   "AssetCompiler": "FIFA21AssetCompiler",
-  "EditorScreen": "FIFA21Editor",
+  "EditorScreen": "DefaultEditor",
   // Texture Importer (Overriding the base Importer)
   "TextureImporter": "FIFA21TextureImporter",
   // Texture Exporter (Overriding the base Exporter)

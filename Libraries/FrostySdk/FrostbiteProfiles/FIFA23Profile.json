@@ -8,7 +8,7 @@
   //"AssetCompiler": "FrostbiteNullCompiler",
   "AssetCompiler": "Fifa23AssetCompilerV1",
   //"AssetCompiler": "Fifa23AssetReplacementCompiler",
-  "EditorScreen": "FIFA21Editor",
+  "EditorScreen": "DefaultEditor",
   // Texture Importer (Overriding the base Importer)
   "TextureImporter": "FIFA23TextureImporter",
   // Texture Exporter (Overriding the base Exporter)
