@@ -1889,7 +1889,7 @@ namespace FrostySdk.Managers
             {
                 if(entry is EbxAssetEntry ebxAssetEntry)
                 {
-                    return new MemoryStream(EbxWriter.GetEbxArrayDecompressed(ebxAssetEntry));
+                    return new MemoryStream(EbxWriter.GetEbxArrayDecompressed(ebxAssetEntry, out var errors));
                 }
                 else
                     return GetResourceData(entry.ModifiedEntry.Data);

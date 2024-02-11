@@ -443,7 +443,7 @@ namespace FrostySdk
             byte[] decompressedArrayOfModified = null;
             if (modifiedEbx.IsDirectlyModified)
             {
-                decompressedArrayOfModified = EbxBaseWriter.GetEbxArrayDecompressed(modifiedEbx);
+                decompressedArrayOfModified = EbxBaseWriter.GetEbxArrayDecompressed(modifiedEbx, out var errors);
                 if (decompressedArrayOfModified == null || decompressedArrayOfModified.Length == 0)
                     modifiedEbx.ModifiedEntry = null;
             }

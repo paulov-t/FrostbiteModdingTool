@@ -488,7 +488,7 @@ namespace FrostbiteSdk
         public static PropertyInfo[] GetProperties(this object obj)
         {
             Type t = obj.GetType();
-            return t.GetProperties();
+            return t.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
         }
 
         public static PropertyInfo GetProperty(this object obj, string propName)

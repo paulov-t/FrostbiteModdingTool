@@ -164,7 +164,16 @@ namespace FrostySdk
                     // get via ebx writer
                     try
                     {
-                        decompressedArray = EbxBaseWriter.GetEbxArrayDecompressed(entry);
+                        if(!EbxBaseWriter.TryGetEbxArrayDecompressed(entry, ref decompressedArray, out var errors))
+                        {
+                            FileLogger.WriteLine($"--------------------------------------------------------");
+                            FileLogger.WriteLine($"Unable to Write EBX {entry.Name} to Mod:");
+                            foreach(var error in errors) 
+                            { 
+                                FileLogger.WriteLine($"{entry.Name}: {error}");
+                            }
+                            FileLogger.WriteLine($"--------------------------------------------------------");
+                        }
                     }
                     catch(Exception ex) 
                     {
