@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -295,18 +296,35 @@ namespace FrostySdk.Frostbite.IO.Input
                 // Handle simple Writables. Like floats
                 var writableFloatProperties = 
                         properties
-                        .Where(x => x.PropertyType == typeof(float))
+                        .Where(x => x.PropertyType == typeof(float) || x.PropertyType == typeof(bool) || x.PropertyType == typeof(string) || x.PropertyType == typeof(int))
                         .Where(x => x.CanWrite).ToArray();
 
                 foreach (var pVRoot in writableFloatProperties)
                 {
-                    var jsonInternal = internalObject[pVRoot.Name];
-                    if (jsonInternal != null)
+                    var jsonValue = internalObject.SelectToken(pVRoot.Name)?.ToString();
+                    if (jsonValue == null)
+                        continue;
+
                     {
-                        var originalValue = (float)pVRoot.GetValue(vRoot);
-                        var newValue = float.Parse(jsonInternal.ToString());
-                        if (originalValue != newValue)
-                            pVRoot.SetValue(vRoot, newValue);
+                        switch(pVRoot.PropertyType.Name)
+                        {
+                            case "Float32":
+                                var originalValue = (float)pVRoot.GetValue(vRoot);
+                                var newValue = float.Parse(jsonValue);
+                                if (originalValue != newValue)
+                                    pVRoot.SetValue(vRoot, newValue);
+                                break;
+                            case "Single":
+                                var originalValue2 = (Single)pVRoot.GetValue(vRoot);
+                                var newValue2 = Single.Parse(jsonValue);
+                                if (originalValue2 != newValue2)
+                                    pVRoot.SetValue(vRoot, newValue2);
+                                break;
+                            default: 
+                                break;
+
+                        }
+                       
                     }
                 }
 
@@ -324,7 +342,9 @@ namespace FrostySdk.Frostbite.IO.Input
                     var index = 0;
                     foreach (var item in lst)
                     {
-                        var jarrayObj = internalObject[writablePropertyList.Name].ToArray()[index];
+                        var jarrayObj = internalObject.SelectToken(writablePropertyList.Name)?.ToArray()[index];
+                        if (jarrayObj == null) 
+                            continue;
                         ProcessProperty(jarrayObj, item);
                         index++;
                     }
