@@ -136,16 +136,16 @@ namespace FrostySdk.IO
                 , new MemoryStream(), EbxWriteFlags.None, false);
         }
 
-        public static byte[] GetEbxArrayDecompressed(EbxAssetEntry entry)
+        public static byte[] GetEbxArrayDecompressed(EbxAssetEntry entry, out List<string> errors)
         {
-
+            errors = null;
 #if DEBUG
             System.Diagnostics.StackTrace t = new ();
 #endif
 
             byte[] decompressedArray = null;
-            if (!Task.Run(() =>
-            {
+            //if (!Task.Run(() =>
+            //{
                 var ebxBaseWriter = GetEbxWriter();
 
                 using (ebxBaseWriter)
@@ -157,18 +157,39 @@ namespace FrostySdk.IO
                     // Handle if there is an error in the Write process
                     if (ebxBaseWriter.HasErrorInWrite)
                     {
+                        errors = ebxBaseWriter.WriteErrors;
                         Debug.WriteLine($"Unable to write entry {entry.Name}. There were {ebxBaseWriter.WriteErrors.Count} error(s) whilst writing.");
-                        return;
+                        return null;
                     }
 
                     decompressedArray = ((MemoryStream)ebxBaseWriter.BaseStream).ToArray();
                 }
+            //}).Wait(TimeSpan.FromSeconds(GetEbxLoadWaitSeconds)))
+            //{
+            //    //AssetManager.Instance.LogError($"{entry.Name} failed to write!");
+            //    return null;
+            //}
+            return decompressedArray;
+        }
+
+        public static bool TryGetEbxArrayDecompressed(EbxAssetEntry entry, ref byte[] decompressedArray, out List<string> errors)
+        {
+            decompressedArray = GetEbxArrayDecompressed(entry, out errors);
+            return decompressedArray != null && (errors == null || errors.Count == 0);
+        }
+
+        public static bool TryGetEbxArrayDecompressedAsync(EbxAssetEntry entry, byte[] decompressedArray, List<string> errors)
+        {
+            if (!Task.Run(() =>
+            {
+                decompressedArray = GetEbxArrayDecompressed(entry, out errors);
+                return decompressedArray != null && (errors == null || errors.Count == 0);
             }).Wait(TimeSpan.FromSeconds(GetEbxLoadWaitSeconds)))
             {
-                //AssetManager.Instance.LogError($"{entry.Name} failed to write!");
-                return null;
+                return false;
             }
-            return decompressedArray;
+
+            return false;
         }
 
         public static double GetEbxLoadWaitSeconds { get; set; } = 30;

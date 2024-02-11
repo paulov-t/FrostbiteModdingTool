@@ -458,7 +458,7 @@ namespace FrostySdk.FrostySdk.IO
                     Write(arr.Count);
                     Write(origEbxArrays[iEbxxArray].PathDepth);
                     Write((ushort)origEbxArrays[iEbxxArray].TypeFlags);
-                    Write((ushort)arr.ClassRef);
+                    Write((ushort)origEbxArrays[iEbxxArray].ClassRef);
                 }
                 else
                 {
@@ -725,13 +725,9 @@ namespace FrostySdk.FrostySdk.IO
             }
 
             ProcessDataArray(nativeWriter);
+            nativeWriter.WritePadding(16);
             ProcessDataBoxedValues(nativeWriter);
-
-            //nativeWriter.WritePadding(16);
-
-
-
-
+            nativeWriter.WritePadding(16);
 
             stringTablePosition = (int)nativeWriter.Position;
             foreach (KeyValuePair<string, List<(int, int)>> stringsToCStringOffset in stringsToCStringOffsets)
@@ -879,7 +875,7 @@ namespace FrostySdk.FrostySdk.IO
             _ = this.objs;
             _ = classGuids;
 
-            foreach (var unpatchedArray in unpatchedArrayInfo)
+            foreach (var unpatchedArray in unpatchedArrayInfo.OrderBy(x=>x.containingArrayIndex))
             {
                 EbxArray arrayInfo = arrays[unpatchedArray.arrayIndex];
                 byte[] arrayData = this.arrayData[unpatchedArray.arrayIndex];
@@ -890,94 +886,87 @@ namespace FrostySdk.FrostySdk.IO
                 else
                 {
                     long beforePaddingPosition = nativeWriter.Position;
-                    //nativeWriter.WritePadding(16);
-                    //if ((nativeWriter.Position - beforePaddingPosition) < 4)
-                    //               {
-                    //	nativeWriter.WriteEmpty(16);
-                    //}
-                    ////nativeWriter.Position -= 12L;
-                    //nativeWriter.Position -= 4L;
 
-                    byte alignment = 0;
-                    //if (arrayInfo.ClassRef == -1)
+
+                    nativeWriter.WritePadding(16);
+                    //if (nativeWriter.Position - beforePaddingPosition < 4)
                     //{
-                        EbxFieldType arrayType = (EbxFieldType)((arrayInfo.TypeFlags >> 5) & 0x1F);
-                        switch (arrayType)
-                        {
-                            case EbxFieldType.Enum:
-                            case EbxFieldType.TypeRef:
-                            case EbxFieldType.String:
-                            case EbxFieldType.Boolean:
-                            case EbxFieldType.Float32:
-                            case EbxFieldType.Int8:
-                            case EbxFieldType.UInt8:
-                            case EbxFieldType.Int16:
-                            case EbxFieldType.UInt16:
-                            case EbxFieldType.Int32:
-                            case EbxFieldType.UInt32:
-                                alignment = 4; break;
-                            case EbxFieldType.Float64:
-                            case EbxFieldType.Int64:
-                            case EbxFieldType.UInt64:
-                            case EbxFieldType.CString:
-                            case EbxFieldType.FileRef:
-                            case EbxFieldType.Delegate:
-                            case EbxFieldType.Pointer:
-                            case EbxFieldType.ResourceRef:
-                            case EbxFieldType.BoxedValueRef:
-                                alignment = 8; break;
-                            default: alignment = 4; break;
-                        }
+                    //    nativeWriter.WriteEmpty(16);
                     //}
-                    //else
-                    //{
-                    //    EbxClass arrayClass = m_classTypes[array.ClassRef];
-                    //    switch (arrayClass.DebugCategory)
+                    nativeWriter.Position -= 4L;
+
+                    //byte alignment = 0;
+                    ////if (arrayInfo.ClassRef == -1)
+                    ////{
+                    //    EbxFieldType arrayType = (EbxFieldType)((arrayInfo.TypeFlags >> 5) & 0x1F);
+                    //    switch (arrayType)
                     //    {
-                    //        case EbxFieldCategory.EnumType:
+                    //        case EbxFieldType.Enum:
+                    //        case EbxFieldType.TypeRef:
+                    //        case EbxFieldType.String:
+                    //        case EbxFieldType.Boolean:
+                    //        case EbxFieldType.Float32:
+                    //        case EbxFieldType.Int8:
+                    //        case EbxFieldType.UInt8:
+                    //        case EbxFieldType.Int16:
+                    //        case EbxFieldType.UInt16:
+                    //        case EbxFieldType.Int32:
+                    //        case EbxFieldType.UInt32:
                     //            alignment = 4; break;
-                    //        case EbxFieldCategory.Pointer:
-                    //        case EbxFieldCategory.ArrayType:
-                    //        case EbxFieldCategory.DelegateType:
+                    //        case EbxFieldType.Float64:
+                    //        case EbxFieldType.Int64:
+                    //        case EbxFieldType.UInt64:
+                    //        case EbxFieldType.CString:
+                    //        case EbxFieldType.FileRef:
+                    //        case EbxFieldType.Delegate:
+                    //        case EbxFieldType.Pointer:
+                    //        case EbxFieldType.ResourceRef:
+                    //        case EbxFieldType.BoxedValueRef:
                     //            alignment = 8; break;
-                    //        default: alignment = arrayClass.Alignment; break;
+                    //        default: alignment = 4; break;
                     //    }
-                    //}
-                    //nativeWriter.WritePadding(alignment);
-                    // shift where the count is so that the array data is properly aligned
-                    //long dataPos = nativeWriter.Position + 4;
-                    //if (alignment != 4)
-                    //{
-                    //    while (dataPos % alignment != 0)
-                    //    {
-                    //        nativeWriter.Write((byte)0);
-                    //        dataPos = nativeWriter.Position;
-                    //    }
-                    //    nativeWriter.Position -= 0x4;
-                    //}
+                    ////}
+                    ////else
+                    ////{
+                    ////    EbxClass arrayClass = m_classTypes[array.ClassRef];
+                    ////    switch (arrayClass.DebugCategory)
+                    ////    {
+                    ////        case EbxFieldCategory.EnumType:
+                    ////            alignment = 4; break;
+                    ////        case EbxFieldCategory.Pointer:
+                    ////        case EbxFieldCategory.ArrayType:
+                    ////        case EbxFieldCategory.DelegateType:
+                    ////            alignment = 8; break;
+                    ////        default: alignment = arrayClass.Alignment; break;
+                    ////    }
+                    ////}
+                    ////nativeWriter.WritePadding(alignment);
+                    //// shift where the count is so that the array data is properly aligned
+                    ////long dataPos = nativeWriter.Position + 4;
+                    ////if (alignment != 4)
+                    ////{
+                    ////    while (dataPos % alignment != 0)
+                    ////    {
+                    ////        nativeWriter.Write((byte)0);
+                    ////        dataPos = nativeWriter.Position;
+                    ////    }
+                    ////    nativeWriter.Position -= 0x4;
+                    ////}
 
-                    if (alignment == 4)
-                    {
-                        if (nativeWriter.Position % 8 == 0)
-                        {
-                            nativeWriter.WriteEmpty(12);
-                        }
-                    }
+                    ////if (alignment == 4)
+                    ////{
+                    ////    if (nativeWriter.Position % 8 == 0)
+                    ////    {
+                    ////        nativeWriter.WriteEmpty(8);
+                    ////    }
+                    ////}
+                    ////else
+                    ////{
+                    ////    nativeWriter.WritePadding(alignment);
+                    ////}
 
                     nativeWriter.WriteUInt32LittleEndian(arrayInfo.Count);
                     long beforeArrayPosition = nativeWriter.Position;
-
-#if DEBUG
-                    if (beforeArrayPosition == 10568
-                        || beforeArrayPosition == 10564 
-                        || 100-1==1
-                        ) 
-                    {
-                    
-                    }
-
-#endif
-
 
                     nativeWriter.WriteBytes(arrayData);
                     arrayInfo.Offset = (uint)beforeArrayPosition;
@@ -1126,6 +1115,11 @@ namespace FrostySdk.FrostySdk.IO
                 {
 #if DEBUG
                     writtenProperties.Add(propertyInfo);
+
+                    if (propertyInfo.Name == "SHOT_ShotSpeedCoe")
+                    {
+
+                    }
 #endif
                     bool isReference = propertyInfo.GetCustomAttribute<IsReferenceAttribute>() != null;
                     if (ebxFieldMetaAttribute.IsArray)
@@ -1147,7 +1141,9 @@ namespace FrostySdk.FrostySdk.IO
                 throw new Exception("Some properties were not written");
             }
 #endif
+
             writer.WritePadding(classMeta.Alignment);
+
         }
 
         protected void WriteField(object obj, EbxFieldType ebxType, byte classAlignment, NativeWriter writer, bool isReference)
@@ -1314,9 +1310,36 @@ namespace FrostySdk.FrostySdk.IO
             arrayIndicesMap.Add(-1);
             currentArrayDepth++;
             long pointerPosition = mainWriter.Position;
-            mainWriter.WriteInt64LittleEndian(0L);
+            mainWriter.WriteInt32LittleEndian(0);
+            mainWriter.WritePadding(8);
             for (int i = 0; i < arrayCount; i++)
             {
+                bool has8bitAlignment;
+                switch (fieldMetaAttribute.Type)
+                {
+                    case EbxFieldType.Pointer:
+                    case EbxFieldType.CString:
+                    case EbxFieldType.FileRef:
+                    case EbxFieldType.Int64:
+                    case EbxFieldType.UInt64:
+                    case EbxFieldType.Float64:
+                    case EbxFieldType.ResourceRef:
+                    case EbxFieldType.TypeRef:
+                    case EbxFieldType.BoxedValueRef:
+                        has8bitAlignment = true;
+                        break;
+                    default:
+                        has8bitAlignment = false;
+                        break;
+                }
+                if (has8bitAlignment)
+                {
+                    arrayWriter.WritePadding(8);
+                }
+                else if (fieldMetaAttribute.Type == EbxFieldType.Array)
+                {
+                    arrayWriter.WritePadding(4);
+                }
                 object arrayElementObj = typedObj[i];
                 WriteField(arrayElementObj, fieldMetaAttribute.ArrayType, classAlignment, arrayWriter, isReference);
             }
