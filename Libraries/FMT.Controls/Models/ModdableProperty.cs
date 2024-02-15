@@ -26,7 +26,7 @@ namespace FMT.Models
 
                     _ = RootObject;
                     _ = Property;
-                    if (Property.PropertyType.FullName.Contains("List`1") && ArrayType != null && ArrayIndex.HasValue)
+                    if (Property.PropertyType.FullName.Contains("List`1") && (IsInList || (ArrayType != null && ArrayIndex.HasValue)))
                     {
                         if (PropertyChanged != null)
                         {
@@ -42,6 +42,9 @@ namespace FMT.Models
 
                             if (Property.CanWrite && Property.SetMethod != null)
                             {
+                                if (Property.GetValue(RootObject) == value)
+                                    return;
+
                                 Property.SetValue(RootObject, Convert.ChangeType(value, Property.PropertyType));
                                 if (PropertyChanged != null)
                                 {
