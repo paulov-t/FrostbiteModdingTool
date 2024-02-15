@@ -1,11 +1,6 @@
 name: .NET Build
 
 on:
-  push:
-      paths-ignore:
-      - '.github/*'
-      - '.github/*_TEMPLATE/**'
-      - '*.md'
   pull_request:
       paths-ignore:
       - '.github/*'
