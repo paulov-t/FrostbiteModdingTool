@@ -51,15 +51,25 @@ namespace FMT.Windows
         {
             foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
             {
-                var t = a.GetTypes().FirstOrDefault(x => x.Name.Contains(lstInternalSelected.SelectedItem.ToString(), StringComparison.OrdinalIgnoreCase));
+                var typeName = ((ProfileManager.Tools.InternalTool)lstInternalSelected.SelectedItem).Window;
+                var t = a.GetTypes().FirstOrDefault(x => x.Name.Contains(typeName, StringComparison.OrdinalIgnoreCase));
                 if (t != null)
                 {
-                    App.MainEditorWindow = (Window)Activator.CreateInstance(t, Owner);
-                    App.MainEditorWindow.Show();
-                    this.Close();
+                    var window = (Window)Activator.CreateInstance(t);
+                    if (window != null)
+                    {
+                        window.Show();
+                        this.IsEnabled = false;
+                        window.Closed += OnToolWindowClosed;
+                    }
                     return;
                 }
             }
+        }
+
+        private void OnToolWindowClosed(object sender, EventArgs e)
+        {
+            this.IsEnabled = true;
         }
 
         private void lstExternal_SelectionChanged(object sender, SelectionChangedEventArgs e)

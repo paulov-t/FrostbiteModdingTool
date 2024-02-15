@@ -38,18 +38,27 @@ namespace FMT.Windows
         {
             get
             {
-                if (data == null && AssetManager.Instance.LocaleINIMod.OriginalData != null)
-                    data = Encoding.UTF8.GetString(AssetManager.Instance.LocaleINIMod.OriginalData);
+                if (AssetManager.Instance != null)
+                {
+                    if (data == null && AssetManager.Instance.LocaleINIMod.OriginalData != null)
+                        data = Encoding.UTF8.GetString(AssetManager.Instance.LocaleINIMod.OriginalData);
 
-                if (AssetManager.Instance.LocaleINIMod.UserData != null && AssetManager.Instance.LocaleINIMod.UserData.Length > 0)
-                    data = Encoding.UTF8.GetString(AssetManager.Instance.LocaleINIMod.UserData);
+                    if (AssetManager.Instance.LocaleINIMod.UserData != null && AssetManager.Instance.LocaleINIMod.UserData.Length > 0)
+                        data = Encoding.UTF8.GetString(AssetManager.Instance.LocaleINIMod.UserData);
+                }
+                else
+                    data = Encoding.UTF8.GetString(FileSystem.Instance.ReadLocaleIni());
 
                 return data;
             }
             set
             {
                 data = value;
-                AssetManager.Instance.LocaleINIMod.UserData = Encoding.UTF8.GetBytes(value);
+
+                if (AssetManager.Instance != null)
+                    AssetManager.Instance.LocaleINIMod.UserData = Encoding.UTF8.GetBytes(value);
+
+
             }
         }
 

@@ -47,14 +47,14 @@ namespace FMT.Pages.Common
             {
                 get
                 {
-                    if (AssetManager.Instance.InitFSManager.DataModifications.ContainsKey(this.FileName))
+                    if (AssetManager.Instance != null && AssetManager.Instance.InitFSManager.DataModifications.ContainsKey(this.FileName))
                         return AssetManager.Instance.InitFSManager.DataModifications[FileName];
 
                     return FileSystem.Instance.memoryFs[FileName];
                 }
             }
 
-            public bool IsModified => AssetManager.Instance.InitFSManager.DataModifications.ContainsKey(this.FileName);
+            public bool IsModified => AssetManager.Instance != null ? AssetManager.Instance.InitFSManager.DataModifications.ContainsKey(this.FileName) : false;
 
             public FileEntry(string fileName)
             {
