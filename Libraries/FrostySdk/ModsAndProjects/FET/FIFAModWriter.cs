@@ -184,7 +184,7 @@ namespace FrostySdk.Frosty.FET
             Position = positionOfDataOffset;
             WriteInt64LittleEndian(dataOffset);
             WriteUInt32LittleEndian(dataCount);
-            GenerateChecksums();
+            //GenerateChecksums();
         }
 
         private void GenerateChecksums()
