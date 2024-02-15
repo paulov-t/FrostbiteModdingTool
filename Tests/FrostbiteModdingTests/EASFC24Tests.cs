@@ -141,7 +141,7 @@ namespace FrostbiteModdingTests
 
             FC24TOCFile tocDataFile = new FC24TOCFile(tocDataResource, true, false, false, -1, false);
 
-            var tocPatchResource = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.Data.globalsfull.toc");
+            var tocPatchResource = FMT.FileTools.EmbeddedResourceHelper.GetEmbeddedResourceByName("FC24.Patch.globalsfull.toc");
 
             FC24TOCFile tocPatchFile = new FC24TOCFile(tocPatchResource, true, false, false, -1, false);
 

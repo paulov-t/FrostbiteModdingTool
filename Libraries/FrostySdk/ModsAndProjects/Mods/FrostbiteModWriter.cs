@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using v2k4FIFAModding.Frosty;
 using Fnv1a = FMT.FileTools.Fnv1a;
 
@@ -163,7 +164,16 @@ namespace FrostySdk
                     // get via ebx writer
                     try
                     {
-                        decompressedArray = EbxBaseWriter.GetEbxArrayDecompressed(entry);
+                        if(!EbxBaseWriter.TryGetEbxArrayDecompressed(entry, ref decompressedArray, out var errors))
+                        {
+                            FileLogger.WriteLine($"--------------------------------------------------------");
+                            FileLogger.WriteLine($"Unable to Write EBX {entry.Name} to Mod:");
+                            foreach(var error in errors) 
+                            { 
+                                FileLogger.WriteLine($"{entry.Name}: {error}");
+                            }
+                            FileLogger.WriteLine($"--------------------------------------------------------");
+                        }
                     }
                     catch(Exception ex) 
                     {
@@ -380,7 +390,7 @@ namespace FrostySdk
             overrideSettings = inOverrideSettings;
         }
 
-        public virtual void WriteProject(IProject project)
+        public virtual void WriteProject(IProject project, CancellationToken cancellationToken)
         {
             Write(FrostbiteMod.MagicFMT);
             Write(FrostbiteMod.CurrentVersion);
@@ -494,7 +504,7 @@ namespace FrostySdk
 
         public virtual void WriteProject()
         {
-            WriteProject(ProjectManagement.Instance != null ? ProjectManagement.Instance.Project : null);
+            WriteProject(ProjectManagement.Instance != null ? ProjectManagement.Instance.Project : null, CancellationToken.None);
         }
 
         public void AddResource(BaseModResource resource)

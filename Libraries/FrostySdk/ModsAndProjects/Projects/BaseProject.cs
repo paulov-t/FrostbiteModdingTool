@@ -375,7 +375,7 @@ namespace FrostySdk.ModsAndProjects.Projects
         //    }
         //}
 
-        public virtual void WriteToMod(string filename, ModSettings overrideSettings = null)
+        public virtual void WriteToMod(string filename, ModSettings overrideSettings = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             byte[] projectbytes;
 
@@ -384,7 +384,7 @@ namespace FrostySdk.ModsAndProjects.Projects
 
             var memoryStream = new MemoryStream();
             FrostbiteModWriter frostyModWriter = new FrostbiteModWriter(memoryStream, overrideSettings);
-            frostyModWriter.WriteProject();
+            frostyModWriter.WriteProject(this, cancellationToken);
 
             memoryStream.Position = 0;
             projectbytes = new NativeReader(memoryStream).ReadToEnd();
@@ -393,7 +393,7 @@ namespace FrostySdk.ModsAndProjects.Projects
 
         }
 
-        public virtual void WriteToFIFAMod(string filename, ModSettings overrideSettings = null)
+        public virtual void WriteToFIFAMod(string filename, ModSettings overrideSettings = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (overrideSettings == null)
                 overrideSettings = ModSettings;
@@ -404,7 +404,7 @@ namespace FrostySdk.ModsAndProjects.Projects
             using (var fs = new FileStream(filename, FileMode.Create))
             {
                 FIFAModWriter frostyModWriter = new FIFAModWriter(ProfileManager.LoadedProfile.Name, AssetManager, FileSystem.Instance, fs, overrideSettings);
-                frostyModWriter.WriteProject(this);
+                frostyModWriter.WriteProject(this, cancellationToken);
             }
         }
     }

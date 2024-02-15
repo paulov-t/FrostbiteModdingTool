@@ -554,6 +554,12 @@ namespace FrostbiteModdingUI.Windows
             // Remove chunks and actual unmodified files before writing
             ChunkFileManager2022.CleanUpChunks();
 
+            if(ProfileManager.IsLoaded(FMT.FileTools.Modding.EGame.FC24) 
+                && AssetManager.Instance.Chunks.Any(x=>x.Value.IsModified))
+            {
+                MessageBox.Show("There is an issue with FIFA Mod Manager and compiled textures from FMT. Edited textures are now disabled from fifamod until it has been resolved. All other parts of the mod will still work.");
+            }
+
             try
             {
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
