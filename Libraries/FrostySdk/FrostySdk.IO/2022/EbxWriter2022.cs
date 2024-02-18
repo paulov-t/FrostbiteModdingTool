@@ -764,8 +764,8 @@ namespace FrostySdk.FrostySdk.IO
                 var (arrayPointerOffset, _, _, _, _) = unpatchedArray;
                 if (unpatchedArray.containingArrayIndex > -1)
                 {
-                    int realArrayIndex5 = arrayIndicesMap[unpatchedArray.containingArrayIndex];
-                    nativeWriter.Position = arrays[realArrayIndex5].Offset + arrayPointerOffset;
+                    int mappedIndex = arrayIndicesMap[unpatchedArray.containingArrayIndex];
+                    nativeWriter.Position = arrays[mappedIndex].Offset + arrayPointerOffset;
                 }
                 else
                 {
