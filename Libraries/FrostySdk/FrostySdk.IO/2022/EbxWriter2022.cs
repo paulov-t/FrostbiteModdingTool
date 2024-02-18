@@ -528,7 +528,7 @@ namespace FrostySdk.FrostySdk.IO
             propertiesToInclude = properties.OrderBy(x => x.GetCustomAttribute<EbxFieldMetaAttribute>()?.Offset).ToList();
             if (!isBaseType)
             {
-                if (classMeta.Type == EbxFieldType.Pointer)
+                //if (classMeta.Type == EbxFieldType.Pointer)
                     classIndex = AddClass(type.Name, type);
             }
             if (type.IsEnum)
@@ -636,6 +636,7 @@ namespace FrostySdk.FrostySdk.IO
                 ProcessField(item);
             }
         }
+        
 
         private void ProcessField(PropertyInfo pi)
         {
@@ -651,6 +652,39 @@ namespace FrostySdk.FrostySdk.IO
                 classIndex = 0;
             }
             AddField(pi.Name, ebxFieldMetaAttribute.Flags, classIndex, ebxFieldMetaAttribute.Offset, 0u);
+        }
+
+        private class FirstFourBytesGuidComparer : IComparer<Guid>
+        {
+            public static FirstFourBytesGuidComparer Instance { get; } = new FirstFourBytesGuidComparer();
+
+
+            public int Compare(Guid x, Guid y)
+            {
+                Span<byte> guidBytes = stackalloc byte[16];
+                x.TryWriteBytes(guidBytes);
+                uint xVal = (uint)((guidBytes[0] << 24) | (guidBytes[1] << 16) | (guidBytes[2] << 8) | guidBytes[3]);
+                y.TryWriteBytes(guidBytes);
+                uint yVal = (uint)((guidBytes[0] << 24) | (guidBytes[1] << 16) | (guidBytes[2] << 8) | guidBytes[3]);
+                return xVal.CompareTo(yVal);
+            }
+        }
+
+        [Flags]
+        public enum DataContainerFlags : ushort
+        {
+            ObjectFlag_ReadOnly = 0x8000,
+            ObjectFlag_TrackAccess = 0x4000,
+            ObjectFlag_Aggregated = 0x2000,
+            ObjectFlag_Exported = 0x1000,
+            ObjectFlag_Destroyed = 0x800,
+            ObjectFlag_Invalid = 0x400,
+            ObjectFlag_Resolvable = 0x200,
+            ObjectFlag_HasGuid = 0x100,
+            ObjectFlag_DataDefinedType = 0x80,
+            ObjectFlag_TemplateCloned = 0x40,
+            ObjectFlag_HasDebugEntry = 0x20,
+            ObjectFlag_TweakerCreated = 0x10
         }
 
         protected virtual void ProcessData()
@@ -670,16 +704,12 @@ namespace FrostySdk.FrostySdk.IO
             }
             object primaryInstance = exportedInstances[0];
             exportedInstances.RemoveAt(0);
-            //exportedInstances.Sort(delegate (dynamic a, dynamic b)
-            //{
-            //    AssetClassGuid assetClassGuid2 = a.GetInstanceGuid();
-            //    AssetClassGuid assetClassGuid3 = b.GetInstanceGuid();
-            //    byte[] array = assetClassGuid2.ExportedGuid.ToByteArray();
-            //    byte[] array2 = assetClassGuid3.ExportedGuid.ToByteArray();
-            //    uint num = (uint)((array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3]);
-            //    uint value3 = (uint)((array2[0] << 24) | (array2[1] << 16) | (array2[2] << 8) | array2[3]);
-            //    return num.CompareTo(value3);
-            //});
+            exportedInstances.Sort(delegate (dynamic a, dynamic b)
+            {
+                AssetClassGuid assetClassGuid2 = a.GetInstanceGuid();
+                AssetClassGuid assetClassGuid3 = b.GetInstanceGuid();
+                return FirstFourBytesGuidComparer.Instance.Compare(assetClassGuid2.ExportedGuid, assetClassGuid3.ExportedGuid);
+            });
             nonExportedInstances.Sort((object a, object b) => string.CompareOrdinal(a.GetType().Name, b.GetType().Name));
             sortedObjs.Add(primaryInstance);
             sortedObjs.AddRange(exportedInstances);
@@ -699,23 +729,24 @@ namespace FrostySdk.FrostySdk.IO
                     uniqueTypes.Add(type);
                 }
                 nativeWriter.WritePadding(ebxClassMeta.Alignment);
+                
+                DataContainerFlags flags = DataContainerFlags.ObjectFlag_ReadOnly | DataContainerFlags.ObjectFlag_Aggregated;
                 if (assetClassGuid.IsExported)
                 {
                     nativeWriter.WriteGuid(assetClassGuid.ExportedGuid);
+                    flags |= DataContainerFlags.ObjectFlag_Exported | DataContainerFlags.ObjectFlag_HasGuid;
                 }
+                //if (assetClassGuid.IsExported)
+                //{
+                //    nativeWriter.WriteGuid(assetClassGuid.ExportedGuid);
+                //}
 
                 dataContainerOffsets.Add((int)nativeWriter.Position);
-                nativeWriter.Write((ulong)classIndex);
-                //nativeWriter.WritePadding(8);
-                if (ebxClassMeta.Alignment != 4)
-                {
-                    nativeWriter.WriteUInt64LittleEndian(0uL);
-                }
+                nativeWriter.WriteInt64LittleEndian(classIndex);
+                nativeWriter.WriteInt64LittleEndian(0L);
                 nativeWriter.WriteUInt32LittleEndian(2u);
-
-                var uFlagExported = assetClassGuid.IsExported ? 45312u : 40960u;
-                nativeWriter.Write(uFlagExported);
-
+                nativeWriter.WriteUInt16LittleEndian((ushort)flags);
+                nativeWriter.WriteUInt16LittleEndian(0);
                 WriteClass(sortedObjs[dataContainerIndex], type, nativeWriter, dataContainerIndex);
                 EbxInstance ebxInstance = default(EbxInstance);
                 ebxInstance.ClassRef = (ushort)classIndex;
@@ -725,6 +756,7 @@ namespace FrostySdk.FrostySdk.IO
                 exportedCount += (ushort)(ebxInstance.IsExported ? 1 : 0);
             }
 
+            nativeWriter.WritePadding(16);
             ProcessAndWriteDataArrayOutput(nativeWriter);
             nativeWriter.WritePadding(16);
             ProcessDataBoxedValues(nativeWriter);
@@ -850,8 +882,6 @@ namespace FrostySdk.FrostySdk.IO
 
         protected void ProcessAndWriteDataArrayOutput(FileWriter nativeWriter)
         {
-            nativeWriter.WritePadding(16);
-
             // When checking this in HXD, remember real position is Position + 32
             arraysPosition = (int)nativeWriter.Position;
             nativeWriter.Position = arraysPosition;
@@ -870,7 +900,7 @@ namespace FrostySdk.FrostySdk.IO
             if (unpatchedArrayInfo.Count == 0 || arrayData.Count == 0)
                 return;
 
-            var orderedArrays = unpatchedArrayInfo.OrderBy(x => x.property.GetCustomAttribute<FieldIndexAttribute>()?.Index);
+            var orderedArrays = unpatchedArrayInfo.OrderBy(x => x.containingArrayIndex).ThenBy(x => x.property.GetCustomAttribute<FieldIndexAttribute>()?.Index);
             var orderedArrayNames = orderedArrays.Select(x => x.property.Name).ToArray();
             foreach (var unpatchedArray in orderedArrays)
             {
@@ -883,10 +913,21 @@ namespace FrostySdk.FrostySdk.IO
                 else
                 {
                     long beforePaddingPosition = nativeWriter.Position;
-
-
-                    nativeWriter.WritePadding(16);
-
+                    //nativeWriter.WritePadding(16);
+                    nativeWriter.WritePadding(4);
+                    //if (nativeWriter.Position - beforePaddingPosition < 4)
+                    //{
+                    //    nativeWriter.WriteEmpty(16);
+                    //}
+                    var fieldMeta = unpatchedArray.property.GetCustomAttribute<EbxFieldMetaAttribute>();
+                    var arrayType = unpatchedArray.property.GetCustomAttribute<EbxFieldMetaAttribute>().ArrayType;
+                    //nativeWriter.Position -= 4L;
+                    switch (arrayType)
+                    {
+                        default:
+                            nativeWriter.WritePadding(4);
+                            break;
+                    }
                     nativeWriter.WriteUInt32LittleEndian(arrayInfo.Count);
                     int beforeArrayPosition = (int)nativeWriter.Position;
 
