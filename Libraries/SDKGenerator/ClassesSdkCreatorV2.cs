@@ -86,14 +86,15 @@ namespace SdkGenerator
                 .OrderBy(x => x.Length)
                 )
             {
+                var isPatch = f.Contains("patch", StringComparison.OrdinalIgnoreCase);
                 IEbxSharedTypeDescriptor std = null;
                 if (!string.IsNullOrEmpty(ProfileManager.EBXTypeDescriptor))
                 {
                     std = (IEbxSharedTypeDescriptor)AssetManager.LoadTypeByName(ProfileManager.EBXTypeDescriptor
-                            , f, f.Contains("patch", StringComparison.OrdinalIgnoreCase));
+                            , f, isPatch);
                 }
                 std.ReflectionTypeDescripter = true;
-                std.Read(FileSystem.Instance.GetFileFromMemoryFs(f), f.Contains("patch", StringComparison.OrdinalIgnoreCase));
+                std.Read(FileSystem.Instance.GetFileFromMemoryFs(f), isPatch);
 
                 for (int k = 0; k < std.Classes.Count; k++)
                 {
@@ -112,6 +113,39 @@ namespace SdkGenerator
                         if (dboClass.GetValue<DbObject>("typeInfoGuid").FindIndex((object a) => (Guid)a == guid) == -1)
                         {
                             dboClass.GetValue<DbObject>("typeInfoGuid").Add(guid);
+                        }
+
+                        if (isPatch)
+                        {
+                            //if (dboClass.GetValue<string>("name").Contains("actor_movement", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (stdClass.FieldCount > 0)
+                                {
+                                    List<string> usedFields = new List<string>();
+                                    var dboFields = dboClass.GetValue<DbObject>("fields");
+
+                                    Dictionary<uint, int> nameHashToIndex = new Dictionary<uint, int>();
+                                    var numOfUnusedFields = 0;
+                                    for (int fieldCountIndex = 0; fieldCountIndex < stdClass.FieldCount; fieldCountIndex++)
+                                    {
+                                        EbxField field = std.Fields[stdClass.FieldIndex + fieldCountIndex];
+                                        nameHashToIndex.Add(field.NameHash, fieldCountIndex);
+
+                                        var validFieldIndex = fieldCountIndex - numOfUnusedFields;
+                                        DbObject dboField = dboFields.List.Find(x => ((DbObject)x).GetValue<uint>("nameHash") == field.NameHash) as DbObject;
+                                        if (dboField != null)
+                                        {
+                                            if (dboField.HasValue("offset") && dboField.GetValue<uint>("offset") != field.DataOffset)
+                                                dboField.SetValue("offset", field.DataOffset);
+
+                                            if (dboField.HasValue("index") && dboField.GetValue<int>("index") != validFieldIndex)
+                                                dboField.SetValue("index", validFieldIndex);
+                                        }
+                                        else
+                                            numOfUnusedFields++;
+                                    }
+                                }
+                            }
                         }
                     }
                 }

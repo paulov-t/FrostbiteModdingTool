@@ -668,7 +668,7 @@ namespace SdkGenerator
             if (baseType.Contains("ulongprovider", StringComparison.OrdinalIgnoreCase))
                 return String.Empty;
 
-            int value3 = fieldObj.GetValue("index", 0);
+            int fieldIndex = fieldObj.GetValue("index", 0);
             if (fieldObj.HasValue("nameHash"))
             {
                 //stringBuilder.AppendLine("[" + typeof(HashAttribute).Name + "(" + fieldObj.GetValue("nameHash", 0ul) + ")]");
@@ -725,14 +725,14 @@ namespace SdkGenerator
                 }
                 if (value.HasValue("index"))
                 {
-                    value3 = value.GetValue("index", 0);
+                    fieldIndex = value.GetValue("index", 0);
                 }
                 if (value.HasValue("hideChildren"))
                 {
                     stringBuilder.AppendLine("[" + typeof(HideChildrentAttribute).Name + "]");
                 }
             }
-            stringBuilder.AppendLine("[" + typeof(FieldIndexAttribute).Name + "(" + value3 + ")]");
+            stringBuilder.AppendLine("[" + typeof(FieldIndexAttribute).Name + "(" + fieldIndex + ")]");
             return stringBuilder.ToString();
         }
 
