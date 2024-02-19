@@ -158,6 +158,10 @@ namespace SdkGenerator.FC24
                     //fieldsPosition = array[0];
                     fieldsPosition = array[1];
                 }
+                else if (FieldType == EbxFieldType.Delegate)
+                {
+                    fieldsPosition = array[0];
+                }
                 else
                 {
                     fieldsPosition = array[5];
@@ -211,9 +215,15 @@ namespace SdkGenerator.FC24
                         success = false;
                     }
 
-                    if (FieldType == EbxFieldType.Function)
+                    if (FieldType == EbxFieldType.Function || FieldType == EbxFieldType.Delegate)
                     {
-                        reader.Position += 8;
+                        var posOfSomething = reader.ReadLong();
+                        if (posOfSomething != 0)
+                        {
+                            fieldInfo.typeOffset = posOfSomething;
+                        }
+                        // Another offset?
+                        //reader.Position += 8;
                         while (reader.Position % 8 != 0)
                             reader.Position++;
                     }

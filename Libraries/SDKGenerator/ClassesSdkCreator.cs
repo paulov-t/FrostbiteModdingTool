@@ -398,9 +398,9 @@ namespace SdkGenerator
                         if (stdClass.FieldCount > 0)
                         {
                             List<string> usedFields = new List<string>();
-                            for (int l = 0; l < stdClass.FieldCount; l++)
+                            for (int fieldCountIndex = 0; fieldCountIndex < stdClass.FieldCount; fieldCountIndex++)
                             {
-                                EbxField field = std.Fields[stdClass.FieldIndex + l];
+                                EbxField field = std.Fields[stdClass.FieldIndex + fieldCountIndex];
                                 if (fieldDictionaryToHash.ContainsKey(field.NameHash))
                                 {
                                     DbObject dboField = sdkFields.List.SingleOrDefault(x => ((DbObject)x).GetValue<uint>("nameHash") == field.NameHash) as DbObject;
@@ -891,77 +891,77 @@ namespace SdkGenerator
 
         private void CreateClassObject(IClassInfo classInfo, ref DbObject classList)
         {
-            if (!alreadyProcessedClasses.Contains(classInfo.typeInfo.name))
-            {
-                IClassInfo classInfo2 = offsetClassInfoMapping.ContainsKey(classInfo.parentClass) ? offsetClassInfoMapping[classInfo.parentClass] : null;
-                if (classInfo2 != null)
-                {
-                    CreateClassObject(classInfo2, ref classList);
-                }
-                int alignment = classInfo.typeInfo.alignment;
-                int size = (int)classInfo.typeInfo.size;
-                DbObject dbObject = new DbObject();
-                dbObject.AddValue("name", classInfo.typeInfo.name);
-                dbObject.AddValue("nameHash", classInfo.typeInfo.nameHash);
-                if (classInfo.typeInfo.name.Contains("actor_movement"))
-                {
+            if (alreadyProcessedClasses.Contains(classInfo.typeInfo.name))
+                return;
 
-                }
-                dbObject.AddValue("parent", (classInfo2 != null) ? classInfo2.typeInfo.name : "");
-                dbObject.AddValue("type", classInfo.typeInfo.Type);
-                dbObject.AddValue("flags", (int)classInfo.typeInfo.flags);
-                dbObject.AddValue("alignment", alignment);
-                dbObject.AddValue("size", size);
-                dbObject.AddValue("runtimeSize", size);
-                dbObject.AddValue("additional", (int)classInfo.isDataContainer);
-                dbObject.AddValue("namespace", classInfo.typeInfo.nameSpace);
-                if (classInfo.typeInfo.guid != Guid.Empty)
-                {
-                    dbObject.AddValue("guid", classInfo.typeInfo.guid);
-                }
-                classInfo.typeInfo.Modify(dbObject);
-                DbObject dbObject2 = new DbObject(bObject: false);
-                foreach (IFieldInfo field in classInfo.typeInfo.fields)
-                {
-                    DbObject dboField = new DbObject();
-                    if (classInfo.typeInfo.Type == 8)
-                    {
-                        dboField.AddValue("name", field.name);
-                        dboField.AddValue("value", (int)field.typeOffset);
-                    }
-                    else if (offsetClassInfoMapping.ContainsKey(field.typeOffset))
-                    {
-                        IClassInfo classInfo3 = offsetClassInfoMapping[field.typeOffset];
-                        dboField.AddValue("name", field.name);
-                        dboField.AddValue("nameHash", field.nameHash);
-                        dboField.AddValue("type", classInfo3.typeInfo.Type);
-                        dboField.AddValue("flags", (int)classInfo3.typeInfo.flags);
-                        dboField.AddValue("offset", (int)field.offset);
-                        dboField.AddValue("index", field.index);
-                        if (classInfo3.typeInfo.Type == 3
-                            || classInfo3.typeInfo.Type == 2
-                            || classInfo3.typeInfo.Type == 8)
-                        {
-                            dboField.AddValue("baseType", classInfo3.typeInfo.name);
-                        }
-                        else if (classInfo3.typeInfo.Type == 4)
-                        {
-                            if (offsetClassInfoMapping.ContainsKey(classInfo3.parentClass))
-                            {
-                                classInfo3 = offsetClassInfoMapping[classInfo3.parentClass];
-                                dboField.AddValue("isArray", true);
-                                dboField.AddValue("baseType", classInfo3.typeInfo.name);
-                                dboField.AddValue("arrayFlags", (int)classInfo3.typeInfo.flags);
-                            }
-                        }
-                    }
-                    field.Modify(dboField);
-                    dbObject2.Add(dboField);
-                }
-                dbObject.AddValue("fields", dbObject2);
-                classList.Add(dbObject);
-                alreadyProcessedClasses.Add(classInfo.typeInfo.name);
+            IClassInfo classInfo2 = offsetClassInfoMapping.ContainsKey(classInfo.parentClass) ? offsetClassInfoMapping[classInfo.parentClass] : null;
+            if (classInfo2 != null)
+            {
+                CreateClassObject(classInfo2, ref classList);
             }
+            int alignment = classInfo.typeInfo.alignment;
+            int size = (int)classInfo.typeInfo.size;
+            DbObject dbObject = new DbObject();
+            dbObject.AddValue("name", classInfo.typeInfo.name);
+            dbObject.AddValue("nameHash", classInfo.typeInfo.nameHash);
+            if (classInfo.typeInfo.name.Contains("actor_movement"))
+            {
+
+            }
+            dbObject.AddValue("parent", (classInfo2 != null) ? classInfo2.typeInfo.name : "");
+            dbObject.AddValue("type", classInfo.typeInfo.Type);
+            dbObject.AddValue("flags", (int)classInfo.typeInfo.flags);
+            dbObject.AddValue("alignment", alignment);
+            dbObject.AddValue("size", size);
+            dbObject.AddValue("runtimeSize", size);
+            dbObject.AddValue("additional", (int)classInfo.isDataContainer);
+            dbObject.AddValue("namespace", classInfo.typeInfo.nameSpace);
+            if (classInfo.typeInfo.guid != Guid.Empty)
+            {
+                dbObject.AddValue("guid", classInfo.typeInfo.guid);
+            }
+            classInfo.typeInfo.Modify(dbObject);
+            DbObject dbObject2 = new DbObject(bObject: false);
+            foreach (IFieldInfo field in classInfo.typeInfo.fields)
+            {
+                DbObject dboField = new DbObject();
+                if (classInfo.typeInfo.Type == 8)
+                {
+                    dboField.AddValue("name", field.name);
+                    dboField.AddValue("value", (int)field.typeOffset);
+                }
+                else if (offsetClassInfoMapping.ContainsKey(field.typeOffset))
+                {
+                    IClassInfo classInfo3 = offsetClassInfoMapping[field.typeOffset];
+                    dboField.AddValue("name", field.name);
+                    dboField.AddValue("nameHash", field.nameHash);
+                    dboField.AddValue("type", classInfo3.typeInfo.Type);
+                    dboField.AddValue("flags", (int)classInfo3.typeInfo.flags);
+                    dboField.AddValue("offset", (int)field.offset);
+                    dboField.AddValue("index", field.index);
+                    if (classInfo3.typeInfo.Type == 3
+                        || classInfo3.typeInfo.Type == 2
+                        || classInfo3.typeInfo.Type == 8)
+                    {
+                        dboField.AddValue("baseType", classInfo3.typeInfo.name);
+                    }
+                    else if (classInfo3.typeInfo.Type == 4)
+                    {
+                        if (offsetClassInfoMapping.ContainsKey(classInfo3.parentClass))
+                        {
+                            classInfo3 = offsetClassInfoMapping[classInfo3.parentClass];
+                            dboField.AddValue("isArray", true);
+                            dboField.AddValue("baseType", classInfo3.typeInfo.name);
+                            dboField.AddValue("arrayFlags", (int)classInfo3.typeInfo.flags);
+                        }
+                    }
+                }
+                field.Modify(dboField);
+                dbObject2.Add(dboField);
+            }
+            dbObject.AddValue("fields", dbObject2);
+            classList.Add(dbObject);
+            alreadyProcessedClasses.Add(classInfo.typeInfo.name);
         }
     }
 

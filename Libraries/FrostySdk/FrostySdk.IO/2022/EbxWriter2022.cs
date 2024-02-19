@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using static PInvoke.BCrypt;
 
 
 namespace FrostySdk.FrostySdk.IO
@@ -74,7 +75,7 @@ namespace FrostySdk.FrostySdk.IO
 
         private readonly Dictionary<(int offset, int containingArrayIndex), int> pointerRefPositionToDataContainerIndex = new Dictionary<(int, int), int>();
 
-        private List<(int arrayOffset, int arrayIndex, int containingArrayIndex)> unpatchedArrayInfo { get; } = new List<(int, int, int)>();
+        private List<(int arrayOffset, int arrayIndex, int containingArrayIndex, int dataContainerIndex, PropertyInfo property)> unpatchedArrayInfo { get; } = new();
 
         private readonly List<int> arrayIndicesMap = new List<int>();
 
@@ -527,7 +528,7 @@ namespace FrostySdk.FrostySdk.IO
             propertiesToInclude = properties.OrderBy(x => x.GetCustomAttribute<EbxFieldMetaAttribute>()?.Offset).ToList();
             if (!isBaseType)
             {
-                if (classMeta.Type == EbxFieldType.Pointer)
+                //if (classMeta.Type == EbxFieldType.Pointer)
                     classIndex = AddClass(type.Name, type);
             }
             if (type.IsEnum)
@@ -635,6 +636,7 @@ namespace FrostySdk.FrostySdk.IO
                 ProcessField(item);
             }
         }
+        
 
         private void ProcessField(PropertyInfo pi)
         {
@@ -650,6 +652,39 @@ namespace FrostySdk.FrostySdk.IO
                 classIndex = 0;
             }
             AddField(pi.Name, ebxFieldMetaAttribute.Flags, classIndex, ebxFieldMetaAttribute.Offset, 0u);
+        }
+
+        private class FirstFourBytesGuidComparer : IComparer<Guid>
+        {
+            public static FirstFourBytesGuidComparer Instance { get; } = new FirstFourBytesGuidComparer();
+
+
+            public int Compare(Guid x, Guid y)
+            {
+                Span<byte> guidBytes = stackalloc byte[16];
+                x.TryWriteBytes(guidBytes);
+                uint xVal = (uint)((guidBytes[0] << 24) | (guidBytes[1] << 16) | (guidBytes[2] << 8) | guidBytes[3]);
+                y.TryWriteBytes(guidBytes);
+                uint yVal = (uint)((guidBytes[0] << 24) | (guidBytes[1] << 16) | (guidBytes[2] << 8) | guidBytes[3]);
+                return xVal.CompareTo(yVal);
+            }
+        }
+
+        [Flags]
+        public enum DataContainerFlags : ushort
+        {
+            ObjectFlag_ReadOnly = 0x8000,
+            ObjectFlag_TrackAccess = 0x4000,
+            ObjectFlag_Aggregated = 0x2000,
+            ObjectFlag_Exported = 0x1000,
+            ObjectFlag_Destroyed = 0x800,
+            ObjectFlag_Invalid = 0x400,
+            ObjectFlag_Resolvable = 0x200,
+            ObjectFlag_HasGuid = 0x100,
+            ObjectFlag_DataDefinedType = 0x80,
+            ObjectFlag_TemplateCloned = 0x40,
+            ObjectFlag_HasDebugEntry = 0x20,
+            ObjectFlag_TweakerCreated = 0x10
         }
 
         protected virtual void ProcessData()
@@ -669,16 +704,12 @@ namespace FrostySdk.FrostySdk.IO
             }
             object primaryInstance = exportedInstances[0];
             exportedInstances.RemoveAt(0);
-            //exportedInstances.Sort(delegate (dynamic a, dynamic b)
-            //{
-            //    AssetClassGuid assetClassGuid2 = a.GetInstanceGuid();
-            //    AssetClassGuid assetClassGuid3 = b.GetInstanceGuid();
-            //    byte[] array = assetClassGuid2.ExportedGuid.ToByteArray();
-            //    byte[] array2 = assetClassGuid3.ExportedGuid.ToByteArray();
-            //    uint num = (uint)((array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3]);
-            //    uint value3 = (uint)((array2[0] << 24) | (array2[1] << 16) | (array2[2] << 8) | array2[3]);
-            //    return num.CompareTo(value3);
-            //});
+            exportedInstances.Sort(delegate (dynamic a, dynamic b)
+            {
+                AssetClassGuid assetClassGuid2 = a.GetInstanceGuid();
+                AssetClassGuid assetClassGuid3 = b.GetInstanceGuid();
+                return FirstFourBytesGuidComparer.Instance.Compare(assetClassGuid2.ExportedGuid, assetClassGuid3.ExportedGuid);
+            });
             nonExportedInstances.Sort((object a, object b) => string.CompareOrdinal(a.GetType().Name, b.GetType().Name));
             sortedObjs.Add(primaryInstance);
             sortedObjs.AddRange(exportedInstances);
@@ -686,10 +717,10 @@ namespace FrostySdk.FrostySdk.IO
             MemoryStream memoryStream = new MemoryStream();
             _ = base.Position;
             FileWriter nativeWriter = new FileWriter(memoryStream);
-            for (int i = 0; i < sortedObjs.Count; i++)
+            for (int dataContainerIndex = 0; dataContainerIndex < sortedObjs.Count; dataContainerIndex++)
             {
-                AssetClassGuid assetClassGuid = ((dynamic)sortedObjs[i]).GetInstanceGuid();
-                Type type = sortedObjs[i].GetType();
+                AssetClassGuid assetClassGuid = ((dynamic)sortedObjs[dataContainerIndex]).GetInstanceGuid();
+                Type type = sortedObjs[dataContainerIndex].GetType();
                 var ebxClassMeta = type.GetCustomAttribute<EbxClassMetaAttribute>();
                 int classIndex = FindExistingClass(type);
                 //EbxClass ebxClass = classTypes[classIndex];
@@ -698,24 +729,25 @@ namespace FrostySdk.FrostySdk.IO
                     uniqueTypes.Add(type);
                 }
                 nativeWriter.WritePadding(ebxClassMeta.Alignment);
+                
+                DataContainerFlags flags = DataContainerFlags.ObjectFlag_ReadOnly | DataContainerFlags.ObjectFlag_Aggregated;
                 if (assetClassGuid.IsExported)
                 {
                     nativeWriter.WriteGuid(assetClassGuid.ExportedGuid);
+                    flags |= DataContainerFlags.ObjectFlag_Exported | DataContainerFlags.ObjectFlag_HasGuid;
                 }
+                //if (assetClassGuid.IsExported)
+                //{
+                //    nativeWriter.WriteGuid(assetClassGuid.ExportedGuid);
+                //}
 
                 dataContainerOffsets.Add((int)nativeWriter.Position);
-                nativeWriter.Write((ulong)classIndex);
-                //nativeWriter.WritePadding(8);
-                if (ebxClassMeta.Alignment != 4)
-                {
-                    nativeWriter.WriteUInt64LittleEndian(0uL);
-                }
+                nativeWriter.WriteInt64LittleEndian(classIndex);
+                nativeWriter.WriteInt64LittleEndian(0L);
                 nativeWriter.WriteUInt32LittleEndian(2u);
-
-                var uFlagExported = assetClassGuid.IsExported ? 45312u : 40960u;
-                nativeWriter.Write(uFlagExported);
-
-                WriteClass(sortedObjs[i], type, nativeWriter);
+                nativeWriter.WriteUInt16LittleEndian((ushort)flags);
+                nativeWriter.WriteUInt16LittleEndian(0);
+                WriteClass(sortedObjs[dataContainerIndex], type, nativeWriter, dataContainerIndex);
                 EbxInstance ebxInstance = default(EbxInstance);
                 ebxInstance.ClassRef = (ushort)classIndex;
                 ebxInstance.Count = 1;
@@ -724,7 +756,8 @@ namespace FrostySdk.FrostySdk.IO
                 exportedCount += (ushort)(ebxInstance.IsExported ? 1 : 0);
             }
 
-            ProcessDataArray(nativeWriter);
+            nativeWriter.WritePadding(16);
+            ProcessAndWriteDataArrayOutput(nativeWriter);
             nativeWriter.WritePadding(16);
             ProcessDataBoxedValues(nativeWriter);
             nativeWriter.WritePadding(16);
@@ -753,33 +786,36 @@ namespace FrostySdk.FrostySdk.IO
                 }
                 nativeWriter.Position = afterStringPosition;
             }
-            foreach (var unpatchedArray in unpatchedArrayInfo)
+            var unpatchedArrayIndex = 0;
+            var orderedArrays = unpatchedArrayInfo.OrderBy(x => x.property.GetCustomAttribute<FieldIndexAttribute>()?.Index);
+            var orderedArrayNames = orderedArrays.Select(x=>x.property.Name).ToArray();
+            foreach (var unpatchedArray in orderedArrays)
+            //foreach (var unpatchedArray in unpatchedArrayInfo)
             {
                 EbxArray ebxArray = arrays[unpatchedArray.arrayIndex];
-                var (arrayPointerOffset, _, _) = unpatchedArray;
+                var (arrayPointerOffset, _, _, _, _) = unpatchedArray;
                 if (unpatchedArray.containingArrayIndex > -1)
                 {
-                    int realArrayIndex5 = arrayIndicesMap[unpatchedArray.containingArrayIndex];
-                    nativeWriter.Position = arrays[realArrayIndex5].Offset + arrayPointerOffset;
+                    int mappedIndex = arrayIndicesMap[unpatchedArray.containingArrayIndex];
+                    nativeWriter.Position = arrays[mappedIndex].Offset + arrayPointerOffset;
                 }
                 else
                 {
                     nativeWriter.Position = arrayPointerOffset;
                 }
-#if DEBUG
-                if (ebxArray.Offset == 10568)
-                {
 
-                }
-                if (ebxArray.Offset == 10564)
-                {
+                //int relativeOffset = (int)(ebxArray.Offset - 56);
 
-                }
-#endif
+                //nativeWriter.WriteInt32LittleEndian(relativeOffset);
 
-                int relativeOffset = (int)(ebxArray.Offset - nativeWriter.Position);
+                // first array is relative - container offset?
+                if (unpatchedArrayIndex == 0)
+                    nativeWriter.WriteInt32LittleEndian((int)(ebxArray.Offset - (int)nativeWriter.Position));
+                // rest of the array is by the offset
+                else
+                    nativeWriter.WriteInt32LittleEndian((int)ebxArray.Offset - (int)nativeWriter.Position);
 
-                nativeWriter.WriteInt32LittleEndian(relativeOffset);
+                unpatchedArrayIndex++;
             }
             foreach (KeyValuePair<(int, int), int> item2 in pointerRefPositionToDataContainerIndex)
             {
@@ -798,16 +834,7 @@ namespace FrostySdk.FrostySdk.IO
                     nativeWriter.Position = pointerRefPosition + arrays[realArrayIndex4].Offset;
                 }
                 int relativeOffset = (int)(dataContainerOffsets[dataContainerIndex] - nativeWriter.Position);
-#if DEBUG
-                if (relativeOffset == 10568)
-                {
 
-                }
-                if (dataContainerOffsets[dataContainerIndex] == 10564)
-                {
-
-                }
-#endif
                 nativeWriter.WriteInt32LittleEndian(relativeOffset);
             }
             foreach (var (pointerOffset, containingArrayIndex3) in pointerOffsets)
@@ -818,13 +845,6 @@ namespace FrostySdk.FrostySdk.IO
                     continue;
                 }
                 int realArrayIndex3 = arrayIndicesMap[containingArrayIndex3];
-
-#if DEBUG
-                if (arrays[realArrayIndex3].Offset == 10564)
-                {
-
-                }
-#endif
 
                 patchedPointerOffsets.Add((int)(pointerOffset + arrays[realArrayIndex3].Offset));
             }
@@ -860,22 +880,29 @@ namespace FrostySdk.FrostySdk.IO
             uniqueClassCount = (ushort)uniqueTypes.Count;
         }
 
-        protected void ProcessDataArray(FileWriter nativeWriter)
+        protected void ProcessAndWriteDataArrayOutput(FileWriter nativeWriter)
         {
-            nativeWriter.WritePadding(16);
-
             // When checking this in HXD, remember real position is Position + 32
             arraysPosition = (int)nativeWriter.Position;
+            nativeWriter.Position = arraysPosition;
 
             var realPosition = arraysPosition + 32;
 
             nativeWriter.WriteEmpty(32);
 
+            realPosition = (int)nativeWriter.Position + 32;
+
             _ = this.arrays;
             _ = this.objs;
             _ = classGuids;
 
-            foreach (var unpatchedArray in unpatchedArrayInfo.OrderBy(x=>x.containingArrayIndex))
+            // If the arrays are empty, return
+            if (unpatchedArrayInfo.Count == 0 || arrayData.Count == 0)
+                return;
+
+            var orderedArrays = unpatchedArrayInfo.OrderBy(x => x.containingArrayIndex).ThenBy(x => x.property.GetCustomAttribute<FieldIndexAttribute>()?.Index);
+            var orderedArrayNames = orderedArrays.Select(x => x.property.Name).ToArray();
+            foreach (var unpatchedArray in orderedArrays)
             {
                 EbxArray arrayInfo = arrays[unpatchedArray.arrayIndex];
                 byte[] arrayData = this.arrayData[unpatchedArray.arrayIndex];
@@ -886,91 +913,27 @@ namespace FrostySdk.FrostySdk.IO
                 else
                 {
                     long beforePaddingPosition = nativeWriter.Position;
-
-
-                    nativeWriter.WritePadding(16);
+                    //nativeWriter.WritePadding(16);
+                    nativeWriter.WritePadding(4);
                     //if (nativeWriter.Position - beforePaddingPosition < 4)
                     //{
                     //    nativeWriter.WriteEmpty(16);
                     //}
-                    nativeWriter.Position -= 4L;
-
-                    //byte alignment = 0;
-                    ////if (arrayInfo.ClassRef == -1)
-                    ////{
-                    //    EbxFieldType arrayType = (EbxFieldType)((arrayInfo.TypeFlags >> 5) & 0x1F);
-                    //    switch (arrayType)
-                    //    {
-                    //        case EbxFieldType.Enum:
-                    //        case EbxFieldType.TypeRef:
-                    //        case EbxFieldType.String:
-                    //        case EbxFieldType.Boolean:
-                    //        case EbxFieldType.Float32:
-                    //        case EbxFieldType.Int8:
-                    //        case EbxFieldType.UInt8:
-                    //        case EbxFieldType.Int16:
-                    //        case EbxFieldType.UInt16:
-                    //        case EbxFieldType.Int32:
-                    //        case EbxFieldType.UInt32:
-                    //            alignment = 4; break;
-                    //        case EbxFieldType.Float64:
-                    //        case EbxFieldType.Int64:
-                    //        case EbxFieldType.UInt64:
-                    //        case EbxFieldType.CString:
-                    //        case EbxFieldType.FileRef:
-                    //        case EbxFieldType.Delegate:
-                    //        case EbxFieldType.Pointer:
-                    //        case EbxFieldType.ResourceRef:
-                    //        case EbxFieldType.BoxedValueRef:
-                    //            alignment = 8; break;
-                    //        default: alignment = 4; break;
-                    //    }
-                    ////}
-                    ////else
-                    ////{
-                    ////    EbxClass arrayClass = m_classTypes[array.ClassRef];
-                    ////    switch (arrayClass.DebugCategory)
-                    ////    {
-                    ////        case EbxFieldCategory.EnumType:
-                    ////            alignment = 4; break;
-                    ////        case EbxFieldCategory.Pointer:
-                    ////        case EbxFieldCategory.ArrayType:
-                    ////        case EbxFieldCategory.DelegateType:
-                    ////            alignment = 8; break;
-                    ////        default: alignment = arrayClass.Alignment; break;
-                    ////    }
-                    ////}
-                    ////nativeWriter.WritePadding(alignment);
-                    //// shift where the count is so that the array data is properly aligned
-                    ////long dataPos = nativeWriter.Position + 4;
-                    ////if (alignment != 4)
-                    ////{
-                    ////    while (dataPos % alignment != 0)
-                    ////    {
-                    ////        nativeWriter.Write((byte)0);
-                    ////        dataPos = nativeWriter.Position;
-                    ////    }
-                    ////    nativeWriter.Position -= 0x4;
-                    ////}
-
-                    ////if (alignment == 4)
-                    ////{
-                    ////    if (nativeWriter.Position % 8 == 0)
-                    ////    {
-                    ////        nativeWriter.WriteEmpty(8);
-                    ////    }
-                    ////}
-                    ////else
-                    ////{
-                    ////    nativeWriter.WritePadding(alignment);
-                    ////}
-
+                    var fieldMeta = unpatchedArray.property.GetCustomAttribute<EbxFieldMetaAttribute>();
+                    var arrayType = unpatchedArray.property.GetCustomAttribute<EbxFieldMetaAttribute>().ArrayType;
+                    //nativeWriter.Position -= 4L;
+                    switch (arrayType)
+                    {
+                        default:
+                            nativeWriter.WritePadding(4);
+                            break;
+                    }
                     nativeWriter.WriteUInt32LittleEndian(arrayInfo.Count);
-                    long beforeArrayPosition = nativeWriter.Position;
+                    int beforeArrayPosition = (int)nativeWriter.Position;
 
                     nativeWriter.WriteBytes(arrayData);
                     arrayInfo.Offset = (uint)beforeArrayPosition;
-                    //nativeWriter.WritePadding(16);
+                    arrays[unpatchedArray.arrayIndex] = arrayInfo;
                 }
                 arrays[unpatchedArray.arrayIndex] = arrayInfo;
             }
@@ -1049,7 +1012,7 @@ namespace FrostySdk.FrostySdk.IO
         }
 
 
-        protected virtual void WriteClass(object obj, Type objType, NativeWriter writer)
+        protected virtual void WriteClass(object obj, Type objType, NativeWriter writer, int dataContainerIndex)
         {
             if (obj == null)
             {
@@ -1069,7 +1032,7 @@ namespace FrostySdk.FrostySdk.IO
                 || objType.BaseType!.Namespace == "FMTSdk.Ebx"
                 )
             {
-                WriteClass(obj, objType.BaseType, writer);
+                WriteClass(obj, objType.BaseType, writer, dataContainerIndex);
             }
 
             PropertyInfo[] properties = objType
@@ -1126,11 +1089,11 @@ namespace FrostySdk.FrostySdk.IO
                     {
                         uint fieldNameHash = propertyInfo.GetCustomAttribute<HashAttribute>()!.Hash;
                         //WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.ArrayType, fieldNameHash, classMeta.Alignment, writer, isReference);
-                        WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute, fieldNameHash, classMeta.Alignment, writer, isReference);
+                        WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute, fieldNameHash, classMeta.Alignment, writer, isReference, propertyInfo);
                     }
                     else
                     {
-                        WriteField(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.Type, classMeta.Alignment, writer, isReference);
+                        WriteField(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.Type, classMeta.Alignment, writer, isReference, dataContainerIndex);
                     }
                 }
             }
@@ -1146,7 +1109,7 @@ namespace FrostySdk.FrostySdk.IO
 
         }
 
-        protected void WriteField(object obj, EbxFieldType ebxType, byte classAlignment, NativeWriter writer, bool isReference)
+        protected void WriteField(object obj, EbxFieldType ebxType, byte classAlignment, NativeWriter writer, bool isReference, int dataContainerIndex)
         {
             switch (ebxType)
             {
@@ -1231,7 +1194,7 @@ namespace FrostySdk.FrostySdk.IO
                         int existingClassIndex = FindExistingClass(structObjType);
                         byte alignment = ((existingClassIndex == -1) ? structObjType.GetCustomAttribute<EbxClassMetaAttribute>()!.Alignment : (byte)4);
                         writer.WritePadding(alignment);
-                        WriteClass(obj, structObjType, writer);
+                        WriteClass(obj, structObjType, writer, dataContainerIndex);
                         break;
                     }
                 case EbxFieldType.Enum:
@@ -1294,14 +1257,14 @@ namespace FrostySdk.FrostySdk.IO
         }
 
         //protected void WriteArray(object obj, EbxFieldType elementFieldType, uint fieldNameHash, byte classAlignment, NativeWriter writer, bool isReference)
-        protected void WriteArray(object obj, EbxFieldMetaAttribute fieldMetaAttribute, uint fieldNameHash, byte classAlignment, NativeWriter mainWriter, bool isReference)
+        protected void WriteArray(object arrayPropertyValue, EbxFieldMetaAttribute fieldMetaAttribute, uint fieldNameHash, byte classAlignment, NativeWriter mainWriter, bool isReference, PropertyInfo property, int dataContainerIndex = 0)
         {
-            int classIndex = typesToProcess.FindIndex((Type item) => item == obj.GetType().GetGenericArguments()[0]);
+            int classIndex = typesToProcess.FindIndex((Type item) => item == arrayPropertyValue.GetType().GetGenericArguments()[0]);
             if (classIndex == -1)
             {
                 classIndex = 65535;
             }
-            IList typedObj = (IList)obj;
+            IList typedObj = (IList)arrayPropertyValue;
             int arrayCount = typedObj.Count;
             MemoryStream arrayMemoryStream = new MemoryStream();
             using FileWriter arrayWriter = new FileWriter(arrayMemoryStream);
@@ -1341,7 +1304,7 @@ namespace FrostySdk.FrostySdk.IO
                     arrayWriter.WritePadding(4);
                 }
                 object arrayElementObj = typedObj[i];
-                WriteField(arrayElementObj, fieldMetaAttribute.ArrayType, classAlignment, arrayWriter, isReference);
+                WriteField(arrayElementObj, fieldMetaAttribute.ArrayType, classAlignment, arrayWriter, isReference, dataContainerIndex);
             }
             int arrayIndex = arrays.Count;
             arrays.Add(new EbxArray
@@ -1353,7 +1316,7 @@ namespace FrostySdk.FrostySdk.IO
                 Offset = 0u
             });
             arrayIndicesMap[localArrayIndex] = arrayIndex;
-            unpatchedArrayInfo.Add(((int)pointerPosition, arrayIndex, previousArrayIndex));
+            unpatchedArrayInfo.Add(((int)pointerPosition, arrayIndex, previousArrayIndex, dataContainerIndex, property));
             pointerOffsets.Add(((int)pointerPosition, previousArrayIndex));
             arrayData.Add(arrayMemoryStream.ToArray());
             currentArrayDepth--;
@@ -1568,7 +1531,7 @@ namespace FrostySdk.FrostySdk.IO
             return output;
         }
 
-        protected new byte[] WriteBoxedValueRef(BoxedValueRef value)
+        protected new byte[] WriteBoxedValueRef(BoxedValueRef value, int objectIndex)
         {
             // @todo: Does not at all handle boxed value arrays
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
@@ -1612,7 +1575,7 @@ namespace FrostySdk.FrostySdk.IO
 
                             writer.WritePadding(cta.Alignment);
                             //WriteClass(structValue, structType, writer.Position, writer);
-                            WriteClass(structValue, structType, writer);
+                            WriteClass(structValue, structType, writer, objectIndex);
                         }
                         break;
 
