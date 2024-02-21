@@ -211,10 +211,11 @@ namespace FrostySdk.IO
                 var arrayEntryCount = reader.ReadUInt();
                 for (int j = 0; j < arrayEntryCount; j++)
                 {
-                    uint arrayOffset = reader.ReadUInt();
+                    short unk1 = reader.ReadShort();
+                    short unk2 = reader.ReadShort();
                     uint elementCount = reader.ReadUInt();
-                    uint typeDescriptorIndex = reader.ReadUInt();
-                    Arrays.Add(new EbxArray() { Offset = arrayOffset, Count = elementCount, ClassRef = (int)typeDescriptorIndex });
+                    uint typeDescriptorIndex = reader.ReadUInt(); // Just an index
+                    Arrays.Add(new EbxArray() { Offset = 0, Count = elementCount, ClassRef = 0 });
                 }
                 uint boxedValuesCount = reader.ReadUInt();
                 for (int i = 0; i < boxedValuesCount; i++)
@@ -257,7 +258,7 @@ namespace FrostySdk.IO
             var ebxtys = FileSystem.Instance.GetFileFromMemoryFs(name);
 #if DEBUG
 
-            DebugBytesToFileLogger.Instance.WriteAllBytes("EbxSharedTypeDescriptor.bin", ebxtys);
+            DebugBytesToFileLogger.Instance.WriteAllBytes($"EbxSharedTypeDescriptor{(patch ? "_patch" : "")}.dat", ebxtys, "EBX/Read");
 
 #endif
 

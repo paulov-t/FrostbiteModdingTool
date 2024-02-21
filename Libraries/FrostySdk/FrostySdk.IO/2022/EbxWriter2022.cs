@@ -1045,68 +1045,125 @@ namespace FrostySdk.FrostySdk.IO
             var propertiesOrderedByOffset = properties.OrderBy(x => x.GetCustomAttribute<EbxFieldMetaAttribute>().Offset).ToArray();
             var propertiesOrderedByIndex = properties.OrderBy(x => x.GetCustomAttribute<FieldIndexAttribute>().Index).ToArray();
 
-            foreach (var propertyInfo in propertiesOrderedByOffset)
-            //foreach (var propertyInfo in propertiesOrderedByIndex)
+            var ebxFieldOffsets = new HashSet<(PropertyInfo property, uint offset)>();
+            var ebxClass = GetEbxClass(objType.GetCustomAttribute<HashAttribute>().Hash);
+            for (int i = 0; i < ebxClass.Value.FieldCount; i++)
             {
-                IsTransientAttribute isTransientAttribute = propertyInfo.GetCustomAttribute<IsTransientAttribute>();
-                if (isTransientAttribute != null)
-                {
-#if DEBUG
-                    writtenProperties.Add(propertyInfo);
-#endif
+                var ebxField = GetEbxField(ebxClass.Value.FieldIndex + i);
+                if (ebxField.DebugType == EbxFieldType.Inherited)
                     continue;
-                }
 
-                EbxFieldMetaAttribute ebxFieldMetaAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
-                if (ebxFieldMetaAttribute == null || ebxFieldMetaAttribute.Type == EbxFieldType.Inherited)
-                {
-#if DEBUG
-                    writtenProperties.Add(propertyInfo);
-#endif
-                    continue;
-                }
-
+                var propertyInfo = properties.FirstOrDefault(x => x.GetCustomAttribute<HashAttribute>()?.Hash == ebxField.NameHash);
                 if (propertyInfo == null)
+                    propertyInfo = properties[i];
+
+                //var ebxFieldMetaAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
+                //if (ebxFieldMetaAttribute == null)
+                //    continue;
+
+                ebxFieldOffsets.Add((propertyInfo, ebxField.DataOffset));
+            }
+
+            
+
+            foreach(var propertyInfo in ebxFieldOffsets.OrderBy(x=>x.offset).Select(x=>x.property))
+            {
+                var ebxFieldMetaAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
+                bool isReference = propertyInfo.GetCustomAttribute<IsReferenceAttribute>() != null;
+                if (ebxFieldMetaAttribute.IsArray)
                 {
-#if DEBUG
-                    Debug.WriteLine("There is a dodgy Property in here. How can there be a null property info in a list of property infos?");
-                    FileLogger.WriteLine("There is a dodgy Property in here. How can there be a null property info in a list of property infos?");
-#endif
-                    continue;
+                    uint fieldNameHash = propertyInfo.GetCustomAttribute<HashAttribute>()!.Hash;
+                    //WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.ArrayType, fieldNameHash, classMeta.Alignment, writer, isReference);
+                    WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute, fieldNameHash, classMeta.Alignment, writer, isReference, propertyInfo);
                 }
                 else
                 {
-#if DEBUG
-                    writtenProperties.Add(propertyInfo);
-
-                    if (propertyInfo.Name == "SHOT_ShotSpeedCoe")
-                    {
-
-                    }
-#endif
-                    bool isReference = propertyInfo.GetCustomAttribute<IsReferenceAttribute>() != null;
-                    if (ebxFieldMetaAttribute.IsArray)
-                    {
-                        uint fieldNameHash = propertyInfo.GetCustomAttribute<HashAttribute>()!.Hash;
-                        //WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.ArrayType, fieldNameHash, classMeta.Alignment, writer, isReference);
-                        WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute, fieldNameHash, classMeta.Alignment, writer, isReference, propertyInfo);
-                    }
-                    else
-                    {
-                        WriteField(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.Type, classMeta.Alignment, writer, isReference, dataContainerIndex);
-                    }
+                    WriteField(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.Type, classMeta.Alignment, writer, isReference, dataContainerIndex);
                 }
+
             }
-#if DEBUG
-            var unwrittenProperties = properties.Where(x => !writtenProperties.Any(y => y.Name == x.Name));
-            if (unwrittenProperties.Any() && obj == objsToProcess[0])
-            {
-                throw new Exception("Some properties were not written");
-            }
-#endif
+
+//                foreach (var propertyInfo in propertiesOrderedByOffset)
+//            //foreach (var propertyInfo in propertiesOrderedByIndex)
+//            {
+//                IsTransientAttribute isTransientAttribute = propertyInfo.GetCustomAttribute<IsTransientAttribute>();
+//                if (isTransientAttribute != null)
+//                {
+//#if DEBUG
+//                    writtenProperties.Add(propertyInfo);
+//#endif
+//                    continue;
+//                }
+
+//                EbxFieldMetaAttribute ebxFieldMetaAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
+//                if (ebxFieldMetaAttribute == null || ebxFieldMetaAttribute.Type == EbxFieldType.Inherited)
+//                {
+//#if DEBUG
+//                    writtenProperties.Add(propertyInfo);
+//#endif
+//                    continue;
+//                }
+
+//                if (propertyInfo == null)
+//                {
+//#if DEBUG
+//                    Debug.WriteLine("There is a dodgy Property in here. How can there be a null property info in a list of property infos?");
+//                    FileLogger.WriteLine("There is a dodgy Property in here. How can there be a null property info in a list of property infos?");
+//#endif
+//                    continue;
+//                }
+//                else
+//                {
+//#if DEBUG
+//                    writtenProperties.Add(propertyInfo);
+
+//                    if (propertyInfo.Name == "SHOT_ShotSpeedCoe")
+//                    {
+
+//                    }
+//#endif
+//                    bool isReference = propertyInfo.GetCustomAttribute<IsReferenceAttribute>() != null;
+//                    if (ebxFieldMetaAttribute.IsArray)
+//                    {
+//                        uint fieldNameHash = propertyInfo.GetCustomAttribute<HashAttribute>()!.Hash;
+//                        //WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.ArrayType, fieldNameHash, classMeta.Alignment, writer, isReference);
+//                        WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute, fieldNameHash, classMeta.Alignment, writer, isReference, propertyInfo);
+//                    }
+//                    else
+//                    {
+//                        WriteField(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.Type, classMeta.Alignment, writer, isReference, dataContainerIndex);
+//                    }
+//                }
+//            }
+//#if DEBUG
+//            var unwrittenProperties = properties.Where(x => !writtenProperties.Any(y => y.Name == x.Name));
+//            if (unwrittenProperties.Any() && obj == objsToProcess[0])
+//            {
+//                throw new Exception("Some properties were not written");
+//            }
+//#endif
 
             writer.WritePadding(classMeta.Alignment);
 
+        }
+
+        internal EbxField GetEbxField(int index)
+        {
+            if (EbxSharedTypeDescriptors.patchStd.GetField(index).HasValue)
+                return EbxSharedTypeDescriptors.patchStd.GetField(index).Value;
+
+            return EbxSharedTypeDescriptors.std.GetField(index).Value;
+        }
+
+        internal EbxClass? GetEbxClass(uint nameHash)
+        {
+            if (EbxSharedTypeDescriptors.patchStd.Classes.Any(x => x.HasValue && x.Value.NameHash == nameHash))
+                return EbxSharedTypeDescriptors.patchStd.Classes.Find(x => x.HasValue && x.Value.NameHash == nameHash);
+
+            if (EbxSharedTypeDescriptors.std.Classes.Any(x => x.HasValue && x.Value.NameHash == nameHash))
+                return EbxSharedTypeDescriptors.std.Classes.Find(x => x.HasValue && x.Value.NameHash == nameHash);
+
+            return null;
         }
 
         protected void WriteField(object obj, EbxFieldType ebxType, byte classAlignment, NativeWriter writer, bool isReference, int dataContainerIndex)
