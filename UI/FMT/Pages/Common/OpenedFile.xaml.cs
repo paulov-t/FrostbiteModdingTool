@@ -16,24 +16,16 @@ using FrostySdk.Frostbite.IO.Output;
 using FrostySdk.IO;
 using FrostySdk.Managers;
 using FrostySdk.Resources;
-using Microsoft.Identity.Client;
-using Microsoft.Win32;
-using Newtonsoft.Json;
-using SharpDX.XAudio2;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using v2k4FIFAModding.Frosty;
 
@@ -336,7 +328,7 @@ namespace FMT.Pages.Common
             DataContext = this;
         }
 
-        private void OpenEbxTextureAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken = default(CancellationToken))
+        private bool OpenEbxTextureAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (ebxEntry.Type == "TextureAsset"
                 
@@ -353,6 +345,7 @@ namespace FMT.Pages.Common
                         MainEditorWindow.Log("Loading RES " + ebxEntry.Filename);
 
                         BuildTextureViewerFromAssetEntry(res);
+                        return true;
                     }
                     else
                     {
@@ -360,6 +353,7 @@ namespace FMT.Pages.Common
                         if (res != null)
                         {
                             BuildTextureViewerFromAssetEntry(res);
+                            return true;
                         }
                         throw new Exception("Unable to find RES Entry for " + ebxEntry.Name);
                     }
@@ -369,6 +363,7 @@ namespace FMT.Pages.Common
                     MainEditorWindow.Log($"Failed to load texture with the message :: {e.Message}");
                 }
             }
+            return false;
         }
 
         private async Task OpenEbxAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken = default(CancellationToken))
@@ -389,8 +384,12 @@ namespace FMT.Pages.Common
                     btnExport.IsEnabled = true;
                 });
 
-                OpenEbxTextureAsset(ebxEntry, cancellationToken);
-                await OpenEbxMeshAsset(ebxEntry, cancellationToken);
+                if (!OpenEbxTextureAsset(ebxEntry, cancellationToken))
+                    layoutImageViewer.Close();
+
+                if (!await OpenEbxMeshAsset(ebxEntry, cancellationToken))
+                    layoutMeshViewer.Close();
+
                 await OpenEbxSrandHairAsset(ebxEntry, cancellationToken);
                 await OpenEbxSoundAsset(ebxEntry, cancellationToken);
                 
@@ -477,7 +476,7 @@ namespace FMT.Pages.Common
 
         }
 
-        private async Task OpenEbxMeshAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken)
+        private async Task<bool> OpenEbxMeshAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken)
         {
             if (ebxEntry.Type == "SkinnedMeshAsset" || ebxEntry.Type == "CompositeMeshAsset" || ebxEntry.Type == "RigidMeshAsset")
             {
@@ -504,7 +503,10 @@ namespace FMT.Pages.Common
                     this.btnRevert.IsEnabled = ebxEntry.HasModifiedData;
                 });
 
+                return true;
             }
+
+            return false;
         }
 
         private void OpenNewWaveAsset(EbxAssetEntry ebxEntry)
