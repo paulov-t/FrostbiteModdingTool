@@ -211,21 +211,21 @@ namespace FrostySdk.IO
                 var arrayEntryCount = reader.ReadUInt();
                 for (int j = 0; j < arrayEntryCount; j++)
                 {
-                    short unk1 = reader.ReadShort();
-                    short unk2 = reader.ReadShort();
-                    uint elementCount = reader.ReadUInt();
+                    uint hash = reader.ReadUInt();
+                    uint arrayLenth = reader.ReadUInt();
                     uint typeDescriptorIndex = reader.ReadUInt(); // Just an index
-                    Arrays.Add(new EbxArray() { Offset = 0, Count = elementCount, ClassRef = 0 });
+                    EbxClass ebxClass = classes.Count > typeDescriptorIndex && classes[(int)typeDescriptorIndex].HasValue ? classes[(int)typeDescriptorIndex].Value : default(EbxClass);
+                    Arrays.Add(new EbxArray() { Hash = hash, Offset = 0, Count = arrayLenth, ClassRef = 0, Index = typeDescriptorIndex, ArrayClass = ebxClass });
                 }
                 uint boxedValuesCount = reader.ReadUInt();
                 for (int i = 0; i < boxedValuesCount; i++)
                 {
-                    uint boxedValueOffset = reader.ReadUInt();
+                    uint hash = reader.ReadUInt();
                     uint typeId = reader.ReadUShort();
                     uint typeCode = reader.ReadUShort();
                     BoxedValues.Add(new EbxBoxedValue()
                     {
-                        Offset = boxedValueOffset
+                        Hash = hash
                          ,
                         Type = (ushort)typeId
                          ,

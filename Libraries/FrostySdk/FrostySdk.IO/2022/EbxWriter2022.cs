@@ -867,13 +867,6 @@ namespace FrostySdk.FrostySdk.IO
                 }
                 int realArrayIndex = arrayIndicesMap[containingArrayIndex];
 
-#if DEBUG
-                if (arrays[realArrayIndex].Offset == 10564)
-                {
-
-                }
-#endif
-
                 patchedImportOffsets.Add((int)(importOffset + arrays[realArrayIndex].Offset));
             }
             mainData = memoryStream.ToArray();
@@ -900,7 +893,12 @@ namespace FrostySdk.FrostySdk.IO
             if (unpatchedArrayInfo.Count == 0 || arrayData.Count == 0)
                 return;
 
-            var orderedArrays = unpatchedArrayInfo.OrderBy(x => x.containingArrayIndex).ThenBy(x => x.property.GetCustomAttribute<FieldIndexAttribute>()?.Index);
+            var orderedArrays = unpatchedArrayInfo
+                .OrderBy(x => x.dataContainerIndex)
+                .ThenBy(x => x.containingArrayIndex)
+                //.ThenBy(x => EbxSharedTypeDescriptors.std.Fields.FindIndex(y => y.NameHashU == x.property.GetCustomAttribute<HashAttribute>().Hash));
+                //.OrderBy(x => EbxSharedTypeDescriptors.patchStd.Fields.FindIndex(y => y.NameHashU == x.property.GetCustomAttribute<HashAttribute>().Hash));
+                .ThenBy(x => x.property.GetCustomAttribute<FieldIndexAttribute>()?.Index);
             var orderedArrayNames = orderedArrays.Select(x => x.property.Name).ToArray();
             foreach (var unpatchedArray in orderedArrays)
             {
@@ -1045,8 +1043,83 @@ namespace FrostySdk.FrostySdk.IO
             var propertiesOrderedByOffset = properties.OrderBy(x => x.GetCustomAttribute<EbxFieldMetaAttribute>().Offset).ToArray();
             var propertiesOrderedByIndex = properties.OrderBy(x => x.GetCustomAttribute<FieldIndexAttribute>().Index).ToArray();
 
-            var ebxFieldOffsets = new HashSet<(PropertyInfo property, uint offset)>();
             var ebxClass = GetEbxClass(objType.GetCustomAttribute<HashAttribute>().Hash);
+            
+
+            foreach (var propertyInfo in propertiesOrderedByOffset)
+            //foreach (var propertyInfo in propertiesOrderedByIndex)
+            {
+                IsTransientAttribute isTransientAttribute = propertyInfo.GetCustomAttribute<IsTransientAttribute>();
+                if (isTransientAttribute != null)
+                {
+#if DEBUG
+                    writtenProperties.Add(propertyInfo);
+#endif
+                    continue;
+                }
+
+                EbxFieldMetaAttribute ebxFieldMetaAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
+                if (ebxFieldMetaAttribute == null || ebxFieldMetaAttribute.Type == EbxFieldType.Inherited)
+                {
+#if DEBUG
+                    writtenProperties.Add(propertyInfo);
+#endif
+                    continue;
+                }
+
+                if (propertyInfo == null)
+                {
+#if DEBUG
+                    Debug.WriteLine("There is a dodgy Property in here. How can there be a null property info in a list of property infos?");
+                    FileLogger.WriteLine("There is a dodgy Property in here. How can there be a null property info in a list of property infos?");
+#endif
+                    continue;
+                }
+                else
+                {
+#if DEBUG
+                    writtenProperties.Add(propertyInfo);
+#endif
+                    bool isReference = propertyInfo.GetCustomAttribute<IsReferenceAttribute>() != null;
+                    if (ebxFieldMetaAttribute.IsArray)
+                    {
+                        uint fieldNameHash = propertyInfo.GetCustomAttribute<HashAttribute>()!.Hash;
+                        //WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.ArrayType, fieldNameHash, classMeta.Alignment, writer, isReference);
+                        WriteArray(obj, ebxFieldMetaAttribute, fieldNameHash, classMeta.Alignment, writer, isReference, propertyInfo, dataContainerIndex);
+                    }
+                    else
+                    {
+                        WriteField(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.Type, classMeta.Alignment, writer, isReference, dataContainerIndex);
+                    }
+                }
+            }
+#if DEBUG
+            var unwrittenProperties = properties.Where(x => !writtenProperties.Any(y => y.Name == x.Name));
+            if (unwrittenProperties.Any() && obj == objsToProcess[0])
+            {
+                throw new Exception("Some properties were not written");
+            }
+#endif
+
+            writer.WritePadding(classMeta.Alignment);
+
+        }
+
+        /// <summary>
+        /// UNUSED: This method using the EbxTypeDescriptors to write the class
+        /// </summary>
+        /// <param name="ebxClass"></param>
+        /// <param name="properties"></param>
+        /// <param name="obj"></param>
+        /// <param name="objType"></param>
+        /// <param name="writer"></param>
+        /// <param name="dataContainerIndex"></param>
+        void WriteClassUsingEbxDescriptors(EbxClass? ebxClass, PropertyInfo[] properties, object obj, Type objType, NativeWriter writer, int dataContainerIndex)
+        {
+            var classMeta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
+
+            var ebxFieldOffsets = new HashSet<(PropertyInfo property, uint offset)>();
+
             for (int i = 0; i < ebxClass.Value.FieldCount; i++)
             {
                 var ebxField = GetEbxField(ebxClass.Value.FieldIndex + i);
@@ -1064,9 +1137,9 @@ namespace FrostySdk.FrostySdk.IO
                 ebxFieldOffsets.Add((propertyInfo, ebxField.DataOffset));
             }
 
-            
 
-            foreach(var propertyInfo in ebxFieldOffsets.OrderBy(x=>x.offset).Select(x=>x.property))
+
+            foreach (var propertyInfo in ebxFieldOffsets.OrderBy(x => x.offset).Select(x => x.property))
             {
                 var ebxFieldMetaAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
                 bool isReference = propertyInfo.GetCustomAttribute<IsReferenceAttribute>() != null;
@@ -1074,7 +1147,7 @@ namespace FrostySdk.FrostySdk.IO
                 {
                     uint fieldNameHash = propertyInfo.GetCustomAttribute<HashAttribute>()!.Hash;
                     //WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.ArrayType, fieldNameHash, classMeta.Alignment, writer, isReference);
-                    WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute, fieldNameHash, classMeta.Alignment, writer, isReference, propertyInfo);
+                    WriteArray(obj, ebxFieldMetaAttribute, fieldNameHash, classMeta.Alignment, writer, isReference, propertyInfo);
                 }
                 else
                 {
@@ -1082,69 +1155,6 @@ namespace FrostySdk.FrostySdk.IO
                 }
 
             }
-
-//                foreach (var propertyInfo in propertiesOrderedByOffset)
-//            //foreach (var propertyInfo in propertiesOrderedByIndex)
-//            {
-//                IsTransientAttribute isTransientAttribute = propertyInfo.GetCustomAttribute<IsTransientAttribute>();
-//                if (isTransientAttribute != null)
-//                {
-//#if DEBUG
-//                    writtenProperties.Add(propertyInfo);
-//#endif
-//                    continue;
-//                }
-
-//                EbxFieldMetaAttribute ebxFieldMetaAttribute = propertyInfo.GetCustomAttribute<EbxFieldMetaAttribute>();
-//                if (ebxFieldMetaAttribute == null || ebxFieldMetaAttribute.Type == EbxFieldType.Inherited)
-//                {
-//#if DEBUG
-//                    writtenProperties.Add(propertyInfo);
-//#endif
-//                    continue;
-//                }
-
-//                if (propertyInfo == null)
-//                {
-//#if DEBUG
-//                    Debug.WriteLine("There is a dodgy Property in here. How can there be a null property info in a list of property infos?");
-//                    FileLogger.WriteLine("There is a dodgy Property in here. How can there be a null property info in a list of property infos?");
-//#endif
-//                    continue;
-//                }
-//                else
-//                {
-//#if DEBUG
-//                    writtenProperties.Add(propertyInfo);
-
-//                    if (propertyInfo.Name == "SHOT_ShotSpeedCoe")
-//                    {
-
-//                    }
-//#endif
-//                    bool isReference = propertyInfo.GetCustomAttribute<IsReferenceAttribute>() != null;
-//                    if (ebxFieldMetaAttribute.IsArray)
-//                    {
-//                        uint fieldNameHash = propertyInfo.GetCustomAttribute<HashAttribute>()!.Hash;
-//                        //WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.ArrayType, fieldNameHash, classMeta.Alignment, writer, isReference);
-//                        WriteArray(propertyInfo.GetValue(obj), ebxFieldMetaAttribute, fieldNameHash, classMeta.Alignment, writer, isReference, propertyInfo);
-//                    }
-//                    else
-//                    {
-//                        WriteField(propertyInfo.GetValue(obj), ebxFieldMetaAttribute.Type, classMeta.Alignment, writer, isReference, dataContainerIndex);
-//                    }
-//                }
-//            }
-//#if DEBUG
-//            var unwrittenProperties = properties.Where(x => !writtenProperties.Any(y => y.Name == x.Name));
-//            if (unwrittenProperties.Any() && obj == objsToProcess[0])
-//            {
-//                throw new Exception("Some properties were not written");
-//            }
-//#endif
-
-            writer.WritePadding(classMeta.Alignment);
-
         }
 
         internal EbxField GetEbxField(int index)
@@ -1314,8 +1324,13 @@ namespace FrostySdk.FrostySdk.IO
         }
 
         //protected void WriteArray(object obj, EbxFieldType elementFieldType, uint fieldNameHash, byte classAlignment, NativeWriter writer, bool isReference)
-        protected void WriteArray(object arrayPropertyValue, EbxFieldMetaAttribute fieldMetaAttribute, uint fieldNameHash, byte classAlignment, NativeWriter mainWriter, bool isReference, PropertyInfo property, int dataContainerIndex = 0)
+        protected void WriteArray(object parentObj, EbxFieldMetaAttribute fieldMetaAttribute, uint fieldNameHash, byte classAlignment, NativeWriter mainWriter, bool isReference, PropertyInfo property, int dataContainerIndex = 0)
         {
+            var classMeta = parentObj.GetType().GetCustomAttribute<EbxClassMetaAttribute>();
+            var ebxClass = GetEbxClass(parentObj.GetType().GetCustomAttribute<HashAttribute>().Hash);
+            var ebxField = EbxSharedTypeDescriptors.std.Fields.Find(x=>x.NameHashU.Equals(fieldNameHash));
+            var arrayPropertyValue = property.GetValue(parentObj);
+
             int classIndex = typesToProcess.FindIndex((Type item) => item == arrayPropertyValue.GetType().GetGenericArguments()[0]);
             if (classIndex == -1)
             {

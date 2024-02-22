@@ -1,3 +1,5 @@
+using System.Security.Policy;
+
 namespace FrostySdk.IO
 {
     public struct EbxArray
@@ -8,7 +10,14 @@ namespace FrostySdk.IO
 
         public uint Count;
 
-        public uint PathDepth { get; internal set; }
-        public int TypeFlags { get; internal set; }
+        public uint PathDepth { get; set; }
+
+        public int TypeFlags { get; set; }
+
+        public uint Index { get; set; }
+
+        public EbxClass ArrayClass { get; set; }
+
+        public uint Hash { get; set; }
     }
 }

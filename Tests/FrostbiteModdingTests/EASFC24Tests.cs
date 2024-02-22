@@ -1,5 +1,6 @@
 ﻿using FC24Plugin;
 using FMT.FileTools;
+using FMT.Logging;
 using Frostbite.FileManagers;
 using FrostySdk;
 using FrostySdk.Frostbite;
@@ -245,5 +246,33 @@ namespace FrostbiteModdingTests
             frostyModExecutor.Run(this, GameInstanceSingleton.Instance.GAMERootPath, new List<string>() { "test.fbmod" }.ToArray()).Wait();
         }
 
+        [TestMethod]
+        public void ReadWriteTestCompareEbx()
+        {
+            GameInstanceSingleton.InitializeSingleton(GamePathEXE, true, this, true);
+            ProjectManagement projectManagement = new ProjectManagement(GamePathEXE, this);
+
+            //var entryName = "Content/Common/Logic/Game/PitchColorsSelector_Prefab";
+            //var entryName = "fifa/attribulator/gameplay/groups/gp_actor/gp_actor_action_runtime";
+            var entryName = "fifa/attribulator/gameplay/groups/gp_actor/gp_actor_movement_runtime";
+
+            var ebxAssetVanilla = AssetManager.Instance.GetEbx(AssetManager.Instance.GetEbxEntry(entryName));
+            var ebxAssetVanillaArray = ((MemoryStream)AssetManager.Instance.GetEbxStream(AssetManager.Instance.GetEbxEntry(entryName))).ToArray();
+            DebugBytesToFileLogger.Instance.WriteAllBytes("_entryVanilla", ebxAssetVanillaArray, "EBX");
+            AssetManager.Instance.ModifyEbx(entryName, ebxAssetVanilla);
+            var ebxAssetModifiedArray = ((MemoryStream)AssetManager.Instance.GetEbxStream(AssetManager.Instance.GetEbxEntry(entryName), true)).ToArray();
+            DebugBytesToFileLogger.Instance.WriteAllBytes("_entryModified", ebxAssetModifiedArray, "EBX");
+            for (var i = 0; i < ebxAssetVanillaArray.Length; i++)
+            {
+                if (ebxAssetVanillaArray[i] != ebxAssetModifiedArray[i])
+                {
+                    Assert.Fail();
+                }
+            }
+
+            var testR = "test.fbmod";
+            projectManagement.Project.WriteToMod(testR, new FrostySdk.ModSettings());
+
+        }
     }
 }
