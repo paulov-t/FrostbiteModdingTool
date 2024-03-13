@@ -68,6 +68,22 @@
 				{
 					"PropertyName": "ATTR_ReactionTimeRate",
 					"Description": "The heigher this value, the less time it will take for the player to react to input"
+				},
+				{
+					"PropertyName": "DribbleTrapMinBranchTimeAfterContactEasy",
+					"Description": "Dribbling/Trapping Min BranchTime after contact in easiest context"
+				},
+				{
+					"PropertyName": "DribbleFootStepBranchMaxDelayTimeBest",
+					"Description": "Dribbling Max delay time after contact to weight for a foot step (Time for best player)"
+				},
+				{
+					"PropertyName": "DribbleFootStepBranchMaxDelayTimeBase",
+					"Description": "Dribbling Max delay time after contact to weight for a foot step (Time for base player)"
+				},
+				{
+					"PropertyName": "DribbleFootStepBranchDelayTimeAttribBase",
+					"Description": "Dribbling Max delay time after contact to weight for a foot step (Player Attibute to use the base attribute player)"
 				}
 			]
 		},
@@ -541,6 +557,53 @@
 				{
 					"PropertyName": "InterceptRunSpeed",
 					"Description": "The speed that needs to be reached for a running tackle to be launched."
+				}
+			]
+		},
+		{
+			"TypeName": "AttribSchema_gp_cpuai_cpuaipredictionpoints",
+			"Properties": [
+				{
+					"PropertyName": "PredictionPointMinMovementDelta",
+					"Description": "This contributes to how much the dribbler wants to move the ball forward. Increasing the value should reduce how much the dribbler passes backward."
+				},
+				{
+					"PropertyName": "PredictionPointMaxMovementDistance",
+					"Description": "This value represents how much the dribbler considers to be a lot of movement. Increasing this value will make the dribbler less sensitive about moving the ball forward or backward. Conversely, if you decrease this value then the dribbler will be more careful about passing the ball back, or passing it forward."
+				},
+				{
+					"PropertyName": "PredictionPointMaxSpaceDistance",
+					"Description": "When calculating prediction points, this value is used to determine what at value a player considers to have the optimim amount of space. For example. if this value is 70 feet, the player will consider his space rating to be 1.0 if there is no defender closer than 70 feet from him. Dependant on AttackPace."
+				}
+			]
+		},
+		{
+			"TypeName": "AttribSchema_gp_cpuai_cpuaithroughpass",
+			"Properties": [
+				{
+					"PropertyName": "CPUAI_ThroughPassSafety_DefenderDistBonusBasedOnApproachAngle",
+					"Description": "x is the angle between receiver to ball to defender...  (ie: 180 is when the defender is coming from goal side)\r\ny is the distance bonus we give the defender.. to discourage passes where we are slightly closer than the opponent but he is goalside and will be able to tackle us immediately (vs chasing)."
+				},
+				{
+					"PropertyName": "CPUAI_ThroughPassSafety_DefenderTimeBonusBasedOnApproachAngle",
+					"Description": "x is the angle between receiver to ball to defender...  (ie: 180 is when the defender is coming from goal side)\r\ny is the distance bonus we give the defender.. to discourage passes where we are slightly closer than the opponent but he is goalside and will be able to tackle us immediately (vs chasing)."
+				},
+				{
+					"PropertyName": "CPUAI_ThroughPassSafety_Distance",
+					"Description": "x is the difference in distance (negative means im closer.. positive means defender is closeR)\r\ny is the safety rate"
+				},
+				{
+					"PropertyName": "CPUAI_ThroughPassSafety_Time",
+					"Description": "x is the difference in time (used by vision players) (negative means im closer.. positive means defender is closer)\r\n\r\ny is the safety rate"
+				}
+			]
+		},
+		{
+			"TypeName": "AttribSchema_gp_defense_sealout",
+			"Properties": [
+				{
+					"PropertyName": "SealOut_AttackingTouchTimeThreshold",
+					"Description": "If your player is going to get to the ball more than this many ticks before his opponent, do not allow a seal out. This applies only in attacking situations (you are in the box, or are moving in an attacking direction towards the ball on the attacking third). Other situations use the default tuning for contextual and user requested seal outs.\r\n\r\nUse a negative value if you want to ensure you can only seal out if your are getting to the ball X ticks AFTER the opponent."
 				}
 			]
 		}
