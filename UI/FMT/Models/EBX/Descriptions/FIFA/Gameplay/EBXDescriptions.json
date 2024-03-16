@@ -62,6 +62,10 @@
 					"Description": "The speed ratio (higher is slower) of the default animation by ability. X = Height in Feet, Y = Ratio"
 				},
 				{
+					"PropertyName": "ATTR_DribbleJogSpeed",
+					"Description": "Jog speed"
+				},
+				{
 					"PropertyName": "ATTR_DribbleJogSpeedModifier",
 					"Description": "Modifies base dribble jog speed based on attributes"
 				},
@@ -84,6 +88,34 @@
 				{
 					"PropertyName": "DribbleFootStepBranchDelayTimeAttribBase",
 					"Description": "Dribbling Max delay time after contact to weight for a foot step (Player Attibute to use the base attribute player)"
+				},
+				{
+					"PropertyName": "DribbleSprintTouchSlowdownSpeedByAngle",
+					"Description": "(Old Dribbling System) Dribble speed slow down in wide turn"
+				},
+				{
+					"PropertyName": "DribbleAccelBoostDurationStrafe",
+					"Description": "Dribbling Accel boost Duration (Strafe Dribbling)"
+				},
+				{
+					"PropertyName": "DribbleAccelBoostScaleStrafe",
+					"Description": "Dribbling Accel boost Accel Scaling (Strafe Dribbling)"
+				},
+				{
+					"PropertyName": "DribbleAccelBoostDuration",
+					"Description": "Dribbling Accel boost Duration Player Attribute x:(0.0-1.0) y:Duration (ticks)"
+				},
+				{
+					"PropertyName": "DribbleAccelBoostScale",
+					"Description": "Dribbling Accel boost Accel Scaling Player Attribute x:(0.0-1.0) vs. y: Scale (coefficient)"
+				},
+				{
+					"PropertyName": "DribbleAccelBoostExitMinSpeed",
+					"Description": "Dribbling Accel boost Exit Min Speed x:(0.0-1.0) vs. y:  Speed (Feet/Tick)"
+				},
+				{
+					"PropertyName": "DribbleSprintSlowdownRate",
+					"Description": "Sprint Dribbling Slowdown Amount (ratio between jog to top speed. 0.5 means slowdown to half speed between Sprint and Jog)"
 				}
 			]
 		},

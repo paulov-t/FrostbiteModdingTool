@@ -157,7 +157,6 @@ namespace FMT.Models
             foreach (var p in objProperties)
             {
                 ModdableProperty moddableProperty = null;
-                //var subObj = p.GetValue(obj, BindingFlags.Public | BindingFlags.Instance, null, null, null);
                 try
                 {
                     var subObj = p.GetValue(obj);
@@ -168,19 +167,6 @@ namespace FMT.Models
 
                 if(moddableProperty != null)
                     yield return moddableProperty;
-                //if(p.CanWrite && p.SetMethod != null)
-                //    yield return new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
-                //else
-                //{
-                //    if(p.PropertyType.GetProperties().Any(x=>x.CanWrite && x.SetMethod != null))
-                //    {
-                //        yield return new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
-                //    }
-
-                //    var subObj = p.GetValue(obj);
-                //    if(GetModdableProperties(subObj, modpropchanged, subObj).Any())
-                //        yield return new ModdableProperty(obj, p, null, modpropchanged, vanillaObj);
-                //}
 
             }
 
