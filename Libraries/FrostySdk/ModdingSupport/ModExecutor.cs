@@ -450,7 +450,7 @@ namespace ModdingSupport
                             File.Move(exportedFilePath, exportedFileBackupPath);
 
                         await File.WriteAllBytesAsync(exportedFilePath, resourceData);
-                        if(UseVerboseLogging)
+                        if (UseVerboseLogging)
                             FileLogger.WriteLine($"Written {kvpMods.Value.ModDetails.Title} Embedded File Resource to {exportedFilePath}");
                     }
                     //
@@ -520,13 +520,13 @@ namespace ModdingSupport
                                 if (archiveData.ContainsKey(resource.Sha1))
                                     archiveData.Remove(resource.Sha1, out ArchiveInfo _);
 
-                        if(UseVerboseLogging)
-                                FileLogger.WriteLine($"Replacing Ebx {resource.Name} with {kvpMods.Value.ModDetails.Title} in ModifiedEbx list");
+                                if (UseVerboseLogging)
+                                    FileLogger.WriteLine($"Replacing Ebx {resource.Name} with {kvpMods.Value.ModDetails.Title} in ModifiedEbx list");
                             }
                             else
                             {
-                        if(UseVerboseLogging)
-                                FileLogger.WriteLine($"Adding Ebx {resource.Name} from {kvpMods.Value.ModDetails.Title} to ModifiedEbx list");
+                                if (UseVerboseLogging)
+                                    FileLogger.WriteLine($"Adding Ebx {resource.Name} from {kvpMods.Value.ModDetails.Title} to ModifiedEbx list");
                             }
                             EbxAssetEntry ebxEntry = new EbxAssetEntry();
                             resource.FillAssetEntry(ebxEntry);
@@ -549,13 +549,13 @@ namespace ModdingSupport
                                 if (archiveData.ContainsKey(resource.Sha1))
                                     archiveData.Remove(resource.Sha1, out ArchiveInfo _);
 
-                        if(UseVerboseLogging)
-                                FileLogger.WriteLine($"Replacing {resource.Type} with {kvpMods.Value.ModDetails.Title} in ModifiedRes list");
+                                if (UseVerboseLogging)
+                                    FileLogger.WriteLine($"Replacing {resource.Type} with {kvpMods.Value.ModDetails.Title} in ModifiedRes list");
                             }
                             else
                             {
-                        if(UseVerboseLogging)
-                                FileLogger.WriteLine($"Adding {resource.Type} {resource.Name} from {kvpMods.Value.ModDetails.Title} to ModifiedRes list");
+                                if (UseVerboseLogging)
+                                    FileLogger.WriteLine($"Adding {resource.Type} {resource.Name} from {kvpMods.Value.ModDetails.Title} to ModifiedRes list");
                             }
                             ResAssetEntry resEntry = new ResAssetEntry();
                             resource.FillAssetEntry(resEntry);
@@ -563,8 +563,8 @@ namespace ModdingSupport
                             modifiedRes.Add(resEntry.Name, resEntry);
                             if (archiveData.ContainsKey(resEntry.Sha1))
                             {
-                        if(UseVerboseLogging)
-                                FileLogger.WriteLine($"Replacing {resEntry.Sha1} ArchiveData with {kvpMods.Value.ModDetails.Title} in ModifiedRes list");
+                                if (UseVerboseLogging)
+                                    FileLogger.WriteLine($"Replacing {resEntry.Sha1} ArchiveData with {kvpMods.Value.ModDetails.Title} in ModifiedRes list");
                                 archiveData[resEntry.Sha1].Data = resourceData;
                             }
                             else
@@ -581,7 +581,7 @@ namespace ModdingSupport
                             break;
                         case ModResourceType.Chunk:
                             Guid guid = new Guid(resource.Name);
-                            
+
                             ChunkAssetEntry chunkAssetEntry = new ChunkAssetEntry();
                             resource.FillAssetEntry(chunkAssetEntry);
                             chunkAssetEntry.Size = resourceData.Length;
@@ -1056,26 +1056,16 @@ namespace ModdingSupport
             archiveData.Clear();
             GC.Collect();
 
-
+            EAAntiCheatWorkaround();
             RunFIFA23Setup();
 
             // Delete the Live Updates
             RunDeleteLiveTuningUpdates();
 
-            //RunSetupFIFAConfig();
-            //RunPowershellToUnblockDLLAtLocation(fs.BasePath);
             var fifaconfigexelocation = fs.BasePath + "\\FIFASetup\\fifaconfig.exe";
             var fifaconfigexe_origlocation = fs.BasePath + "\\FIFASetup\\fifaconfig_orig.exe";
             FileInfo fIGameExe = new FileInfo(GameEXEPath);
             FileInfo fiFifaConfig = new FileInfo(Path.Combine(AppContext.BaseDirectory, "thirdparty", "fifaconfig.exe"));
-
-            //if (ProfileManager.IsFIFA21DataVersion()
-            //    || ProfileManager.IsFIFA22DataVersion()
-            //    //|| ProfilesLibrary.IsFIFA23DataVersion()
-            //    )
-            //{
-            //    CopyFileIfRequired("ThirdParty/CryptBase.dll", fs.BasePath + "CryptBase.dll");
-            //}
 
             CopyFileIfRequired(fs.BasePath + "user.cfg", modPath + "user.cfg");
             if ((ProfileManager.IsFIFADataVersion()
@@ -1096,19 +1086,8 @@ namespace ModdingSupport
                 File.Move(fifaconfigexe_origlocation, fifaconfigexelocation); // replace
             }
 
-            //if (foundMods && UseModData)// || sameAsLast)
-            //{
-            //    Logger.Log("Launching game: " + fs.BasePath + ProfilesLibrary.ProfileName + ".exe (with Frostbite Mods in ModData)");
-            //    ExecuteProcess(fs.BasePath + ProfilesLibrary.ProfileName + ".exe", "-dataPath \"" + modPath.Trim('\\') + "\" " + "");
-            //}
-            //else 
-            //var dataPathArgument = "-dataPath \"" + modPath.Trim('\\') + "\" " + "";
             var dataPathArgument = "-dataPath ModData";
-            var arguments = dataPathArgument
-                //+ " " + fifaNonRetailArgument
-                //+ " " + dataModulesPathArgument
-                //+ " " + noConfigArgument
-                ;
+            var arguments = dataPathArgument;
 
 
 
@@ -1148,6 +1127,42 @@ namespace ModdingSupport
             GC.Collect();
             GC.WaitForPendingFinalizers();
             return true;
+        }
+
+        private string[] EAAntiCheatFiles = new [] { "EAAntiCheat.GameServiceLauncher.dll", "EAAntiCheat.GameServiceLauncher.exe", "preloader_l.dll" };
+
+        /// <summary>
+        /// Removes the odd EA Anti Cheat system that only works AFTER the game has run once
+        /// This workaround removes the system by reverting it back to the "vanilla" (verified) state
+        /// </summary>
+        private void EAAntiCheatWorkaround()
+        {
+            // Check to see if the _b file exists. If it does, then replace the normal one with the _b and then remove the _b
+            var bFileExists = false;
+            foreach(var file in EAAntiCheatFiles)
+            {
+                if(File.Exists(Path.Combine(FileSystem.Instance.BasePath, file + "_b")))
+                {
+                    bFileExists = true;
+                }
+            }
+
+            if(bFileExists)
+            {
+                foreach (var file in EAAntiCheatFiles)
+                {
+                    var filePath = Path.Combine(FileSystem.Instance.BasePath, file);
+                    var exists = File.Exists(filePath);
+                    var b_filePath = Path.Combine(FileSystem.Instance.BasePath, file + "_b");
+                    var b_exists = File.Exists(b_filePath);
+                    if(exists && b_exists)
+                    {
+                        File.Copy(b_filePath, filePath, true);
+                        File.Delete(b_filePath);
+                    }
+                }
+            }
+
         }
 
         private void EnsureBaseLocaleIniIsInstalled()
