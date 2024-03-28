@@ -1,4 +1,5 @@
 ﻿using FMT.Models;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -62,25 +63,25 @@ namespace FMT.Controls.Models
 
         public virtual string GetPropertyDescription()
         {
-            //try
-            //{
+            try
+            {
 
-            //    //if (EBXDescriptions.CachedDescriptions != null)
-            //    //{
-            //    //    foreach (var tDescription in EBXDescriptions.CachedDescriptions.Descriptions)
-            //    //    {
-            //    //        var indexOfPropertyDescription = tDescription
-            //    //            .Properties
-            //    //            .FindIndex(x => x.PropertyName.Equals(PropertyName, StringComparison.OrdinalIgnoreCase));
-            //    //        if (indexOfPropertyDescription != -1)
-            //    //            return tDescription.Properties[indexOfPropertyDescription].Description;
-            //    //    }
-            //    //}
-            //}
-            //catch
-            //{
+                if (EBXDescriptions.CachedDescriptions != null)
+                {
+                    foreach (var tDescription in EBXDescriptions.CachedDescriptions.Descriptions)
+                    {
+                        var indexOfPropertyDescription = tDescription
+                        .Properties
+                            .FindIndex(x => x.PropertyName.Equals(PropertyName, StringComparison.OrdinalIgnoreCase));
+                        if (indexOfPropertyDescription != -1)
+                            return tDescription.Properties[indexOfPropertyDescription].Description;
+                    }
+                }
+            }
+            catch
+            {
 
-            //}
+            }
             return null;
         }
 

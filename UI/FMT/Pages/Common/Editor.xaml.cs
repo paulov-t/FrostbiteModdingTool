@@ -39,6 +39,9 @@ namespace FIFAModdingUI.Pages.Common
 
         public object RootObject { get { return Asset.RootObject; } }
 
+        private object _vanillaRootObject = null;
+        public object VanillaRootObject { get { if (_vanillaRootObject == null) _vanillaRootObject = AssetManager.Instance.GetEbx((EbxAssetEntry)AssetEntry, false).RootObject; return _vanillaRootObject; } }
+
         private List<ModdableEntity> _rootObjProps;
 
         public List<ModdableEntity> RootObjectProperties
@@ -50,10 +53,8 @@ namespace FIFAModdingUI.Pages.Common
                     _rootObjProps = new List<ModdableEntity>();
                     if (RootObject != null)
                     {
-                        var vanillaRootObject = AssetManager.Instance.GetEbx((EbxAssetEntry)AssetEntry, false).RootObject;
-
-                        var fields = ModdableField.GetModdableFields(RootObject, Modprop_PropertyChanged, vanillaRootObject).ToList();
-                        var props = ModdableProperty.GetModdableProperties(RootObject, Modprop_PropertyChanged, vanillaRootObject).ToList();
+                        var fields = ModdableField.GetModdableFields(RootObject, Modprop_PropertyChanged, VanillaRootObject).ToList();
+                        var props = ModdableProperty.GetModdableProperties(RootObject, Modprop_PropertyChanged, VanillaRootObject).ToList();
                         _rootObjProps.AddRange(fields);
                         _rootObjProps.AddRange(props);
                         _rootObjProps = _rootObjProps
@@ -195,7 +196,7 @@ namespace FIFAModdingUI.Pages.Common
             _ = RootObjectProperties;
             await Dispatcher.InvokeAsync(() =>
             {
-                success = CreateEditor(RootObjectProperties, TreeView1).Result;
+                success = CreateEditor(RootObjectProperties, TreeView1);
                 this.DataContext = null;
                 this.DataContext = this;
             });
@@ -434,17 +435,29 @@ namespace FIFAModdingUI.Pages.Common
             return false;
         }
 
-        public async Task<bool> CreateEditor(List<ModdableEntity> moddableProperties, TreeView treeView)
+        public bool CreateEditor(List<ModdableEntity> moddableProperties, TreeView treeView)
         {
             bool success = true;
 
             treeView.Items.Clear();
-            foreach (var p in moddableProperties)
+            //foreach (var p in moddableProperties)
+            for(var i = 0; i < moddableProperties.Count; i++) 
             {
+                var p = moddableProperties[i];
+
                 TreeViewItem propTreeViewParent = new TreeViewItem();
 
                 propTreeViewParent.Header = p.PropertyName;
                 propTreeViewParent.ToolTip = p.GetPropertyDescription();
+
+                // Paul: This is a bit of a hack to show Descriptions for the FloatCurves
+                if (propTreeViewParent.ToolTip != null && (p.PropertyType == "FrostySdk.Ebx.PointerRef" || p.PropertyType == "Sdk.Ebx.PointerRef"))
+                {
+                    TextBlock tbPropertyDescription = new TextBlock();
+                    tbPropertyDescription.Text = $"{p.PropertyName}: {p.GetPropertyDescription()}";
+                    tbPropertyDescription.FontWeight = FontWeights.Bold;
+                    treeView.Items.Add(tbPropertyDescription);
+                }
 
                 bool AddToPropTreeViewParent = true;
 
@@ -458,7 +471,6 @@ namespace FIFAModdingUI.Pages.Common
                     continue;
                 }
 
-                
                 if (CreateEditorByList(p, propTreeViewParent, treeView))
                     continue;
 
@@ -466,9 +478,7 @@ namespace FIFAModdingUI.Pages.Common
                 var structProperties = ModdableProperty.GetModdableProperties(p.PropertyValue, (s, n) =>
                 {
                     _ = SaveToRootObject();
-                }).ToList();
-                propTreeViewParent.Header = p.PropertyName;
-                propTreeViewParent.ToolTip = p.GetPropertyDescription();
+                }, this.VanillaRootObject.GetProperty(p.PropertyName).GetValue(this.VanillaRootObject)).ToList();
                 foreach (var property in structProperties)
                 {
                     _ = CreateEditor(property, propTreeViewParent);
@@ -476,7 +486,7 @@ namespace FIFAModdingUI.Pages.Common
                 var structFields = ModdableField.GetModdableFields(p.PropertyValue, (s, n) =>
                 {
                     _ = SaveToRootObject();
-                }).ToList();
+                }, null).ToList();
                 foreach (var property in structFields)
                 {
                     if (!CreateEditor(property, propTreeViewParent, null, true))
