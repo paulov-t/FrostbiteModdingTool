@@ -196,7 +196,7 @@ namespace FIFAModdingUI.Pages.Common
             _ = RootObjectProperties;
             await Dispatcher.InvokeAsync(() =>
             {
-                success = CreateEditor(RootObjectProperties, TreeView1).Result;
+                success = CreateEditor(RootObjectProperties, TreeView1);
                 this.DataContext = null;
                 this.DataContext = this;
             });
@@ -435,7 +435,7 @@ namespace FIFAModdingUI.Pages.Common
             return false;
         }
 
-        public async Task<bool> CreateEditor(List<ModdableEntity> moddableProperties, TreeView treeView)
+        public bool CreateEditor(List<ModdableEntity> moddableProperties, TreeView treeView)
         {
             bool success = true;
 

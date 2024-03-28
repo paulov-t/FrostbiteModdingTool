@@ -384,15 +384,16 @@ namespace FMT.Pages.Common
                     btnExport.IsEnabled = true;
                 });
 
-                if (!OpenEbxTextureAsset(ebxEntry, cancellationToken))
+                if (!OpenEbxTextureAsset(ebxEntry, cancellationToken) && layoutImageViewer.CanClose)
                     layoutImageViewer.Close();
 
-                if (!await OpenEbxMeshAsset(ebxEntry, cancellationToken))
+                if (!await OpenEbxMeshAsset(ebxEntry, cancellationToken) && layoutMeshViewer.CanClose)
                     layoutMeshViewer.Close();
 
+                if(!OpenEbxSoundAsset(ebxEntry, cancellationToken) && layoutSoundViewer.CanClose)
+                    layoutSoundViewer.Close();
+
                 await OpenEbxSrandHairAsset(ebxEntry, cancellationToken);
-                await OpenEbxSoundAsset(ebxEntry, cancellationToken);
-                
 
                 if (string.IsNullOrEmpty(ebxEntry.Type) || ebxEntry.Type == "UnknownType")
                 {
@@ -430,24 +431,26 @@ namespace FMT.Pages.Common
             }
         }
 
-        private Task OpenEbxSoundAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken)
+        private bool OpenEbxSoundAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken)
         {
             if (ebxEntry.Type != "NewWaveAsset" && ebxEntry.Type != "HarmonySampleBankAsset")
-                return Task.CompletedTask;
+                return false;
 
             // New Wave
             if (ebxEntry.Type == "NewWaveAsset")
             {
                 OpenNewWaveAsset(ebxEntry);
+                return true;
             }
             // Harmony Bank
             else if (ebxEntry.Type == "HarmonySampleBankAsset")
             {
                 OpenHarmonyAsset(ebxEntry);
+                return true;
             }
             App.ShowUnsupportedMessageBox(ebxEntry.Type);
 
-            return Task.CompletedTask;
+            return false;
         }
 
         private Task OpenEbxSrandHairAsset(EbxAssetEntry ebxEntry, CancellationToken cancellationToken)
